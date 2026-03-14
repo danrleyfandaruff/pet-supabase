@@ -1,0 +1,81 @@
+.form-content {
+  --background: #f0f2f5;
+}
+
+.form-section {
+  background: #fff;
+  border-radius: 16px;
+  margin: 12px 16px 0;
+  padding: 4px 0 8px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+}
+
+.section-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--ion-color-primary);
+  margin: 8px 16px 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  ion-icon { font-size: 14px; }
+}
+
+.form-item {
+  --background: transparent;
+  --padding-start: 16px;
+  --inner-padding-end: 16px;
+  margin-bottom: 4px;
+
+  ion-label {
+    font-size: 13px !important;
+    color: #666 !important;
+    margin-bottom: 4px;
+  }
+}
+
+.optional {
+  font-weight: 400;
+  color: var(--ion-color-medium);
+}
+
+.filter-hint {
+  font-size: 11px;
+  color: var(--ion-color-primary);
+  font-weight: 600;
+}
+
+.field-error {
+  display: block;
+  font-size: 12px;
+  padding: 2px 20px 6px;
+}
+
+// ── Resumo de valor ────────────────────────────────────────
+.valor-resumo {
+  margin: 12px 16px 24px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 12px 16px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+}
+
+.valor-linha {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #555;
+  padding: 4px 0;
+
+  &.total {
+    border-top: 1px solid #f0f2f5;
+    margin-top: 6px;
+    padding-top: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ion-color-primary);
+  }
+}

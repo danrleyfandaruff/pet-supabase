@@ -1,0 +1,63 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/inicio" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Clientes</ion-title>
+  </ion-toolbar>
+  <ion-toolbar color="primary" class="search-toolbar">
+    <ion-searchbar
+      placeholder="Buscar por nome, e-mail ou telefone"
+      (ionInput)="onSearch($event)"
+      debounce="300"
+      class="custom-searchbar">
+    </ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="list-content">
+  <ion-refresher slot="fixed" (ionRefresh)="loadData(); $event.target.complete()">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div *ngIf="isLoading" class="loading-container">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+
+  <div class="list-wrapper" *ngIf="!isLoading">
+    <div *ngFor="let c of clientesFiltrados" class="card-item">
+      <div class="card-main" (click)="openForm(c)">
+        <div class="item-icon-wrap color-secondary">
+          <ion-icon name="person"></ion-icon>
+        </div>
+        <div class="card-text">
+          <h2>{{ c.nome }}</h2>
+          <p>{{ c.telefone || c.email || 'Sem contato' }}</p>
+        </div>
+        <ion-badge [color]="c.ativo ? 'success' : 'medium'">
+          {{ c.ativo ? 'Ativo' : 'Inativo' }}
+        </ion-badge>
+      </div>
+      <div class="card-actions">
+        <ion-button fill="clear" color="primary" (click)="openForm(c)">
+          <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+        </ion-button>
+        <ion-button fill="clear" color="danger" (click)="confirmDelete(c)">
+          <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading && clientesFiltrados.length === 0" class="empty-state">
+    <div class="empty-icon"><ion-icon name="people-outline"></ion-icon></div>
+    <h3>Nenhum cliente</h3>
+    <p>Toque em + para cadastrar</p>
+  </div>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="openForm()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

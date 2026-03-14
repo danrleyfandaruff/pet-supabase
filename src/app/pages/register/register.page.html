@@ -1,0 +1,153 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/login" text="Voltar"></ion-back-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding auth-content">
+  <div class="auth-container">
+
+    <!-- Cabeçalho -->
+    <div class="auth-header">
+      <div class="auth-logo">
+        <ion-icon name="person-add-outline" color="primary"></ion-icon>
+      </div>
+      <h1>Criar Conta</h1>
+      <p>Cadastre seu estabelecimento para começar</p>
+    </div>
+
+    <!-- Formulário -->
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+
+      <!-- Nome do Estabelecimento -->
+      <ion-item
+        class="auth-input"
+        [class.ion-invalid]="nomeEmpresa?.invalid && nomeEmpresa?.touched"
+        lines="none">
+        <ion-icon name="storefront-outline" slot="start" color="medium"></ion-icon>
+        <ion-input
+          formControlName="nomeEmpresa"
+          type="text"
+          label="Nome do estabelecimento"
+          labelPlacement="floating"
+          placeholder="Ex: Pet Shop da Ana"
+          autocomplete="organization">
+        </ion-input>
+      </ion-item>
+      <ion-note *ngIf="nomeEmpresa?.invalid && nomeEmpresa?.touched" color="danger" class="error-note">
+        <span *ngIf="nomeEmpresa?.errors?.['required']">Nome do estabelecimento é obrigatório</span>
+        <span *ngIf="nomeEmpresa?.errors?.['minlength']">Mínimo de 2 caracteres</span>
+      </ion-note>
+
+      <!-- Nome -->
+      <ion-item
+        class="auth-input"
+        [class.ion-invalid]="name?.invalid && name?.touched"
+        lines="none">
+        <ion-icon name="person-outline" slot="start" color="medium"></ion-icon>
+        <ion-input
+          formControlName="name"
+          type="text"
+          label="Nome completo"
+          labelPlacement="floating"
+          placeholder="Seu nome"
+          autocomplete="name">
+        </ion-input>
+      </ion-item>
+      <ion-note *ngIf="name?.invalid && name?.touched" color="danger" class="error-note">
+        <span *ngIf="name?.errors?.['required']">Nome é obrigatório</span>
+        <span *ngIf="name?.errors?.['minlength']">Mínimo de 2 caracteres</span>
+      </ion-note>
+
+      <!-- E-mail -->
+      <ion-item
+        class="auth-input"
+        [class.ion-invalid]="email?.invalid && email?.touched"
+        lines="none">
+        <ion-icon name="mail-outline" slot="start" color="medium"></ion-icon>
+        <ion-input
+          formControlName="email"
+          type="email"
+          label="E-mail"
+          labelPlacement="floating"
+          placeholder="seu@email.com"
+          autocomplete="email"
+          inputmode="email">
+        </ion-input>
+      </ion-item>
+      <ion-note *ngIf="email?.invalid && email?.touched" color="danger" class="error-note">
+        <span *ngIf="email?.errors?.['required']">E-mail é obrigatório</span>
+        <span *ngIf="email?.errors?.['email']">E-mail inválido</span>
+      </ion-note>
+
+      <!-- Senha -->
+      <ion-item
+        class="auth-input"
+        [class.ion-invalid]="password?.invalid && password?.touched"
+        lines="none">
+        <ion-icon name="lock-closed-outline" slot="start" color="medium"></ion-icon>
+        <ion-input
+          formControlName="password"
+          [type]="showPassword ? 'text' : 'password'"
+          label="Senha"
+          labelPlacement="floating"
+          placeholder="Mínimo 6 caracteres"
+          autocomplete="new-password">
+        </ion-input>
+        <ion-button slot="end" fill="clear" (click)="togglePassword()">
+          <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'" slot="icon-only" color="medium"></ion-icon>
+        </ion-button>
+      </ion-item>
+      <ion-note *ngIf="password?.invalid && password?.touched" color="danger" class="error-note">
+        <span *ngIf="password?.errors?.['required']">Senha é obrigatória</span>
+        <span *ngIf="password?.errors?.['minlength']">Mínimo de 6 caracteres</span>
+      </ion-note>
+
+      <!-- Confirmar Senha -->
+      <ion-item
+        class="auth-input"
+        [class.ion-invalid]="(confirmPassword?.touched && registerForm.errors?.['passwordMismatch'])"
+        lines="none">
+        <ion-icon name="shield-checkmark-outline" slot="start" color="medium"></ion-icon>
+        <ion-input
+          formControlName="confirmPassword"
+          [type]="showConfirmPassword ? 'text' : 'password'"
+          label="Confirmar senha"
+          labelPlacement="floating"
+          placeholder="Repita a senha"
+          autocomplete="new-password">
+        </ion-input>
+        <ion-button slot="end" fill="clear" (click)="toggleConfirmPassword()">
+          <ion-icon [name]="showConfirmPassword ? 'eye-off-outline' : 'eye-outline'" slot="icon-only" color="medium"></ion-icon>
+        </ion-button>
+      </ion-item>
+      <ion-note
+        *ngIf="confirmPassword?.touched && registerForm.errors?.['passwordMismatch']"
+        color="danger"
+        class="error-note">
+        As senhas não coincidem
+      </ion-note>
+
+      <!-- Botão Cadastrar -->
+      <ion-button
+        type="submit"
+        expand="block"
+        class="auth-btn"
+        [disabled]="registerForm.invalid">
+        <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+        Criar Conta
+      </ion-button>
+
+    </form>
+
+    <!-- Rodapé -->
+    <div class="auth-footer">
+      <p>Já tem uma conta?
+        <a routerLink="/login" routerDirection="back">Entrar</a>
+      </p>
+    </div>
+
+  </div>
+</ion-content>

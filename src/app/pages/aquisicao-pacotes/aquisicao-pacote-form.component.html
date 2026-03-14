@@ -1,0 +1,50 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="dismiss()">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{ isEdit ? 'Editar' : 'Nova' }} Aquisição</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="save()" strong="true">Salvar</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [formGroup]="form" class="ion-padding">
+
+  <ion-item>
+    <ion-label position="stacked">Pacote *</ion-label>
+    <ion-select formControlName="id_pacote" placeholder="Selecionar pacote" interface="action-sheet">
+      <ion-select-option *ngFor="let p of pacotes" [value]="p.id">{{ p.nome }}</ion-select-option>
+    </ion-select>
+  </ion-item>
+  <ion-note *ngIf="form.get('id_pacote')?.invalid && form.get('id_pacote')?.touched" color="danger" class="ion-padding-start">
+    Pacote obrigatório
+  </ion-note>
+
+  <ion-item>
+    <ion-label position="stacked">Animal</ion-label>
+    <ion-select formControlName="id_animal" placeholder="Selecionar animal" interface="action-sheet">
+      <ion-select-option *ngFor="let a of animais" [value]="a.id">{{ a.nome }}</ion-select-option>
+    </ion-select>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="stacked">Data de Aquisição *</ion-label>
+    <ion-input formControlName="data_aquisicao" type="date"></ion-input>
+  </ion-item>
+  <ion-note *ngIf="form.get('data_aquisicao')?.invalid && form.get('data_aquisicao')?.touched" color="danger" class="ion-padding-start">
+    Data de aquisição obrigatória
+  </ion-note>
+
+  <ion-item>
+    <ion-label position="stacked">Data de Pagamento</ion-label>
+    <ion-input formControlName="data_pagamento" type="date"></ion-input>
+  </ion-item>
+  <ion-note class="ion-padding-start" style="color: var(--ion-color-medium); font-size: 12px;">
+    Deixe em branco se ainda não foi pago
+  </ion-note>
+
+</ion-content>

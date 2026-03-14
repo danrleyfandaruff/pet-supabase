@@ -1,0 +1,25 @@
+// Este arquivo aplica estilos globais para o app Ionic
+// Para mais informações sobre estilos globais:
+// https://ionicframework.com/docs/layout/global-stylesheets
+
+/* Core CSS required for Ionic components to work properly */
+@import "@ionic/angular/css/core.css";
+
+/* Basic CSS for apps built with Ionic */
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+
+/* Optional CSS utils that can be commented out */
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+
+/**
+ * Dark Mode — gerenciado via @media (prefers-color-scheme: dark) em src/theme/variables.scss
+ * O arquivo dark.system.css existe apenas a partir do Ionic 7.5+.
+ * A abordagem via CSS variables usada em variables.scss é compatível com todas as versões do Ionic 7.
+ */

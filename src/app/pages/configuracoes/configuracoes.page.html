@@ -1,0 +1,146 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-title>Ajustes</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="config-content">
+  <div *ngIf="isLoading" class="loading-container">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+
+  <div *ngIf="!isLoading">
+
+    <!-- Link para o manual -->
+    <div class="section-card manual-card" (click)="verManual()">
+      <div class="manual-icon">
+        <ion-icon name="book-outline"></ion-icon>
+      </div>
+      <div class="manual-text">
+        <h3>Manual do app</h3>
+        <p>Rever o guia de como usar o GroomerLab360</p>
+      </div>
+      <ion-icon name="chevron-forward-outline" class="arrow"></ion-icon>
+    </div>
+
+    <p class="section-label">Cadastros auxiliares</p>
+
+    <ion-accordion-group [multiple]="true">
+
+      <!-- RAÇAS -->
+      <ion-accordion value="racas">
+        <ion-item slot="header" color="light" lines="none" class="accordion-header">
+          <div class="acc-icon-wrap color-primary" slot="start">
+            <ion-icon name="paw-outline"></ion-icon>
+          </div>
+          <ion-label>Raças</ion-label>
+          <ion-badge slot="end" color="primary">{{ racas.length }}</ion-badge>
+        </ion-item>
+        <div slot="content" class="accordion-content">
+          <div *ngFor="let r of racas" class="mini-card">
+            <span>{{ r.nome }}</span>
+            <div class="mini-actions">
+              <ion-button fill="clear" color="primary" size="small" (click)="editRaca(r)">
+                <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+              </ion-button>
+              <ion-button fill="clear" color="danger" size="small" (click)="deleteRaca(r)">
+                <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+          <ion-button expand="block" fill="outline" color="primary" class="add-btn" (click)="addRaca()">
+            <ion-icon name="add" slot="start"></ion-icon> Adicionar Raça
+          </ion-button>
+        </div>
+      </ion-accordion>
+
+      <!-- RESPONSÁVEIS -->
+      <ion-accordion value="responsaveis">
+        <ion-item slot="header" color="light" lines="none" class="accordion-header">
+          <div class="acc-icon-wrap color-secondary" slot="start">
+            <ion-icon name="person-outline"></ion-icon>
+          </div>
+          <ion-label>Responsáveis</ion-label>
+          <ion-badge slot="end" color="secondary">{{ responsaveis.length }}</ion-badge>
+        </ion-item>
+        <div slot="content" class="accordion-content">
+          <div *ngFor="let r of responsaveis" class="mini-card">
+            <div>
+              <span>{{ r.nome }}</span>
+              <ion-badge [color]="r.ativo ? 'success' : 'medium'" style="margin-left:8px">{{ r.ativo ? 'Ativo' : 'Inativo' }}</ion-badge>
+            </div>
+            <div class="mini-actions">
+              <ion-button fill="clear" color="primary" size="small" (click)="editResponsavel(r)">
+                <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+              </ion-button>
+              <ion-button fill="clear" color="danger" size="small" (click)="deleteResponsavel(r)">
+                <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+          <ion-button expand="block" fill="outline" color="secondary" class="add-btn" (click)="addResponsavel()">
+            <ion-icon name="add" slot="start"></ion-icon> Adicionar Responsável
+          </ion-button>
+        </div>
+      </ion-accordion>
+
+      <!-- STATUS -->
+      <ion-accordion value="status">
+        <ion-item slot="header" color="light" lines="none" class="accordion-header">
+          <div class="acc-icon-wrap color-warning" slot="start">
+            <ion-icon name="flag-outline"></ion-icon>
+          </div>
+          <ion-label>Status</ion-label>
+          <ion-badge slot="end" color="warning">{{ statusList.length }}</ion-badge>
+        </ion-item>
+        <div slot="content" class="accordion-content">
+          <div *ngFor="let s of statusList" class="mini-card">
+            <div>
+              <span>{{ s.nome }}</span>
+              <p *ngIf="s.descricao" class="mini-desc">{{ s.descricao }}</p>
+            </div>
+            <div class="mini-actions">
+              <ion-button fill="clear" color="primary" size="small" (click)="editStatus(s)">
+                <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+              </ion-button>
+              <ion-button fill="clear" color="danger" size="small" (click)="deleteStatus(s)">
+                <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+          <ion-button expand="block" fill="outline" color="warning" class="add-btn" (click)="addStatus()">
+            <ion-icon name="add" slot="start"></ion-icon> Adicionar Status
+          </ion-button>
+        </div>
+      </ion-accordion>
+
+      <!-- TIPOS DE SERVIÇO -->
+      <ion-accordion value="tipos">
+        <ion-item slot="header" color="light" lines="none" class="accordion-header">
+          <div class="acc-icon-wrap color-tertiary" slot="start">
+            <ion-icon name="cut-outline"></ion-icon>
+          </div>
+          <ion-label>Tipos de Serviço</ion-label>
+          <ion-badge slot="end" color="tertiary">{{ tiposServico.length }}</ion-badge>
+        </ion-item>
+        <div slot="content" class="accordion-content">
+          <div *ngFor="let t of tiposServico" class="mini-card">
+            <span>{{ t.nome }}</span>
+            <div class="mini-actions">
+              <ion-button fill="clear" color="primary" size="small" (click)="editTipoServico(t)">
+                <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+              </ion-button>
+              <ion-button fill="clear" color="danger" size="small" (click)="deleteTipoServico(t)">
+                <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+          <ion-button expand="block" fill="outline" color="tertiary" class="add-btn" (click)="addTipoServico()">
+            <ion-icon name="add" slot="start"></ion-icon> Adicionar Tipo
+          </ion-button>
+        </div>
+      </ion-accordion>
+
+    </ion-accordion-group>
+  </div>
+</ion-content>

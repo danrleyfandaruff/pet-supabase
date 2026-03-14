@@ -1,0 +1,152 @@
+.config-content {
+  --background: #f0f2f5;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 60px 20px;
+}
+
+// ── Section label ──────────────────────────────────────────
+.section-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--ion-color-medium);
+  padding: 16px 20px 6px;
+  margin: 0;
+}
+
+// ── Manual card ────────────────────────────────────────────
+.manual-card {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, var(--ion-color-primary), #5260ff);
+  margin: 16px 16px 4px;
+  border-radius: 16px;
+  padding: 16px;
+  gap: 14px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(56, 128, 255, 0.3);
+
+  .manual-icon {
+    width: 44px;
+    height: 44px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    ion-icon {
+      font-size: 22px;
+      color: #fff;
+    }
+  }
+
+  .manual-text {
+    flex: 1;
+
+    h3 {
+      margin: 0 0 3px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    p {
+      margin: 0;
+      font-size: 12px;
+      color: rgba(255,255,255,0.8);
+    }
+  }
+
+  .arrow {
+    font-size: 18px;
+    color: rgba(255,255,255,0.7);
+  }
+}
+
+// ── Accordion ─────────────────────────────────────────────
+ion-accordion-group {
+  background: transparent;
+  padding: 0 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+ion-accordion {
+  border-radius: 14px !important;
+  overflow: hidden;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+}
+
+.accordion-header {
+  --background: #fff;
+  --border-radius: 14px;
+
+  .acc-icon-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 4px;
+
+    ion-icon { font-size: 18px; color: #fff; }
+
+    &.color-primary   { background: var(--ion-color-primary); }
+    &.color-secondary { background: var(--ion-color-secondary); }
+    &.color-warning   { background: var(--ion-color-warning); }
+    &.color-tertiary  { background: var(--ion-color-tertiary); }
+  }
+}
+
+// ── Accordion content ──────────────────────────────────────
+.accordion-content {
+  background: #fff;
+  padding: 4px 12px 8px;
+}
+
+.mini-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 4px;
+  border-bottom: 1px solid #f0f2f5;
+
+  &:last-of-type { border-bottom: none; }
+
+  span {
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+  }
+
+  .mini-desc {
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: var(--ion-color-medium);
+  }
+}
+
+.mini-actions {
+  display: flex;
+  gap: 0;
+
+  ion-button {
+    --padding-start: 6px;
+    --padding-end: 6px;
+    height: 32px;
+  }
+}
+
+.add-btn {
+  margin: 8px 0 4px;
+  --border-radius: 10px;
+}

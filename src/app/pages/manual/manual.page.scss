@@ -1,0 +1,180 @@
+.manual-content {
+  --background: #f7f8fc;
+}
+
+// ── Progress bar ───────────────────────────────────────────
+.progress-bar {
+  height: 4px;
+  background: #e0e0e0;
+
+  .progress-fill {
+    height: 100%;
+    background: var(--ion-color-primary);
+    border-radius: 2px;
+    transition: width 0.35s ease;
+  }
+}
+
+// ── Slide wrapper — ocupa espaço acima do footer fixo ──────
+.slides-wrapper {
+  position: absolute;
+  top: 4px; // logo abaixo da progress bar
+  left: 0;
+  right: 0;
+  bottom: 160px; // altura reservada pro footer
+  overflow-y: auto;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  animation: fadeSlide 0.3s ease;
+  padding: 8px 0 16px;
+}
+
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+// ── Icon ───────────────────────────────────────────────────
+.slide-icon-wrap {
+  width: 80px;
+  height: 80px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+
+  ion-icon { font-size: 42px; }
+}
+
+// ── Título e descrição ─────────────────────────────────────
+.slide-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1a1a2e;
+  margin: 0 0 8px;
+  line-height: 1.3;
+}
+
+.slide-desc {
+  font-size: 14px;
+  color: #777;
+  margin: 0 0 18px;
+  line-height: 1.6;
+}
+
+// ── Tips ───────────────────────────────────────────────────
+.tips-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+.tip-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+
+  .tip-bullet {
+    min-width: 24px;
+    height: 24px;
+    background: var(--ion-color-primary);
+    color: #fff;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  p {
+    margin: 0;
+    font-size: 13px;
+    color: #444;
+    line-height: 1.5;
+  }
+}
+
+// ── Footer fixo ────────────────────────────────────────────
+.fixed-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 160px;
+  background: #f7f8fc;
+  padding: 8px 16px calc(env(safe-area-inset-bottom) + 8px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+// ── Dots ───────────────────────────────────────────────────
+.dots-row {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 8px;
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 4px;
+    background: #d0d0d0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &.active {
+      background: var(--ion-color-primary);
+      width: 22px;
+    }
+  }
+}
+
+// ── "Não mostrar mais" ─────────────────────────────────────
+.no-show-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 6px;
+
+  span {
+    font-size: 13px;
+    color: var(--ion-color-medium);
+    cursor: pointer;
+  }
+}
+
+// ── Botões ─────────────────────────────────────────────────
+.btn-row {
+  display: flex;
+  align-items: center;
+}
+
+.spacer { flex: 1; }
+
+.btn-next {
+  --border-radius: 50px;
+  font-weight: 700;
+  min-width: 130px;
+}

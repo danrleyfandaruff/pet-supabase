@@ -1,0 +1,186 @@
+// ── Layout ────────────────────────────────────────────────
+.list-content {
+  --background: #f0f2f5;
+}
+
+// ── Search toolbar ─────────────────────────────────────────
+.search-toolbar {
+  --padding-bottom: 8px;
+}
+
+.custom-searchbar {
+  --background: rgba(255, 255, 255, 0.18);
+  --color: #fff;
+  --placeholder-color: rgba(255, 255, 255, 0.7);
+  --icon-color: rgba(255, 255, 255, 0.7);
+  --clear-button-color: rgba(255, 255, 255, 0.7);
+  --border-radius: 12px;
+  padding: 0 8px 4px;
+}
+
+// ── Loading ────────────────────────────────────────────────
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 60px 20px;
+}
+
+// ── List wrapper ───────────────────────────────────────────
+.list-wrapper {
+  padding: 16px 16px 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+// ── Card item ──────────────────────────────────────────────
+.card-item {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.07);
+  overflow: hidden;
+}
+
+.card-main {
+  display: flex;
+  align-items: center;
+  padding: 14px 14px 10px;
+  gap: 12px;
+  cursor: pointer;
+  min-height: 64px;
+}
+
+.card-text {
+  flex: 1;
+  min-width: 0;
+
+  h2 {
+    margin: 0 0 3px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a1a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--ion-color-medium);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.card-actions {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid #f0f2f5;
+  padding: 2px 6px;
+
+  ion-button {
+    --padding-start: 10px;
+    --padding-end: 10px;
+    height: 36px;
+  }
+}
+
+// ── Icon wrap ──────────────────────────────────────────────
+.item-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 22px;
+    color: #fff;
+  }
+
+  &.color-primary   { background: var(--ion-color-primary); }
+  &.color-secondary { background: var(--ion-color-secondary); }
+  &.color-success   { background: var(--ion-color-success); }
+  &.color-tertiary  { background: var(--ion-color-tertiary); }
+  &.color-warning   { background: var(--ion-color-warning); }
+  &.color-medium    { background: var(--ion-color-medium); }
+}
+
+// ── Status label ───────────────────────────────────────────
+.status-label {
+  font-size: 11px !important;
+  font-weight: 600;
+  color: var(--ion-color-primary) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-top: 2px !important;
+}
+
+// ── Empty state ────────────────────────────────────────────
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 80px 20px 40px;
+  color: var(--ion-color-medium);
+
+  .empty-icon {
+    width: 72px;
+    height: 72px;
+    background: rgba(var(--ion-color-medium-rgb), 0.1);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+
+    ion-icon {
+      font-size: 36px;
+    }
+  }
+
+  h3 {
+    margin: 0 0 6px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #444;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--ion-color-medium);
+  }
+}
+
+
+// ── Rótulos de serviço e pacote ────────────────────────────
+.servico-label, .pacote-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px !important;
+  margin-top: 2px !important;
+  color: var(--ion-color-medium) !important;
+
+  ion-icon { font-size: 12px; }
+}
+
+// ── Badge de status colorido ───────────────────────────────
+.status-badge {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &.badge-success { background: #e6f9f0; color: #1a8a4a; }
+  &.badge-warning { background: #fff8e1; color: #c77c00; }
+  &.badge-danger  { background: #fdecea; color: #c0392b; }
+  &.badge-primary { background: #e8f0ff; color: #2c5dcc; }
+  &.badge-medium  { background: #f0f2f5; color: #666; }
+}

@@ -1,0 +1,34 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="main-toolbar">
+    <ion-title class="main-title">GroomerLab <span>360</span></ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="inicio-content">
+
+  <!-- Banner de boas-vindas -->
+  <div class="welcome-banner" *ngIf="currentUser$ | async as user">
+    <div class="welcome-text">
+      <p>Olá,</p>
+      <h2>{{ user.name }}</h2>
+    </div>
+    <div class="welcome-icon">
+      <ion-icon name="paw"></ion-icon>
+    </div>
+  </div>
+
+  <!-- Grade de acesso rápido -->
+  <div class="section-header">
+    <span>Acesso rápido</span>
+  </div>
+
+  <div class="cards-grid">
+    <button class="menu-card" *ngFor="let card of cards" (click)="navigate(card.route)">
+      <div class="card-icon-wrap" [class]="'color-' + card.color">
+        <ion-icon [name]="card.icon"></ion-icon>
+      </div>
+      <span>{{ card.label }}</span>
+    </button>
+  </div>
+
+</ion-content>

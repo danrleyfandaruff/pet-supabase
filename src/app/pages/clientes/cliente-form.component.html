@@ -1,0 +1,39 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="dismiss()"><ion-icon name="close-outline" slot="icon-only"></ion-icon></ion-button>
+    </ion-buttons>
+    <ion-title>{{ isEdit ? 'Editar' : 'Novo' }} Cliente</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="save()" strong="true">Salvar</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [formGroup]="form" class="ion-padding">
+  <ion-item>
+    <ion-label position="stacked">Nome *</ion-label>
+    <ion-input formControlName="nome" placeholder="Nome completo"></ion-input>
+  </ion-item>
+  <ion-note *ngIf="form.get('nome')?.invalid && form.get('nome')?.touched" color="danger" class="ion-padding-start">Nome obrigatório</ion-note>
+
+  <ion-item>
+    <ion-label position="stacked">Data de Nascimento</ion-label>
+    <ion-input formControlName="data_nascimento" type="date"></ion-input>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="stacked">Telefone</ion-label>
+    <ion-input formControlName="telefone" type="tel" placeholder="(11) 99999-9999"></ion-input>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="stacked">E-mail</ion-label>
+    <ion-input formControlName="email" type="email" placeholder="email@exemplo.com"></ion-input>
+  </ion-item>
+
+  <ion-item>
+    <ion-label>Ativo</ion-label>
+    <ion-toggle formControlName="ativo" slot="end"></ion-toggle>
+  </ion-item>
+</ion-content>

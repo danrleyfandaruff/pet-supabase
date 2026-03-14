@@ -1,0 +1,94 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-title>Início</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="onLogout()" aria-label="Sair">
+        <ion-icon name="log-out-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="home-content">
+
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Início</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ng-container *ngIf="currentUser$ | async as user">
+
+    <!-- Card de perfil -->
+    <div class="profile-section ion-padding">
+      <ion-card class="profile-card">
+        <ion-card-content>
+          <div class="profile-avatar">
+            <ion-avatar>
+              <ion-icon name="person-circle-outline" class="avatar-icon" color="primary"></ion-icon>
+            </ion-avatar>
+          </div>
+          <div class="profile-info">
+            <h2>Olá, {{ user.name }}!</h2>
+            <p>{{ user.email }}</p>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Status da sessão -->
+    <div class="ion-padding-horizontal">
+      <ion-card class="status-card">
+        <ion-card-header>
+          <ion-card-subtitle>
+            <ion-icon name="shield-checkmark-outline" color="success"></ion-icon>
+            Sessão ativa
+          </ion-card-subtitle>
+          <ion-card-title>Autenticado com sucesso</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <p>Você está autenticado e pode acessar os recursos protegidos da aplicação.</p>
+
+          <ion-list lines="none" class="info-list">
+            <ion-item>
+              <ion-icon name="person-outline" slot="start" color="primary"></ion-icon>
+              <ion-label>
+                <h3>Nome</h3>
+                <p>{{ user.name }}</p>
+              </ion-label>
+            </ion-item>
+            <ion-item>
+              <ion-icon name="mail-outline" slot="start" color="primary"></ion-icon>
+              <ion-label>
+                <h3>E-mail</h3>
+                <p>{{ user.email }}</p>
+              </ion-label>
+            </ion-item>
+            <ion-item>
+              <ion-icon name="finger-print-outline" slot="start" color="primary"></ion-icon>
+              <ion-label>
+                <h3>ID do usuário</h3>
+                <p>{{ user.id }}</p>
+              </ion-label>
+            </ion-item>
+          </ion-list>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Ações -->
+    <div class="ion-padding">
+      <ion-button
+        expand="block"
+        fill="outline"
+        color="danger"
+        (click)="onLogout()"
+        class="logout-btn">
+        <ion-icon name="log-out-outline" slot="start"></ion-icon>
+        Sair da conta
+      </ion-button>
+    </div>
+
+  </ng-container>
+
+</ion-content>

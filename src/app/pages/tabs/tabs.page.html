@@ -1,0 +1,20 @@
+<ion-tabs>
+  <ion-tab-bar slot="bottom">
+
+    <ion-tab-button tab="inicio">
+      <ion-icon name="home-outline"></ion-icon>
+      <ion-label>Início</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button tab="ajustes">
+      <ion-icon name="settings-outline"></ion-icon>
+      <ion-label>Ajustes</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button (click)="onLogout()" class="logout-tab">
+      <ion-icon name="log-out-outline"></ion-icon>
+      <ion-label>Sair</ion-label>
+    </ion-tab-button>
+
+  </ion-tab-bar>
+</ion-tabs>

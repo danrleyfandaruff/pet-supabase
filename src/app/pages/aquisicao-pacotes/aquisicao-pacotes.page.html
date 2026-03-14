@@ -1,0 +1,68 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/inicio" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Aquisição de Pacotes</ion-title>
+  </ion-toolbar>
+  <ion-toolbar color="primary" class="search-toolbar">
+    <ion-searchbar
+      placeholder="Buscar por pacote ou animal"
+      (ionInput)="onSearch($event)"
+      debounce="300"
+      class="custom-searchbar">
+    </ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="list-content">
+  <ion-refresher slot="fixed" (ionRefresh)="loadData(); $event.target.complete()">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div *ngIf="isLoading" class="loading-container">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+
+  <div class="list-wrapper" *ngIf="!isLoading">
+    <div *ngFor="let a of aquisicoesFiltradas" class="card-item">
+      <div class="card-main" (click)="openForm(a)">
+        <div class="item-icon-wrap color-success">
+          <ion-icon name="bag-handle"></ion-icon>
+        </div>
+        <div class="card-text">
+          <h2>{{ a.pacote?.nome || 'Pacote não informado' }}</h2>
+          <p>Animal: {{ a.animal?.nome || '—' }}</p>
+          <p>Aquisição: {{ formatDate(a.data_aquisicao) }}
+            <span *ngIf="a.data_pagamento"> · Pago: {{ formatDate(a.data_pagamento) }}</span>
+          </p>
+        </div>
+        <ion-icon
+          name="{{ a.data_pagamento ? 'checkmark-circle' : 'time-outline' }}"
+          [color]="a.data_pagamento ? 'success' : 'warning'"
+          class="status-icon">
+        </ion-icon>
+      </div>
+      <div class="card-actions">
+        <ion-button fill="clear" color="primary" (click)="openForm(a)">
+          <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+        </ion-button>
+        <ion-button fill="clear" color="danger" (click)="confirmDelete(a)">
+          <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading && aquisicoesFiltradas.length === 0" class="empty-state">
+    <div class="empty-icon"><ion-icon name="bag-handle-outline"></ion-icon></div>
+    <h3>Nenhuma aquisição</h3>
+    <p>Toque em + para registrar</p>
+  </div>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="openForm()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

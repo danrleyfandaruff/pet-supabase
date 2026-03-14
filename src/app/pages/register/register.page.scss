@@ -1,0 +1,83 @@
+ion-content.auth-content {
+  --background: linear-gradient(160deg, #eef2ff 0%, #f7f8ff 50%, #e8f4ff 100%);
+}
+
+.auth-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100%;
+  padding: 24px 8px;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 40px;
+
+  .auth-logo {
+    ion-icon {
+      font-size: 80px;
+      color: var(--ion-color-primary);
+    }
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 800;
+    margin: 8px 0 4px;
+    color: #1a1a2e;
+  }
+
+  p {
+    color: #7a7a9a;
+    margin: 0;
+    font-size: 15px;
+  }
+}
+
+.auth-input {
+  --background: #ffffff;
+  --border-radius: 14px;
+  --padding-start: 12px;
+  --color: #1a1a2e;
+  margin-bottom: 10px;
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(56, 128, 255, 0.08);
+
+  &.ion-invalid.ion-touched {
+    border: 1.5px solid var(--ion-color-danger);
+  }
+}
+
+.error-note {
+  display: block;
+  font-size: 12px;
+  padding: 2px 16px 6px;
+}
+
+.auth-btn {
+  margin-top: 24px;
+  --border-radius: 14px;
+  height: 52px;
+  font-size: 16px;
+  font-weight: 700;
+  --box-shadow: 0 4px 16px rgba(56, 128, 255, 0.3);
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: 24px;
+
+  p {
+    color: #7a7a9a;
+    font-size: 14px;
+  }
+
+  a {
+    color: var(--ion-color-primary);
+    font-weight: 700;
+    text-decoration: none;
+  }
+}

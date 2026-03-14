@@ -1,0 +1,83 @@
+<ion-content class="manual-content" [scrollY]="false">
+
+  <!-- Progress bar -->
+  <div class="progress-bar">
+    <div class="progress-fill" [style.width.%]="((currentIndex + 1) / slides.length) * 100"></div>
+  </div>
+
+  <!-- Slide area (scrollable se necessário) -->
+  <div class="slides-wrapper">
+    <div class="slide">
+
+      <div class="slide-icon-wrap" [style.background]="currentSlide.iconColor + '1a'">
+        <ion-icon [name]="currentSlide.icon" [style.color]="currentSlide.iconColor"></ion-icon>
+      </div>
+
+      <h1 class="slide-title">{{ currentSlide.title }}</h1>
+      <p class="slide-desc">{{ currentSlide.description }}</p>
+
+      <div class="tips-list">
+        <div class="tip-item" *ngFor="let tip of currentSlide.tips; let i = index">
+          <div class="tip-bullet">{{ i + 1 }}</div>
+          <p>{{ tip }}</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer fixo -->
+  <div class="fixed-footer">
+
+    <!-- Dots -->
+    <div class="dots-row">
+      <span
+        *ngFor="let s of slides; let i = index"
+        class="dot"
+        [class.active]="i === currentIndex"
+        (click)="goTo(i)">
+      </span>
+    </div>
+
+    <!-- "Não mostrar mais" — só na última tela -->
+    <div class="no-show-row" *ngIf="isLast">
+      <ion-checkbox [(ngModel)]="naoMostrarMais" color="primary"></ion-checkbox>
+      <span (click)="naoMostrarMais = !naoMostrarMais">Não mostrar novamente</span>
+    </div>
+
+    <!-- Botões -->
+    <div class="btn-row">
+      <ion-button
+        fill="clear"
+        color="medium"
+        *ngIf="!isFirst"
+        (click)="prev()">
+        <ion-icon slot="start" name="arrow-back-outline"></ion-icon>
+        Anterior
+      </ion-button>
+
+      <div class="spacer"></div>
+
+      <ion-button
+        *ngIf="!isLast"
+        (click)="next()"
+        shape="round"
+        class="btn-next">
+        Próximo
+        <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+      </ion-button>
+
+      <ion-button
+        *ngIf="isLast"
+        (click)="finish()"
+        shape="round"
+        color="success"
+        class="btn-next">
+        <ion-icon slot="start" name="checkmark-outline"></ion-icon>
+        Começar
+      </ion-button>
+    </div>
+
+  </div>
+
+</ion-content>

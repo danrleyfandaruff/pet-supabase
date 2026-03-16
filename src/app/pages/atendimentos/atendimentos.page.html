@@ -155,8 +155,11 @@
     </ion-fab-button>
   </ion-fab>
 
-  <!-- Barra de ações em lote -->
-  <div class="selecao-bar" *ngIf="modoSelecao">
+</ion-content>
+
+<!-- Barra de ações em lote (ion-footer para nunca sobrepor o conteúdo) -->
+<ion-footer class="ion-no-border" *ngIf="modoSelecao">
+  <div class="selecao-bar">
     <button class="sel-bar-btn sel-all"
             (click)="selecionarTodos()"
             [class.sel-all-active]="todosNaoPagesSelecionados">
@@ -180,7 +183,7 @@
       <span>Cancelar</span>
     </button>
   </div>
-</ion-content>
+</ion-footer>
 
 <!-- ── Modal de pagamento ─────────────────────────────────── -->
 <ion-modal [isOpen]="pagamentoAberto" (didDismiss)="fecharPagamento()" [breakpoints]="[0,1]" [initialBreakpoint]="1">

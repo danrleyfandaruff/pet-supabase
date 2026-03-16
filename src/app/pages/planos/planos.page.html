@@ -1,0 +1,96 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/atendimentos" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Planos Ativos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="planos-content">
+  <ion-refresher slot="fixed" (ionRefresh)="loadData(); $event.target.complete()">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-wrap">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+
+  <!-- Empty -->
+  <div *ngIf="!isLoading && planos.length === 0" class="empty-state">
+    <div class="empty-icon">
+      <ion-icon name="layers-outline"></ion-icon>
+    </div>
+    <h3>Nenhum plano encontrado</h3>
+    <p>Os planos aparecem aqui quando um pacote multi-sessão é agendado.</p>
+  </div>
+
+  <!-- Lista de planos -->
+  <div class="planos-list" *ngIf="!isLoading && planos.length > 0">
+    <div class="plano-card" *ngFor="let vm of planos">
+
+      <!-- Cabeçalho do card -->
+      <div class="plano-header">
+        <div class="plano-pet-icon">
+          <ion-icon name="paw-outline"></ion-icon>
+        </div>
+        <div class="plano-header-info">
+          <h2>{{ vm.petNome }}</h2>
+          <p>{{ vm.pacoteNome }}</p>
+        </div>
+        <span class="status-badge" [ngClass]="vm.statusClass">
+          {{ vm.statusLabel }}
+        </span>
+      </div>
+
+      <!-- Progresso -->
+      <div class="plano-progresso">
+        <div class="progresso-info">
+          <span class="prog-label">Progresso</span>
+          <span class="prog-valor">{{ vm.concluidos }} de {{ vm.total }} sessões</span>
+        </div>
+        <div class="prog-bar-wrap">
+          <div class="prog-bar-fill" [style.width.%]="barraProgresso(vm)"></div>
+        </div>
+      </div>
+
+      <!-- Sessões resumo -->
+      <div class="plano-sessoes">
+        <div class="sessao-item" *ngFor="let at of vm.aquisicao.atendimento; let i = index">
+          <div class="sessao-dot"
+               [class.dot-feita]="at.pago || at.status_info?.nome?.toLowerCase()?.includes('conclu')"
+               [class.dot-proxima]="at.data === vm.proxData && !at.pago">
+          </div>
+          <span class="sessao-data">{{ formatDate(at.data) }}</span>
+          <span class="sessao-status-text"
+                [class.feita]="at.pago || at.status_info?.nome?.toLowerCase()?.includes('conclu')">
+            {{ at.pago ? 'Pago' : (at.status_info?.nome || 'Agendado') }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Próxima sessão destaque -->
+      <div class="proxima-sessao" *ngIf="vm.proxData && vm.concluidos < vm.total">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <span>Próxima: <strong>{{ formatDate(vm.proxData) }}</strong></span>
+      </div>
+
+      <!-- Botão cancelar (só se cancelável) -->
+      <div class="plano-footer">
+        <button class="btn-cancelar"
+                *ngIf="vm.cancelavel"
+                (click)="confirmarCancelamento(vm)">
+          <ion-icon name="close-circle-outline"></ion-icon>
+          Cancelar plano
+        </button>
+        <p class="nao-cancelavel" *ngIf="!vm.cancelavel">
+          <ion-icon name="lock-closed-outline"></ion-icon>
+          Não é possível cancelar — já há sessões realizadas
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+</ion-content>

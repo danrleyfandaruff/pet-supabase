@@ -42,6 +42,9 @@
         <ion-button fill="clear" color="tertiary" (click)="abrirHistorico(a); $event.stopPropagation()">
           <ion-icon slot="icon-only" name="time-outline"></ion-icon>
         </ion-button>
+        <ion-button fill="clear" color="medium" [routerLink]="['/tabs/prontuario', a.id]">
+          <ion-icon slot="icon-only" name="book-outline"></ion-icon>
+        </ion-button>
         <ion-button fill="clear" color="primary" (click)="openForm(a)">
           <ion-icon slot="icon-only" name="create-outline"></ion-icon>
         </ion-button>

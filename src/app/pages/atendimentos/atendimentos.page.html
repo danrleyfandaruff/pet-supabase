@@ -8,6 +8,9 @@
       <ion-button *ngIf="!modoSelecao" routerLink="/tabs/planos" fill="clear">
         <ion-icon slot="icon-only" name="layers-outline"></ion-icon>
       </ion-button>
+      <ion-button *ngIf="!modoSelecao" (click)="toggleVista()" fill="clear">
+        <ion-icon slot="icon-only" [name]="vistaAtual === 'lista' ? 'calendar-outline' : 'list-outline'"></ion-icon>
+      </ion-button>
       <ion-button *ngIf="!modoSelecao" (click)="toggleModoSelecao()" fill="clear">
         <ion-icon slot="icon-only" name="checkmark-done-outline"></ion-icon>
       </ion-button>
@@ -31,8 +34,35 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
+  <!-- ── Vista Semana ─────────────────────────────── -->
+  <div class="semana-wrapper" *ngIf="vistaAtual === 'semana'">
+    <div class="semana-header-label">
+      <ion-icon name="calendar-outline"></ion-icon>
+      <span>{{ semanaLabel }}</span>
+    </div>
+    <div class="semana-columns">
+      <div class="semana-col" *ngFor="let dia of diasSemanaAtual" [class.col-hoje]="dia.isHoje">
+        <div class="semana-col-header" [class.header-hoje]="dia.isHoje">
+          <span class="col-dia-nome">{{ dia.label.split(' ')[0] }}</span>
+          <span class="col-dia-num">{{ dia.label.split(' ')[1] }}</span>
+        </div>
+        <div class="semana-col-body">
+          <div
+            class="semana-chip"
+            *ngFor="let at of getAtendimentosDoDia(dia.data)"
+            [class.chip-pago]="at.pago"
+            (click)="openForm(at)">
+            <span class="chip-pet">{{ at.animal?.nome || at.cliente?.nome || '?' }}</span>
+            <span class="chip-serv">{{ at.servico?.nome || at.pacote?.nome || '' }}</span>
+          </div>
+          <div class="semana-vazio" *ngIf="getAtendimentosDoDia(dia.data).length === 0">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ── Calendário do mês ─────────────────────────── -->
-  <div class="calendar-wrapper">
+  <div class="calendar-wrapper" *ngIf="vistaAtual === 'lista'">
     <div class="calendar-header">
       <button class="cal-nav" (click)="prevMonth()">
         <ion-icon name="chevron-back-outline"></ion-icon>
@@ -75,11 +105,11 @@
     </div>
   </div>
 
-  <div *ngIf="isLoading" class="loading-container">
+  <div *ngIf="isLoading && vistaAtual === 'lista'" class="loading-container">
     <ion-spinner name="crescent" color="primary"></ion-spinner>
   </div>
 
-  <div class="list-wrapper" *ngIf="!isLoading">
+  <div class="list-wrapper" *ngIf="!isLoading && vistaAtual === 'lista'">
     <div
       *ngFor="let a of atendimentosFiltrados"
       class="card-item"
@@ -147,7 +177,7 @@
     </div>
   </div>
 
-  <div *ngIf="!isLoading && atendimentosFiltrados.length === 0" class="empty-state">
+  <div *ngIf="!isLoading && vistaAtual === 'lista' && atendimentosFiltrados.length === 0" class="empty-state">
     <div class="empty-icon"><ion-icon name="calendar-outline"></ion-icon></div>
     <h3>Nenhum atendimento</h3>
     <p>Toque em + para agendar</p>

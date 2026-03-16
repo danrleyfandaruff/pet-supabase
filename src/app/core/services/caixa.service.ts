@@ -65,6 +65,18 @@ export class CaixaService extends BaseCrudService<Caixa> {
     return resultado;
   }
 
+  /** Registros de caixa em um período (YYYY-MM-DD) */
+  async getByPeriodo(inicio: string, fim: string): Promise<Caixa[]> {
+    const { data, error } = await this.supabaseService.client
+      .from(this.tableName)
+      .select(this.selectQuery)
+      .gte('data', inicio)
+      .lte('data', fim)
+      .order('data', { ascending: true });
+    if (error) throw error;
+    return (data as unknown as Caixa[]) || [];
+  }
+
   /** Retorna todos os registros ordenados pela data decrescente */
   async getAllOrdenado(): Promise<Caixa[]> {
     const { data, error } = await this.supabaseService.client

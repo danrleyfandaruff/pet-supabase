@@ -1,0 +1,159 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/inicio" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Relatórios</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="loadData()">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="rel-content">
+  <ion-refresher slot="fixed" (ionRefresh)="loadData(); $event.target.complete()">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Seletor de período -->
+  <div class="periodo-wrap">
+    <button
+      class="periodo-btn"
+      *ngFor="let p of periodos"
+      [class.active]="periodoSelecionado === p.value"
+      (click)="changePeriodo(p.value)">
+      {{ p.label }}
+    </button>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-wrap">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+
+  <div *ngIf="!isLoading" class="rel-body">
+
+    <!-- Cards de métricas principais -->
+    <div class="metrics-grid">
+
+      <div class="metric-card accent-green">
+        <div class="metric-icon">
+          <ion-icon name="arrow-up-circle-outline"></ion-icon>
+        </div>
+        <div class="metric-info">
+          <span class="metric-label">Receita</span>
+          <span class="metric-valor">{{ formatCurrency(totalReceita) }}</span>
+        </div>
+      </div>
+
+      <div class="metric-card accent-red">
+        <div class="metric-icon">
+          <ion-icon name="arrow-down-circle-outline"></ion-icon>
+        </div>
+        <div class="metric-info">
+          <span class="metric-label">Despesas</span>
+          <span class="metric-valor">{{ formatCurrency(totalDespesas) }}</span>
+        </div>
+      </div>
+
+      <div class="metric-card" [class.accent-green]="lucroLiquido >= 0" [class.accent-red]="lucroLiquido < 0">
+        <div class="metric-icon">
+          <ion-icon name="wallet-outline"></ion-icon>
+        </div>
+        <div class="metric-info">
+          <span class="metric-label">Lucro Líquido</span>
+          <span class="metric-valor">{{ formatCurrency(lucroLiquido) }}</span>
+        </div>
+      </div>
+
+      <div class="metric-card accent-blue">
+        <div class="metric-icon">
+          <ion-icon name="cut-outline"></ion-icon>
+        </div>
+        <div class="metric-info">
+          <span class="metric-label">Atendimentos</span>
+          <span class="metric-valor">{{ totalAtendimentos }}</span>
+        </div>
+      </div>
+
+      <div class="metric-card accent-blue">
+        <div class="metric-icon">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+        </div>
+        <div class="metric-info">
+          <span class="metric-label">Pagos</span>
+          <span class="metric-valor">{{ totalPagos }}</span>
+        </div>
+      </div>
+
+      <div class="metric-card accent-purple">
+        <div class="metric-icon">
+          <ion-icon name="pricetag-outline"></ion-icon>
+        </div>
+        <div class="metric-info">
+          <span class="metric-label">Ticket Médio</span>
+          <span class="metric-valor">{{ formatCurrency(ticketMedio) }}</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Top Serviços -->
+    <div class="ranking-section" *ngIf="topServicos.length > 0">
+      <h3 class="ranking-title">
+        <ion-icon name="cut-outline"></ion-icon>
+        Top Serviços
+      </h3>
+      <div class="ranking-list">
+        <div class="ranking-item" *ngFor="let item of topServicos; let i = index">
+          <div class="rank-pos">{{ i + 1 }}</div>
+          <div class="rank-info">
+            <div class="rank-nome">{{ item.nome }}</div>
+            <div class="rank-bar-wrap">
+              <div class="rank-bar" [style.width.%]="(item.total / maxTopServico()) * 100"></div>
+            </div>
+          </div>
+          <div class="rank-values">
+            <div class="rank-valor">{{ formatCurrency(item.total) }}</div>
+            <div class="rank-qtd">{{ item.quantidade }}x</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Clientes -->
+    <div class="ranking-section" *ngIf="topClientes.length > 0">
+      <h3 class="ranking-title">
+        <ion-icon name="person-outline"></ion-icon>
+        Top Clientes
+      </h3>
+      <div class="ranking-list">
+        <div class="ranking-item" *ngFor="let item of topClientes; let i = index">
+          <div class="rank-pos">{{ i + 1 }}</div>
+          <div class="rank-info">
+            <div class="rank-nome">{{ item.nome }}</div>
+            <div class="rank-bar-wrap">
+              <div class="rank-bar rank-bar-purple" [style.width.%]="(item.total / maxTopCliente()) * 100"></div>
+            </div>
+          </div>
+          <div class="rank-values">
+            <div class="rank-valor">{{ formatCurrency(item.total) }}</div>
+            <div class="rank-qtd">{{ item.quantidade }}x</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state" *ngIf="totalAtendimentos === 0">
+      <div class="empty-icon">
+        <ion-icon name="bar-chart-outline"></ion-icon>
+      </div>
+      <h3>Sem dados no período</h3>
+      <p>Nenhum atendimento encontrado para o período selecionado.</p>
+    </div>
+
+  </div>
+
+</ion-content>

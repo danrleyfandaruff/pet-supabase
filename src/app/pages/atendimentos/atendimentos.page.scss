@@ -497,6 +497,118 @@
   }
 }
 
+// ── Vista Semana ──────────────────────────────────────────
+.semana-wrapper {
+  background: #fff;
+  border-radius: 0 0 20px 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.semana-header-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 14px 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #444;
+
+  ion-icon {
+    font-size: 16px;
+    color: var(--ion-color-primary);
+  }
+}
+
+.semana-columns {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 12px;
+  &::-webkit-scrollbar { display: none; }
+}
+
+.semana-col {
+  flex: 0 0 100px;
+  min-width: 90px;
+  border-right: 1px solid #f0f2f5;
+
+  &:last-child { border-right: none; }
+  &.col-hoje .semana-col-header { background: var(--ion-color-primary); }
+  &.col-hoje .col-dia-nome,
+  &.col-hoje .col-dia-num { color: #fff; }
+}
+
+.semana-col-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px 6px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.col-dia-nome {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ion-color-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.col-dia-num {
+  font-size: 18px;
+  font-weight: 800;
+  color: #1a1a1a;
+  line-height: 1.2;
+}
+
+.semana-col-body {
+  padding: 6px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 60px;
+}
+
+.semana-chip {
+  background: #e8f0ff;
+  border-radius: 6px;
+  padding: 5px 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+
+  &.chip-pago { background: #e6f9f0; }
+  &:active { opacity: 0.7; }
+}
+
+.chip-pet {
+  font-size: 11px;
+  font-weight: 700;
+  color: #1a1a1a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chip-serv {
+  font-size: 10px;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.semana-vazio {
+  font-size: 12px;
+  color: #ccc;
+  text-align: center;
+  padding: 8px 0;
+}
+
 .chip-badge {
   display: inline-flex;
   align-items: center;

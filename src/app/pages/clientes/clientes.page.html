@@ -39,6 +39,9 @@
         </ion-badge>
       </div>
       <div class="card-actions">
+        <ion-button fill="clear" color="tertiary" [routerLink]="['/tabs/perfil-cliente', c.id]">
+          <ion-icon slot="icon-only" name="person-outline"></ion-icon>
+        </ion-button>
         <ion-button fill="clear" color="primary" (click)="openForm(c)">
           <ion-icon slot="icon-only" name="create-outline"></ion-icon>
         </ion-button>

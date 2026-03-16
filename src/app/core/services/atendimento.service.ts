@@ -69,6 +69,29 @@ export class AtendimentoService extends BaseCrudService<Atendimento> {
     if (error) throw error;
   }
 
+  /** Todos os atendimentos de um cliente específico */
+  async getByCliente(idCliente: number): Promise<Atendimento[]> {
+    const { data, error } = await this.supabaseService.client
+      .from(this.tableName)
+      .select(this.selectQuery)
+      .eq('id_cliente', idCliente)
+      .order('data', { ascending: false });
+    if (error) throw error;
+    return (data as unknown as Atendimento[]) || [];
+  }
+
+  /** Atendimentos em um período (YYYY-MM-DD) */
+  async getByPeriodo(inicio: string, fim: string): Promise<Atendimento[]> {
+    const { data, error } = await this.supabaseService.client
+      .from(this.tableName)
+      .select(this.selectQuery)
+      .gte('data', inicio)
+      .lte('data', fim)
+      .order('data', { ascending: true });
+    if (error) throw error;
+    return (data as unknown as Atendimento[]) || [];
+  }
+
   override async update(id: number, item: Partial<Atendimento>): Promise<Atendimento> {
     const payload = Object.fromEntries(
       Object.entries(item as object).filter(([, v]) => typeof v !== 'object' || v === null)

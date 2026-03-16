@@ -1,0 +1,104 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/clientes" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Perfil do Cliente</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="perfil-content">
+  <div *ngIf="isLoading" class="loading-wrap">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+
+  <div *ngIf="!isLoading && cliente">
+
+    <!-- Hero do cliente -->
+    <div class="cliente-hero">
+      <div class="avatar">{{ iniciais(cliente.nome) }}</div>
+      <div class="hero-info">
+        <h1>{{ cliente.nome }}</h1>
+        <p *ngIf="cliente.telefone">
+          <ion-icon name="call-outline"></ion-icon>
+          {{ cliente.telefone }}
+        </p>
+        <p *ngIf="cliente.email">
+          <ion-icon name="mail-outline"></ion-icon>
+          {{ cliente.email }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Cards de resumo -->
+    <div class="resumo-grid">
+      <div class="resumo-card">
+        <span class="resumo-label">Total Gasto</span>
+        <span class="resumo-valor verde">{{ formatCurrency(totalGasto) }}</span>
+      </div>
+      <div class="resumo-card">
+        <span class="resumo-label">Pendente</span>
+        <span class="resumo-valor" [class.vermelho]="saldoPendente > 0">{{ formatCurrency(saldoPendente) }}</span>
+      </div>
+      <div class="resumo-card">
+        <span class="resumo-label">Sessões</span>
+        <span class="resumo-valor">{{ totalSessoes }}</span>
+      </div>
+      <div class="resumo-card">
+        <span class="resumo-label">Pets</span>
+        <span class="resumo-valor">{{ animais.length }}</span>
+      </div>
+    </div>
+
+    <!-- Pets -->
+    <div class="section" *ngIf="animais.length > 0">
+      <div class="section-header">
+        <ion-icon name="paw-outline"></ion-icon>
+        <h2>Pets ({{ animais.length }})</h2>
+      </div>
+      <div class="pets-list">
+        <div class="pet-chip" *ngFor="let pet of animais" (click)="irParaProntuario(pet)">
+          <div class="pet-chip-icon">
+            <ion-icon name="paw-outline"></ion-icon>
+          </div>
+          <div class="pet-chip-info">
+            <span class="pet-chip-nome">{{ pet.nome }}</span>
+            <span class="pet-chip-raca">{{ pet.raca?.nome || 'Raça não informada' }}</span>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="pet-chip-arrow"></ion-icon>
+        </div>
+      </div>
+    </div>
+
+    <!-- Histórico de atendimentos -->
+    <div class="section" *ngIf="ultimosAtendimentos.length > 0">
+      <div class="section-header">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <h2>Últimos Atendimentos</h2>
+      </div>
+      <div class="ats-list">
+        <div class="at-item" *ngFor="let at of ultimosAtendimentos">
+          <div class="at-date-col">
+            <span class="at-date">{{ formatDate(at.data) }}</span>
+          </div>
+          <div class="at-info">
+            <span class="at-pet">{{ at.animal?.nome || '—' }}</span>
+            <span class="at-servico">{{ at.servico?.nome || at.pacote?.nome || '—' }}</span>
+          </div>
+          <div class="at-status">
+            <span class="at-badge" [class.pago]="at.pago" [class.pendente]="!at.pago">
+              {{ at.pago ? 'Pago' : 'Pendente' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty animais -->
+    <div class="section-empty" *ngIf="animais.length === 0">
+      <ion-icon name="paw-outline"></ion-icon>
+      <span>Nenhum pet cadastrado</span>
+    </div>
+
+  </div>
+</ion-content>

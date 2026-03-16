@@ -57,6 +57,26 @@ const routes: Routes = [
         loadChildren: () =>
           import('../planos/planos.module').then((m) => m.PlanosPageModule),
       },
+      {
+        path: 'relatorios',
+        loadChildren: () =>
+          import('../relatorios/relatorios.module').then((m) => m.RelatoriosPageModule),
+      },
+      {
+        path: 'perfil-cliente',
+        loadChildren: () =>
+          import('../perfil-cliente/perfil-cliente.module').then((m) => m.PerfilClientePageModule),
+      },
+      {
+        path: 'prontuario',
+        loadChildren: () =>
+          import('../prontuario/prontuario.module').then((m) => m.ProntuarioPageModule),
+      },
+      {
+        path: 'comissoes',
+        loadChildren: () =>
+          import('../comissoes/comissoes.module').then((m) => m.ComissoesPageModule),
+      },
       { path: '', redirectTo: 'inicio', pathMatch: 'full' },
     ],
   },

@@ -1,0 +1,90 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/inicio" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Comissões</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="com-content">
+  <ion-refresher slot="fixed" (ionRefresh)="loadData(); $event.target.complete()">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Seletor de mês -->
+  <div class="mes-wrap">
+    <div class="mes-scroll">
+      <button
+        class="mes-btn"
+        *ngFor="let m of mesesDisponiveis"
+        [class.active]="mesAtual === m.value"
+        (click)="changeMes(m.value)">
+        {{ m.label }}
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-wrap">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+
+  <div *ngIf="!isLoading" class="com-body">
+
+    <!-- Resumo geral -->
+    <div class="resumo-card">
+      <div class="resumo-row">
+        <div class="resumo-item">
+          <span class="resumo-label">Total Produzido</span>
+          <span class="resumo-valor">{{ formatCurrency(totalGeralBruto) }}</span>
+        </div>
+        <div class="resumo-divider"></div>
+        <div class="resumo-item">
+          <span class="resumo-label">Total Comissões</span>
+          <span class="resumo-valor destaque">{{ formatCurrency(totalGeralComissao) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cards por tosador -->
+    <div class="tosador-card" *ngFor="let item of comissoes">
+      <div class="tosador-header">
+        <div class="tosador-avatar">{{ item.responsavel.nome[0].toUpperCase() }}</div>
+        <div class="tosador-info">
+          <h3>{{ item.responsavel.nome }}</h3>
+          <span class="qtd-label">{{ item.atendimentos.length }} atendimentos pagos</span>
+        </div>
+        <button class="pct-btn" (click)="editarPercentual(item)">
+          {{ item.percentual }}%
+          <ion-icon name="create-outline"></ion-icon>
+        </button>
+      </div>
+
+      <div class="tosador-body">
+        <div class="tosador-row">
+          <span class="t-label">Produção bruta</span>
+          <span class="t-valor">{{ formatCurrency(item.totalBruto) }}</span>
+        </div>
+        <div class="tosador-row destaque-row">
+          <span class="t-label">Comissão ({{ item.percentual }}%)</span>
+          <span class="t-valor t-comissao">{{ formatCurrency(item.comissao) }}</span>
+        </div>
+      </div>
+
+      <!-- Barra de progresso visual -->
+      <div class="com-bar-wrap">
+        <div class="com-bar-fill" [style.width.%]="item.percentual"></div>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state" *ngIf="comissoes.length === 0">
+      <div class="empty-icon">
+        <ion-icon name="people-outline"></ion-icon>
+      </div>
+      <h3>Nenhum responsável</h3>
+      <p>Cadastre tosadores na tela de configurações para ver as comissões.</p>
+    </div>
+
+  </div>
+</ion-content>

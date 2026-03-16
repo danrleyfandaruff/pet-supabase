@@ -1,0 +1,246 @@
+.perfil-content {
+  --background: #f0f2f5;
+}
+
+.loading-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 80px 20px;
+}
+
+// ── Hero ─────────────────────────────────────────────────────
+.cliente-hero {
+  background: var(--ion-color-primary);
+  padding: 24px 20px 28px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.25);
+  color: #fff;
+  font-size: 22px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.hero-info {
+  flex: 1;
+  min-width: 0;
+
+  h1 {
+    margin: 0 0 4px;
+    font-size: 20px;
+    font-weight: 800;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  p {
+    margin: 0 0 2px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.8);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+
+    ion-icon { font-size: 13px; }
+  }
+}
+
+// ── Resumo ────────────────────────────────────────────────────
+.resumo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 16px 16px 0;
+}
+
+.resumo-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.resumo-label {
+  font-size: 11px;
+  color: var(--ion-color-medium);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.resumo-valor {
+  font-size: 17px;
+  font-weight: 800;
+  color: #1a1a1a;
+
+  &.verde { color: var(--ion-color-success); }
+  &.vermelho { color: var(--ion-color-danger); }
+}
+
+// ── Sections ─────────────────────────────────────────────────
+.section {
+  margin: 16px 16px 0;
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid #f0f2f5;
+
+  ion-icon {
+    font-size: 17px;
+    color: var(--ion-color-primary);
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: #333;
+  }
+}
+
+// ── Pets ─────────────────────────────────────────────────────
+.pets-list {
+  padding: 8px 0;
+}
+
+.pet-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+
+  &:active { background: #f8f9fa; }
+}
+
+.pet-chip-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--ion-color-primary), #6c8eff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 18px;
+    color: #fff;
+  }
+}
+
+.pet-chip-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.pet-chip-nome {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.pet-chip-raca {
+  font-size: 12px;
+  color: var(--ion-color-medium);
+}
+
+.pet-chip-arrow {
+  font-size: 16px;
+  color: #ccc;
+}
+
+// ── Atendimentos ─────────────────────────────────────────────
+.ats-list {
+  padding: 4px 0 8px;
+}
+
+.at-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #f8f9fa;
+
+  &:last-child { border-bottom: none; }
+}
+
+.at-date-col {
+  flex-shrink: 0;
+  width: 80px;
+}
+
+.at-date {
+  font-size: 12px;
+  color: var(--ion-color-medium);
+  font-weight: 600;
+}
+
+.at-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.at-pet {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.at-servico {
+  font-size: 12px;
+  color: var(--ion-color-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.at-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+
+  &.pago { background: #e6f9f0; color: #1a8a4a; }
+  &.pendente { background: #fff8e1; color: #c77c00; }
+}
+
+// ── Empty ─────────────────────────────────────────────────────
+.section-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px 16px;
+  color: var(--ion-color-medium);
+  font-size: 14px;
+
+  ion-icon { font-size: 20px; }
+}

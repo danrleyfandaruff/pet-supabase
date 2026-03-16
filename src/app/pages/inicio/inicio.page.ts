@@ -4,7 +4,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { Observable } from 'rxjs';
 import { User } from '../../core/models/user.model';
 import { addIcons } from 'ionicons';
-import { calendar, people, paw, cut, gift, settings, cash } from 'ionicons/icons';
+import { calendar, people, paw, cut, gift, settings, cash, barChartOutline, peopleOutline, layersOutline } from 'ionicons/icons';
 import { AtendimentoService } from '../../core/services/atendimento.service';
 import { CaixaService } from '../../core/services/caixa.service';
 
@@ -31,10 +31,13 @@ export class InicioPage implements OnInit {
   pendentesPagamento = 0;
 
   smallCards: SmallCard[] = [
-    { label: 'Tutores',  icon: 'people', color: 'blue',   route: '/tabs/clientes' },
-    { label: 'Pets',     icon: 'paw',    color: 'green',  route: '/tabs/animais'  },
-    { label: 'Serviços', icon: 'cut',    color: 'purple', route: '/tabs/servicos' },
-    { label: 'Pacotes',  icon: 'gift',   color: 'orange', route: '/tabs/pacotes'  },
+    { label: 'Tutores',    icon: 'people',          color: 'blue',   route: '/tabs/clientes'  },
+    { label: 'Pets',       icon: 'paw',             color: 'green',  route: '/tabs/animais'   },
+    { label: 'Serviços',   icon: 'cut',             color: 'purple', route: '/tabs/servicos'  },
+    { label: 'Pacotes',    icon: 'gift',            color: 'orange', route: '/tabs/pacotes'   },
+    { label: 'Planos',     icon: 'layers-outline',  color: 'teal',   route: '/tabs/planos'    },
+    { label: 'Relatórios', icon: 'bar-chart-outline', color: 'indigo', route: '/tabs/relatorios' },
+    { label: 'Comissões',  icon: 'people-outline',  color: 'pink',   route: '/tabs/comissoes' },
   ];
 
   constructor(
@@ -44,7 +47,7 @@ export class InicioPage implements OnInit {
     private caixaService: CaixaService,
   ) {
     this.currentUser$ = this.authService.currentUser$;
-    addIcons({ calendar, people, paw, cut, gift, settings, cash });
+    addIcons({ calendar, people, paw, cut, gift, settings, cash, barChartOutline, peopleOutline, layersOutline });
     this.hoje = this.formatarHoje();
   }
 

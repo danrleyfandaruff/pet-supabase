@@ -1,0 +1,139 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/animais" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Prontuário</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="pront-content">
+  <div *ngIf="isLoading" class="loading-wrap">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+
+  <div *ngIf="!isLoading && animal">
+
+    <!-- Hero do pet -->
+    <div class="pet-hero">
+      <div class="pet-avatar">
+        <ion-icon name="paw-outline"></ion-icon>
+      </div>
+      <div class="hero-info">
+        <h1>{{ animal.nome }}</h1>
+        <p>{{ animal.raca?.nome || 'Raça não informada' }}</p>
+        <p>Tutor: <strong>{{ animal.cliente?.nome || '—' }}</strong></p>
+      </div>
+      <div class="pet-idade">
+        <span>{{ idadeAnimal() }}</span>
+      </div>
+    </div>
+
+    <!-- Estatísticas -->
+    <div class="stats-row">
+      <div class="stat-item">
+        <span class="stat-num">{{ totalSessoes }}</span>
+        <span class="stat-label">Sessões</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-num">{{ sessoesPagas }}</span>
+        <span class="stat-label">Pagas</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-num">{{ planosAtivos.length }}</span>
+        <span class="stat-label">Planos Ativos</span>
+      </div>
+    </div>
+
+    <!-- Saúde / Observações -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <ion-icon name="book-outline"></ion-icon>
+          <h2>Saúde & Observações</h2>
+        </div>
+        <button class="edit-btn" *ngIf="!editandoObs" (click)="iniciarEdicaoSaude()">
+          <ion-icon name="create-outline"></ion-icon>
+        </button>
+      </div>
+
+      <!-- Modo leitura -->
+      <div class="saude-content" *ngIf="!editandoObs">
+        <div class="saude-field">
+          <span class="saude-field-label">Alergias</span>
+          <span class="saude-field-value" [class.empty]="!animal.alergias">
+            {{ animal.alergias || 'Nenhuma alergia registrada' }}
+          </span>
+        </div>
+        <div class="saude-field">
+          <span class="saude-field-label">Observações</span>
+          <span class="saude-field-value" [class.empty]="!animal.observacoes">
+            {{ animal.observacoes || 'Sem observações' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Modo edição -->
+      <div class="saude-edit" *ngIf="editandoObs">
+        <div class="edit-field">
+          <label>Alergias</label>
+          <textarea [(ngModel)]="alergiasTemp" rows="2" placeholder="Ex: alergia a determinados shampoos..."></textarea>
+        </div>
+        <div class="edit-field">
+          <label>Observações gerais</label>
+          <textarea [(ngModel)]="obsTemp" rows="3" placeholder="Comportamento, cuidados especiais..."></textarea>
+        </div>
+        <div class="edit-actions">
+          <button class="btn-cancel-edit" (click)="cancelarEdicaoSaude()">Cancelar</button>
+          <button class="btn-save-edit" (click)="salvarSaude()">Salvar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Planos ativos -->
+    <div class="section" *ngIf="planosAtivos.length > 0">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <ion-icon name="layers-outline"></ion-icon>
+          <h2>Planos Ativos ({{ planosAtivos.length }})</h2>
+        </div>
+      </div>
+      <div class="planos-list">
+        <div class="plano-row" *ngFor="let p of planosAtivos">
+          <ion-icon name="gift-outline" class="plano-icon"></ion-icon>
+          <div class="plano-info">
+            <span class="plano-nome">{{ p.pacote?.nome || '—' }}</span>
+            <span class="plano-prog">
+              {{ (p.atendimento ?? []).length }} de {{ p.pacote?.quantidade || '?' }} sessões
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Histórico -->
+    <div class="section" *ngIf="atendimentos.length > 0">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <ion-icon name="time-outline"></ion-icon>
+          <h2>Histórico de Atendimentos</h2>
+        </div>
+      </div>
+      <div class="hist-list">
+        <div class="hist-item" *ngFor="let at of atendimentos">
+          <div class="hist-date">{{ formatDate(at.data) }}</div>
+          <div class="hist-servico">{{ at.servico?.nome || at.pacote?.nome || '—' }}</div>
+          <div class="hist-status">
+            <span class="hist-badge" [class.pago]="at.pago" [class.pendente]="!at.pago">
+              {{ at.pago ? 'Pago' : (at.status_info?.nome || 'Pendente') }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 32px;"></div>
+  </div>
+</ion-content>

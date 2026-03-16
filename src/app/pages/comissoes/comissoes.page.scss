@@ -1,0 +1,239 @@
+.com-content {
+  --background: #f0f2f5;
+}
+
+.loading-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 80px 20px;
+}
+
+// ── Mês ──────────────────────────────────────────────────────
+.mes-wrap {
+  padding: 16px 0 0;
+}
+
+.mes-scroll {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+.mes-btn {
+  all: unset;
+  padding: 7px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ion-color-medium);
+  background: #fff;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &.active {
+    background: var(--ion-color-primary);
+    color: #fff;
+  }
+}
+
+// ── Body ─────────────────────────────────────────────────────
+.com-body {
+  padding: 16px 16px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+// ── Resumo ────────────────────────────────────────────────────
+.resumo-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+}
+
+.resumo-row {
+  display: flex;
+  align-items: center;
+}
+
+.resumo-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.resumo-label {
+  font-size: 11px;
+  color: var(--ion-color-medium);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.resumo-valor {
+  font-size: 18px;
+  font-weight: 800;
+  color: #1a1a1a;
+
+  &.destaque { color: var(--ion-color-success); }
+}
+
+.resumo-divider {
+  width: 1px;
+  height: 40px;
+  background: #e8eaed;
+}
+
+// ── Tosador card ──────────────────────────────────────────────
+.tosador-card {
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+}
+
+.tosador-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.tosador-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--ion-color-primary), #6c8eff);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tosador-info {
+  flex: 1;
+  min-width: 0;
+
+  h3 {
+    margin: 0 0 1px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+}
+
+.qtd-label {
+  font-size: 12px;
+  color: var(--ion-color-medium);
+}
+
+.pct-btn {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: #e8f0ff;
+  border-radius: 10px;
+  color: #2c5dcc;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  ion-icon { font-size: 13px; }
+  &:active { background: #d5e5ff; }
+}
+
+.tosador-body {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tosador-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  &.destaque-row {
+    padding: 8px 0 0;
+    border-top: 1px solid #f0f2f5;
+  }
+}
+
+.t-label {
+  font-size: 13px;
+  color: #555;
+  font-weight: 500;
+}
+
+.t-valor {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.t-comissao {
+  font-size: 16px;
+  color: var(--ion-color-success);
+}
+
+// ── Barra de comissão ─────────────────────────────────────────
+.com-bar-wrap {
+  height: 5px;
+  background: #f0f2f5;
+  overflow: hidden;
+}
+
+.com-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--ion-color-success), #52d68a);
+  transition: width 0.5s ease;
+}
+
+// ── Empty ─────────────────────────────────────────────────────
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 24px 40px;
+  color: var(--ion-color-medium);
+
+  .empty-icon {
+    width: 72px;
+    height: 72px;
+    background: rgba(var(--ion-color-medium-rgb), 0.1);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    ion-icon { font-size: 36px; }
+  }
+
+  h3 {
+    margin: 0 0 6px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #444;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    text-align: center;
+    line-height: 1.5;
+  }
+}

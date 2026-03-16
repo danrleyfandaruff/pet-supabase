@@ -27,6 +27,45 @@ export class AtendimentosPage implements OnInit {
   countNaoPagos = 0;
   private termoBusca = '';
 
+  // ── Vista (lista / semana) ──────────────────────────
+  vistaAtual: 'lista' | 'semana' = 'lista';
+  diasSemanaAtual: { data: string; label: string; diaCurto: string; isHoje: boolean }[] = [];
+  semanaLabel = '';
+
+  toggleVista() {
+    this.vistaAtual = this.vistaAtual === 'lista' ? 'semana' : 'lista';
+    if (this.vistaAtual === 'semana') this.gerarSemanaAtual();
+  }
+
+  private gerarSemanaAtual() {
+    const hoje = new Date();
+    const diaSemana = hoje.getDay();
+    const segunda = new Date(hoje);
+    segunda.setDate(hoje.getDate() - (diaSemana === 0 ? 6 : diaSemana - 1));
+    const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    const nomes = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    const dias: { data: string; label: string; diaCurto: string; isHoje: boolean }[] = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(segunda);
+      d.setDate(segunda.getDate() + i);
+      const data = d.toISOString().split('T')[0];
+      dias.push({
+        data,
+        label: `${nomes[d.getDay()]} ${d.getDate()} ${meses[d.getMonth()]}`,
+        diaCurto: nomes[d.getDay()] + '\n' + d.getDate(),
+        isHoje: data === hoje.toISOString().split('T')[0],
+      });
+    }
+    this.diasSemanaAtual = dias;
+    const ini = dias[0].label.split(' ').slice(1).join(' ');
+    const fim = dias[6].label.split(' ').slice(1).join(' ');
+    this.semanaLabel = `${ini} – ${fim}`;
+  }
+
+  getAtendimentosDoDia(data: string): Atendimento[] {
+    return this.atendimentos.filter(a => a.data?.startsWith(data));
+  }
+
   // ── Seleção múltipla ────────────────────────────────
   modoSelecao = false;
   selecionados = new Set<number>();

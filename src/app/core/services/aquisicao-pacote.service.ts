@@ -32,6 +32,17 @@ export class AquisicaoPacoteService extends BaseCrudService<AquisicaoPacote> {
     return data as unknown as AquisicaoPacote;
   }
 
+  /** Planos de um animal específico */
+  async getByAnimal(idAnimal: number): Promise<AquisicaoPacote[]> {
+    const { data, error } = await this.supabaseService.client
+      .from(this.tableName)
+      .select(this.selectQuery)
+      .eq('id_animal', idAnimal)
+      .order('data_aquisicao', { ascending: false });
+    if (error) throw error;
+    return (data as unknown as AquisicaoPacote[]) || [];
+  }
+
   /** Cancela um plano: exclui todos os atendimentos vinculados e depois o plano */
   async cancelarPlano(aquisicaoId: number, atendimentoIds: number[]): Promise<void> {
     if (atendimentoIds.length > 0) {

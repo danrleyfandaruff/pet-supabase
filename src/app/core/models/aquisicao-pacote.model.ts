@@ -5,6 +5,12 @@ export interface AquisicaoPacote {
   data_aquisicao: string;
   data_pagamento?: string;
   // campos de join
-  pacote?: { nome: string };
+  pacote?: { nome: string; quantidade?: number; recorrencia?: number };
   animal?: { nome: string };
+  atendimento?: Array<{
+    id: number;
+    data: string;
+    pago?: boolean;
+    status_info?: { nome: string };
+  }>;
 }

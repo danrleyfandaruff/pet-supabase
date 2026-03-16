@@ -5,6 +5,9 @@
     </ion-buttons>
     <ion-title>{{ modoSelecao ? (countSelecionados + ' selecionado' + (countSelecionados !== 1 ? 's' : '')) : 'Agenda' }}</ion-title>
     <ion-buttons slot="end">
+      <ion-button *ngIf="!modoSelecao" routerLink="/tabs/planos" fill="clear">
+        <ion-icon slot="icon-only" name="layers-outline"></ion-icon>
+      </ion-button>
       <ion-button *ngIf="!modoSelecao" (click)="toggleModoSelecao()" fill="clear">
         <ion-icon slot="icon-only" name="checkmark-done-outline"></ion-icon>
       </ion-button>
@@ -114,9 +117,11 @@
         <div class="badges-col">
           <ion-badge
             *ngIf="a.status_info?.nome"
-            class="status-badge"
-            [ngClass]="getBadgeClass(a.status_info?.nome)">
+            class="status-badge status-badge-tap"
+            [ngClass]="getBadgeClass(a.status_info?.nome)"
+            (click)="!modoSelecao && mudarStatus(a, $event)">
             {{ a.status_info?.nome }}
+            <ion-icon *ngIf="!modoSelecao" name="chevron-down-outline" class="badge-caret"></ion-icon>
           </ion-badge>
           <ion-badge *ngIf="a.pago" class="badge-pago">Pago</ion-badge>
         </div>

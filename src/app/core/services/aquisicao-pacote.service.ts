@@ -6,7 +6,12 @@ import { AquisicaoPacote } from '../models/aquisicao-pacote.model';
 @Injectable({ providedIn: 'root' })
 export class AquisicaoPacoteService extends BaseCrudService<AquisicaoPacote> {
   protected override tableName = 'aquisicao_pacote';
-  protected override selectQuery = '*, pacote(nome), animal(nome)';
+  protected override selectQuery = `
+    *,
+    pacote(nome, quantidade, recorrencia),
+    animal(nome),
+    atendimento(id, data, pago, status_info:status(nome))
+  `;
 
   constructor(supabaseService: SupabaseService) {
     super(supabaseService);
@@ -25,5 +30,17 @@ export class AquisicaoPacoteService extends BaseCrudService<AquisicaoPacote> {
       .single();
     if (error) throw error;
     return data as unknown as AquisicaoPacote;
+  }
+
+  /** Cancela um plano: exclui todos os atendimentos vinculados e depois o plano */
+  async cancelarPlano(aquisicaoId: number, atendimentoIds: number[]): Promise<void> {
+    if (atendimentoIds.length > 0) {
+      const { error: errAts } = await this.supabaseService.client
+        .from('atendimento')
+        .delete()
+        .in('id', atendimentoIds);
+      if (errAts) throw errAts;
+    }
+    await this.delete(aquisicaoId);
   }
 }

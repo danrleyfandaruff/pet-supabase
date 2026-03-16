@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import { AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
+import { ActionSheetController, AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { AtendimentoService } from '../../core/services/atendimento.service';
 import { Atendimento } from '../../core/models/atendimento.model';
 import { AtendimentoFormComponent } from './atendimento-form.component';
 import { CaixaService } from '../../core/services/caixa.service';
 import { StatusService } from '../../core/services/status.service';
+import { Status } from '../../core/models/status.model';
 
 @Component({
   selector: 'app-atendimentos',
@@ -168,8 +169,9 @@ export class AtendimentosPage implements OnInit {
   descricaoPagamento = '';
   salvandoPagamento = false;
 
-  // ID do status "Concluído" (carregado no init)
+  // Lista e ID de status (carregados no init)
   private statusConcluidoId: number | null = null;
+  statusList: Status[] = [];
 
   constructor(
     private atendimentoService: AtendimentoService,
@@ -177,6 +179,7 @@ export class AtendimentosPage implements OnInit {
     private statusService: StatusService,
     private modalCtrl: ModalController,
     private alertCtrl: AlertController,
+    private actionSheetCtrl: ActionSheetController,
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController
   ) {}
@@ -191,9 +194,39 @@ export class AtendimentosPage implements OnInit {
   private async carregarStatusConcluido() {
     try {
       const lista = await this.statusService.getAll();
+      this.statusList = lista;
       const s = lista.find(x => x.nome?.toLowerCase().includes('conclu'));
       this.statusConcluidoId = s?.id ?? null;
     } catch (_) {}
+  }
+
+  // ── Alterar status de um atendimento ─────────────────
+  async mudarStatus(atendimento: Atendimento, event: Event) {
+    event.stopPropagation();
+
+    const botoes = this.statusList.map(s => ({
+      text: s.nome,
+      icon: atendimento.status === s.id ? 'checkmark-outline' : 'ellipse-outline',
+      cssClass: atendimento.status === s.id ? 'action-sheet-selected' : '',
+      handler: async () => {
+        if (atendimento.status === s.id) return; // sem mudança
+        try {
+          await this.atendimentoService.update(atendimento.id!, { status: s.id });
+          await this.loadData();
+        } catch (e: any) {
+          await this.showToast(e.message, 'danger');
+        }
+      },
+    }));
+
+    const sheet = await this.actionSheetCtrl.create({
+      header: 'Alterar status',
+      buttons: [
+        ...botoes,
+        { text: 'Cancelar', role: 'cancel', icon: 'close-outline' },
+      ],
+    });
+    await sheet.present();
   }
 
   // ── Gera os dias do mês no grid ──────────────────────

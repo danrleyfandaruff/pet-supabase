@@ -294,6 +294,23 @@
   &.badge-medium  { background: #f0f2f5; color: #666; }
 }
 
+// ── Badge de status tappável ───────────────────────────────
+.status-badge-tap {
+  cursor: pointer;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 3px;
+  user-select: none;
+  transition: opacity 0.15s;
+
+  &:active { opacity: 0.7; }
+
+  .badge-caret {
+    font-size: 9px;
+    opacity: 0.7;
+  }
+}
+
 // ── Card pago ──────────────────────────────────────────────
 .card-pago {
   opacity: 0.72;

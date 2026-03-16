@@ -1,151 +1,266 @@
-<ion-header>
-  <ion-toolbar color="primary">
-    <ion-buttons slot="start">
-      <ion-button (click)="dismiss()">
-        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-    <ion-title>{{ isEdit ? 'Editar' : 'Novo' }} Atendimento</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="save()" strong="true">Salvar</ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<!-- ═══════════════════════════════════════════════════════════
+     STEP 1 — Formulário principal
+     ═══════════════════════════════════════════════════════════ -->
+<ng-container *ngIf="step === 'form'">
 
-<ion-content [formGroup]="form" class="form-content">
+  <ion-header>
+    <ion-toolbar color="primary">
+      <ion-buttons slot="start">
+        <ion-button (click)="dismiss()">
+          <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+      <ion-title>{{ isEdit ? 'Editar' : 'Novo' }} Atendimento</ion-title>
+      <ion-buttons slot="end">
+        <ion-button (click)="save()" strong="true">
+          {{ isPacoteMultisessao ? 'Próximo' : 'Salvar' }}
+          <ion-icon *ngIf="isPacoteMultisessao" name="arrow-forward-outline" slot="end"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
 
-  <!-- ── SEÇÃO: Quem vai atender ── -->
-  <div class="form-section">
-    <p class="section-label">
-      <ion-icon name="people-outline"></ion-icon> Tutor e Pet
+  <ion-content [formGroup]="form" class="form-content">
+
+    <!-- ── SEÇÃO: Tutor e Pet ── -->
+    <div class="form-section">
+      <div class="section-label-row">
+        <p class="section-label">
+          <ion-icon name="people-outline"></ion-icon> Tutor e Pet
+        </p>
+      </div>
+
+      <ion-item lines="none" class="form-item">
+        <ion-label position="stacked">Tutor <span class="optional">(opcional)</span></ion-label>
+        <ion-select
+          formControlName="id_cliente"
+          placeholder="Selecionar tutor"
+          interface="action-sheet"
+          cancelText="Cancelar">
+          <ion-select-option [value]="null">— Sem tutor —</ion-select-option>
+          <ion-select-option *ngFor="let c of clientes" [value]="c.id">{{ c.nome }}</ion-select-option>
+        </ion-select>
+        <ion-button slot="end" fill="clear" size="small" (click)="adicionarCliente()" class="quick-add-btn">
+          <ion-icon name="add-circle-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-item>
+
+      <ion-item lines="none" class="form-item">
+        <ion-label position="stacked">
+          Pet <span class="optional">(opcional)</span>
+          <span class="filter-hint" *ngIf="form.get('id_cliente')?.value">
+            — filtrado pelo tutor
+          </span>
+        </ion-label>
+        <ion-select
+          formControlName="id_animal"
+          placeholder="Selecionar pet"
+          interface="action-sheet"
+          cancelText="Cancelar">
+          <ion-select-option [value]="null">— Sem pet —</ion-select-option>
+          <ion-select-option *ngFor="let a of animaisFiltrados" [value]="a.id">{{ a.nome }}</ion-select-option>
+        </ion-select>
+        <ion-button slot="end" fill="clear" size="small" (click)="adicionarPet()" class="quick-add-btn">
+          <ion-icon name="add-circle-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-item>
+    </div>
+
+    <!-- ── SEÇÃO: Agendamento ── -->
+    <div class="form-section">
+      <p class="section-label">
+        <ion-icon name="calendar-outline"></ion-icon> Agendamento
+      </p>
+
+      <ion-item lines="none" class="form-item">
+        <ion-label position="stacked">
+          Data *
+          <span class="filter-hint" *ngIf="isPacoteMultisessao"> — 1ª sessão</span>
+        </ion-label>
+        <ion-input formControlName="data" type="date"></ion-input>
+      </ion-item>
+      <ion-note *ngIf="form.get('data')?.invalid && form.get('data')?.touched" color="danger" class="field-error">
+        Data obrigatória
+      </ion-note>
+
+      <ion-item lines="none" class="form-item">
+        <ion-label position="stacked">Responsável <span class="optional">(opcional)</span></ion-label>
+        <ion-select
+          formControlName="id_responsavel"
+          placeholder="Quem vai atender"
+          interface="action-sheet"
+          cancelText="Cancelar">
+          <ion-select-option [value]="null">— Não definido —</ion-select-option>
+          <ion-select-option *ngFor="let r of responsaveis" [value]="r.id">{{ r.nome }}</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-item lines="none" class="form-item">
+        <ion-label position="stacked">Status</ion-label>
+        <ion-select
+          formControlName="status"
+          placeholder="Selecionar status"
+          interface="action-sheet"
+          cancelText="Cancelar">
+          <ion-select-option [value]="null">— Sem status —</ion-select-option>
+          <ion-select-option *ngFor="let s of statusList" [value]="s.id">{{ s.nome }}</ion-select-option>
+        </ion-select>
+      </ion-item>
+    </div>
+
+    <!-- ── SEÇÃO: Serviço e Plano ── -->
+    <div class="form-section">
+      <p class="section-label">
+        <ion-icon name="cut-outline"></ion-icon> Serviço e Plano
+      </p>
+
+      <ion-item lines="none" class="form-item">
+        <ion-label position="stacked">Serviço <span class="optional">(opcional)</span></ion-label>
+        <ion-select
+          formControlName="id_servico"
+          placeholder="Selecionar serviço"
+          interface="action-sheet"
+          cancelText="Cancelar">
+          <ion-select-option [value]="null">— Sem serviço —</ion-select-option>
+          <ion-select-option *ngFor="let s of servicos" [value]="s.id">
+            {{ s.nome }} — R$ {{ s.valor | number:'1.2-2' }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-item lines="none" class="form-item">
+        <ion-label position="stacked">Plano / Pacote <span class="optional">(opcional)</span></ion-label>
+        <ion-select
+          formControlName="id_pacote"
+          placeholder="Selecionar plano"
+          interface="action-sheet"
+          cancelText="Cancelar">
+          <ion-select-option [value]="null">— Sem plano —</ion-select-option>
+          <ion-select-option *ngFor="let p of pacotes" [value]="p.id">{{ p.nome }}</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <!-- Banner informativo do pacote — clicável quando multi-sessão -->
+      <div class="pacote-banner"
+           *ngIf="pacoteSelecionado"
+           [class.pacote-banner-clickable]="isPacoteMultisessao"
+           (click)="isPacoteMultisessao && save()">
+        <ion-icon name="pricetag-outline"></ion-icon>
+        <div class="pacote-banner-text">
+          <strong>{{ pacoteSelecionado.nome }}</strong>
+          <span *ngIf="pacoteSelecionado.quantidade && pacoteSelecionado.quantidade > 1">
+            {{ pacoteSelecionado.quantidade }} sessões · a cada {{ pacoteSelecionado.recorrencia }} dias
+          </span>
+          <span *ngIf="!pacoteSelecionado.quantidade || pacoteSelecionado.quantidade <= 1">
+            Sessão avulsa
+          </span>
+        </div>
+        <ion-icon class="pacote-banner-arrow" *ngIf="isPacoteMultisessao" name="arrow-forward-outline"></ion-icon>
+      </div>
+
+      <ion-item lines="none" class="form-item">
+        <ion-label position="stacked">Valor adicional</ion-label>
+        <ion-input
+          formControlName="valor_adicional"
+          type="number"
+          inputmode="decimal"
+          placeholder="0,00">
+        </ion-input>
+      </ion-item>
+    </div>
+
+    <!-- ── Resumo de valor ── -->
+    <div class="valor-resumo" *ngIf="valorServico > 0 || (form.get('valor_adicional')?.value > 0)">
+      <div class="valor-linha" *ngIf="valorServico > 0">
+        <span>Serviço</span>
+        <span>R$ {{ valorServico | number:'1.2-2' }}</span>
+      </div>
+      <div class="valor-linha" *ngIf="form.get('valor_adicional')?.value > 0">
+        <span>Adicional</span>
+        <span>R$ {{ form.get('valor_adicional')?.value | number:'1.2-2' }}</span>
+      </div>
+      <div class="valor-linha total">
+        <span>Total</span>
+        <span>R$ {{ valorTotal | number:'1.2-2' }}</span>
+      </div>
+    </div>
+
+  </ion-content>
+
+</ng-container>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     STEP 2 — Confirmação de datas do pacote
+     ═══════════════════════════════════════════════════════════ -->
+<ng-container *ngIf="step === 'preview'">
+
+  <ion-header>
+    <ion-toolbar color="primary">
+      <ion-buttons slot="start">
+        <ion-button (click)="voltarForm()">
+          <ion-icon name="arrow-back-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+      <ion-title>Confirmar Sessões</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content class="form-content">
+
+    <!-- Cabeçalho do pacote -->
+    <div class="preview-hero">
+      <div class="preview-icon-wrap">
+        <ion-icon name="pricetag-outline"></ion-icon>
+      </div>
+      <div class="preview-hero-text">
+        <h2>{{ pacoteSelecionado?.nome }}</h2>
+        <p>{{ datasGeradas.length }} sessões · a cada {{ pacoteSelecionado?.recorrencia }} dias</p>
+      </div>
+    </div>
+
+    <p class="preview-hint">
+      <ion-icon name="create-outline"></ion-icon>
+      Toque no lápis para ajustar uma data se necessário
     </p>
 
-    <ion-item lines="none" class="form-item">
-      <ion-label position="stacked">Tutor <span class="optional">(opcional)</span></ion-label>
-      <ion-select
-        formControlName="id_cliente"
-        placeholder="Selecionar tutor"
-        interface="action-sheet"
-        cancelText="Cancelar">
-        <ion-select-option [value]="null">— Sem tutor —</ion-select-option>
-        <ion-select-option *ngFor="let c of clientes" [value]="c.id">{{ c.nome }}</ion-select-option>
-      </ion-select>
-    </ion-item>
+    <!-- Lista de sessões -->
+    <div class="preview-list">
+      <div class="preview-card" *ngFor="let data of datasGeradas; let i = index; trackBy: trackByIndex">
 
-    <ion-item lines="none" class="form-item">
-      <ion-label position="stacked">
-        Pet <span class="optional">(opcional)</span>
-        <span class="filter-hint" *ngIf="form.get('id_cliente')?.value">
-          — filtrado pelo tutor
-        </span>
-      </ion-label>
-      <ion-select
-        formControlName="id_animal"
-        placeholder="Selecionar pet"
-        interface="action-sheet"
-        cancelText="Cancelar">
-        <ion-select-option [value]="null">— Sem pet —</ion-select-option>
-        <ion-select-option *ngFor="let a of animaisFiltrados" [value]="a.id">{{ a.nome }}</ion-select-option>
-      </ion-select>
-    </ion-item>
-  </div>
+        <div class="preview-num">{{ i + 1 }}</div>
 
-  <!-- ── SEÇÃO: Data e Responsável ── -->
-  <div class="form-section">
-    <p class="section-label">
-      <ion-icon name="calendar-outline"></ion-icon> Agendamento
-    </p>
+        <div class="preview-date-badge">
+          <span class="preview-weekday">{{ formatDateLabel(data).semana }}</span>
+          <span class="preview-day">{{ formatDateLabel(data).dia }}</span>
+          <span class="preview-month">{{ formatDateLabel(data).mes }}</span>
+        </div>
 
-    <ion-item lines="none" class="form-item">
-      <ion-label position="stacked">Data *</ion-label>
-      <ion-input formControlName="data" type="date"></ion-input>
-    </ion-item>
-    <ion-note *ngIf="form.get('data')?.invalid && form.get('data')?.touched" color="danger" class="field-error">
-      Data obrigatória
-    </ion-note>
+        <div class="preview-label">
+          <span class="preview-sessao">Sessão {{ i + 1 }}</span>
+          <span class="preview-data-full">{{ data | date:'dd/MM/yyyy' }}</span>
+        </div>
 
-    <ion-item lines="none" class="form-item">
-      <ion-label position="stacked">Responsável <span class="optional">(opcional)</span></ion-label>
-      <ion-select
-        formControlName="id_responsavel"
-        placeholder="Quem vai atender"
-        interface="action-sheet"
-        cancelText="Cancelar">
-        <ion-select-option [value]="null">— Não definido —</ion-select-option>
-        <ion-select-option *ngFor="let r of responsaveis" [value]="r.id">{{ r.nome }}</ion-select-option>
-      </ion-select>
-    </ion-item>
+        <!-- Botão de edição com input transparente sobreposto -->
+        <div class="preview-edit-wrap">
+          <ion-icon name="create-outline"></ion-icon>
+          <input
+            type="date"
+            [value]="data"
+            (change)="onDataChange(i, $any($event.target).value)">
+        </div>
 
-    <ion-item lines="none" class="form-item">
-      <ion-label position="stacked">Status</ion-label>
-      <ion-select
-        formControlName="status"
-        placeholder="Selecionar status"
-        interface="action-sheet"
-        cancelText="Cancelar">
-        <ion-select-option [value]="null">— Sem status —</ion-select-option>
-        <ion-select-option *ngFor="let s of statusList" [value]="s.id">{{ s.nome }}</ion-select-option>
-      </ion-select>
-    </ion-item>
-  </div>
-
-  <!-- ── SEÇÃO: Serviço e Plano ── -->
-  <div class="form-section">
-    <p class="section-label">
-      <ion-icon name="cut-outline"></ion-icon> Serviço e Plano
-    </p>
-
-    <ion-item lines="none" class="form-item">
-      <ion-label position="stacked">Serviço <span class="optional">(opcional)</span></ion-label>
-      <ion-select
-        formControlName="id_servico"
-        placeholder="Selecionar serviço"
-        interface="action-sheet"
-        cancelText="Cancelar">
-        <ion-select-option [value]="null">— Sem serviço —</ion-select-option>
-        <ion-select-option *ngFor="let s of servicos" [value]="s.id">
-          {{ s.nome }} — R$ {{ s.valor | number:'1.2-2' }}
-        </ion-select-option>
-      </ion-select>
-    </ion-item>
-
-    <ion-item lines="none" class="form-item">
-      <ion-label position="stacked">Plano / Pacote <span class="optional">(opcional)</span></ion-label>
-      <ion-select
-        formControlName="id_pacote"
-        placeholder="Selecionar plano"
-        interface="action-sheet"
-        cancelText="Cancelar">
-        <ion-select-option [value]="null">— Sem plano —</ion-select-option>
-        <ion-select-option *ngFor="let p of pacotes" [value]="p.id">{{ p.nome }}</ion-select-option>
-      </ion-select>
-    </ion-item>
-
-    <ion-item lines="none" class="form-item">
-      <ion-label position="stacked">Valor adicional</ion-label>
-      <ion-input
-        formControlName="valor_adicional"
-        type="number"
-        inputmode="decimal"
-        placeholder="0,00">
-      </ion-input>
-    </ion-item>
-  </div>
-
-  <!-- ── Resumo de valor ── -->
-  <div class="valor-resumo" *ngIf="valorServico > 0 || (form.get('valor_adicional')?.value > 0)">
-    <div class="valor-linha" *ngIf="valorServico > 0">
-      <span>Serviço</span>
-      <span>R$ {{ valorServico | number:'1.2-2' }}</span>
+      </div>
     </div>
-    <div class="valor-linha" *ngIf="form.get('valor_adicional')?.value > 0">
-      <span>Adicional</span>
-      <span>R$ {{ form.get('valor_adicional')?.value | number:'1.2-2' }}</span>
-    </div>
-    <div class="valor-linha total">
-      <span>Total</span>
-      <span>R$ {{ valorTotal | number:'1.2-2' }}</span>
-    </div>
-  </div>
 
-</ion-content>
+    <!-- Botão confirmar -->
+    <div class="preview-footer">
+      <button class="confirm-all-btn" (click)="confirmarPacote()">
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        Agendar {{ datasGeradas.length }} sessões
+      </button>
+    </div>
+
+  </ion-content>
+
+</ng-container>

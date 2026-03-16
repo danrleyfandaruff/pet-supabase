@@ -13,7 +13,8 @@ import {
   pawOutline, add, arrowBackOutline, arrowForwardOutline,
   checkmarkOutline, bookOutline, flagOutline,
   checkmarkDoneOutline, closeOutline, ellipseOutline,
-  arrowUndoOutline, addCircleOutline,
+  arrowUndoOutline, addCircleOutline, pricetagOutline,
+  layersOutline, lockClosedOutline, chevronDownOutline,
 } from 'ionicons/icons';
 import { AuthService } from './core/services/auth.service';
 
@@ -38,7 +39,8 @@ export class AppComponent implements OnInit {
       pawOutline, add, arrowBackOutline, arrowForwardOutline,
       checkmarkOutline, bookOutline, flagOutline,
       checkmarkDoneOutline, closeOutline, ellipseOutline,
-      arrowUndoOutline, addCircleOutline,
+      arrowUndoOutline, addCircleOutline, pricetagOutline,
+      layersOutline, lockClosedOutline, chevronDownOutline,
     });
     this.isReady$ = this.authService.isReady$;
   }

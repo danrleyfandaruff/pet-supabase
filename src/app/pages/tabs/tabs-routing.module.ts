@@ -52,6 +52,11 @@ const routes: Routes = [
         loadChildren: () =>
           import('../caixa/caixa.module').then((m) => m.CaixaPageModule),
       },
+      {
+        path: 'planos',
+        loadChildren: () =>
+          import('../planos/planos.module').then((m) => m.PlanosPageModule),
+      },
       { path: '', redirectTo: 'inicio', pathMatch: 'full' },
     ],
   },

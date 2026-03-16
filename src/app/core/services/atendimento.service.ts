@@ -20,6 +20,55 @@ export class AtendimentoService extends BaseCrudService<Atendimento> {
     super(supabaseService);
   }
 
+  /** Atendimentos de hoje */
+  async getHoje(): Promise<Atendimento[]> {
+    const hoje = new Date().toISOString().split('T')[0];
+    const { data, error } = await this.supabaseService.client
+      .from(this.tableName)
+      .select(this.selectQuery)
+      .eq('data', hoje)
+      .order('data', { ascending: true });
+    if (error) throw error;
+    return (data as unknown as Atendimento[]) || [];
+  }
+
+  /** Quantidade de atendimentos não pagos */
+  async countPendentes(): Promise<number> {
+    const { count, error } = await this.supabaseService.client
+      .from(this.tableName)
+      .select('*', { count: 'exact', head: true })
+      .eq('pago', false);
+    if (error) throw error;
+    return count ?? 0;
+  }
+
+  /** Todos os atendimentos de um animal específico */
+  async getByAnimal(idAnimal: number): Promise<Atendimento[]> {
+    const { data, error } = await this.supabaseService.client
+      .from(this.tableName)
+      .select(this.selectQuery)
+      .eq('id_animal', idAnimal)
+      .order('data', { ascending: false });
+    if (error) throw error;
+    return (data as unknown as Atendimento[]) || [];
+  }
+
+  async marcarPago(id: number): Promise<void> {
+    const { error } = await this.supabaseService.client
+      .from(this.tableName)
+      .update({ pago: true })
+      .eq('id', id);
+    if (error) throw error;
+  }
+
+  async desmarcarPago(id: number): Promise<void> {
+    const { error } = await this.supabaseService.client
+      .from(this.tableName)
+      .update({ pago: false })
+      .eq('id', id);
+    if (error) throw error;
+  }
+
   override async update(id: number, item: Partial<Atendimento>): Promise<Atendimento> {
     const payload = Object.fromEntries(
       Object.entries(item as object).filter(([, v]) => typeof v !== 'object' || v === null)

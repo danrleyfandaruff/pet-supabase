@@ -9,6 +9,7 @@ export interface Atendimento {
   data: string;
   status?: number;
   valor_adicional?: number;
+  pago?: boolean;
   // campos de join
   cliente?: { nome: string };
   animal?: { nome: string; id_cliente?: number };

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, from, throwError } from 'rxjs';
-import { map, catchError, switchMap } from 'rxjs/operators';
+import { filter, map, catchError, switchMap } from 'rxjs/operators';
 import { AuthChangeEvent, Session } from '@supabase/supabase-js';
 import { SupabaseService } from './supabase.service';
 import { TenantService } from './tenant.service';
@@ -14,11 +14,14 @@ export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   private isLoadingSubject = new BehaviorSubject<boolean>(false);
+  /** Emite `true` uma única vez, quando initSession() termina. Guards usam isso para não agir antes da sessão ser restaurada. */
+  private isReadySubject = new BehaviorSubject<boolean>(false);
 
   // Observables públicos para componentes assinarem
   public currentUser$: Observable<User | null> = this.currentUserSubject.asObservable();
   public isAuthenticated$: Observable<boolean> = this.isAuthenticatedSubject.asObservable();
   public isLoading$: Observable<boolean> = this.isLoadingSubject.asObservable();
+  public isReady$: Observable<boolean> = this.isReadySubject.asObservable();
 
   constructor(
     private supabaseService: SupabaseService,
@@ -46,6 +49,9 @@ export class AuthService {
     if (data.session) {
       await this.updateState(data.session);
     }
+    // Sinaliza que a verificação de sessão terminou —
+    // a partir daqui os guards podem checar isAuthenticated$ com segurança.
+    this.isReadySubject.next(true);
   }
 
   /**

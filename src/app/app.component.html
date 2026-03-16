@@ -1,3 +1,10 @@
 <ion-app>
-  <ion-router-outlet></ion-router-outlet>
+  <!-- Tela de splash enquanto a sessão é restaurada (evita tela preta no refresh) -->
+  <div *ngIf="!(isReady$ | async)" class="app-splash">
+    <div class="app-splash-logo">
+      <ion-icon name="paw"></ion-icon>
+    </div>
+  </div>
+
+  <ion-router-outlet *ngIf="isReady$ | async"></ion-router-outlet>
 </ion-app>

@@ -8,97 +8,181 @@
   padding: 60px 20px;
 }
 
-// ── Section label ──────────────────────────────────────────
-.section-label {
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: var(--ion-color-medium);
-  padding: 16px 20px 6px;
-  margin: 0;
-}
-
-// ── Manual card ────────────────────────────────────────────
-.manual-card {
+// ── Hero / branding ────────────────────────────────────────
+.config-hero {
   display: flex;
   align-items: center;
-  background: linear-gradient(135deg, var(--ion-color-primary), #5260ff);
-  margin: 16px 16px 4px;
-  border-radius: 16px;
-  padding: 16px;
-  gap: 14px;
-  cursor: pointer;
-  box-shadow: 0 4px 16px rgba(56, 128, 255, 0.3);
+  gap: 16px;
+  background: linear-gradient(135deg, var(--ion-color-primary) 0%, #5b8df5 100%);
+  padding: 24px 20px 28px;
+  margin-bottom: -12px;
 
-  .manual-icon {
-    width: 44px;
-    height: 44px;
+  .config-hero-logo {
+    width: 54px;
+    height: 54px;
     background: rgba(255,255,255,0.2);
-    border-radius: 12px;
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
 
     ion-icon {
-      font-size: 22px;
+      font-size: 28px;
       color: #fff;
     }
   }
 
-  .manual-text {
-    flex: 1;
-
-    h3 {
-      margin: 0 0 3px;
-      font-size: 15px;
-      font-weight: 700;
+  .config-hero-info {
+    h2 {
+      margin: 0 0 2px;
+      font-size: 20px;
+      font-weight: 800;
       color: #fff;
+      letter-spacing: -0.3px;
+
+      span { color: rgba(255,255,255,0.75); }
     }
 
     p {
       margin: 0;
       font-size: 12px;
-      color: rgba(255,255,255,0.8);
+      color: rgba(255,255,255,0.7);
+      font-weight: 500;
     }
-  }
-
-  .arrow {
-    font-size: 18px;
-    color: rgba(255,255,255,0.7);
   }
 }
 
-// ── Accordion ─────────────────────────────────────────────
-ion-accordion-group {
+// ── Action row ─────────────────────────────────────────────
+.action-row {
+  padding: 20px 16px 4px;
+}
+
+.action-card {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 16px;
+  padding: 14px;
+  gap: 14px;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+  transition: opacity 0.15s;
+
+  &:active { opacity: 0.8; }
+}
+
+.action-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  ion-icon { font-size: 22px; color: #fff; }
+}
+
+.action-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  .action-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+
+  .action-sub {
+    font-size: 12px;
+    color: var(--ion-color-medium);
+  }
+}
+
+.action-arrow {
+  font-size: 18px;
+  color: #ccc;
+}
+
+// ── Section header ─────────────────────────────────────────
+.section-header {
+  padding: 20px 20px 6px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+
+  .section-label {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #444;
+  }
+
+  .section-desc {
+    font-size: 11px;
+    color: var(--ion-color-medium);
+  }
+}
+
+// ── Accordion group ────────────────────────────────────────
+.acc-group {
   background: transparent;
-  padding: 0 16px 24px;
+  --background: transparent;
+  padding: 0 16px 8px;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
 ion-accordion {
-  border-radius: 14px !important;
+  border-radius: 16px !important;
   overflow: hidden;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  // força fundo branco no container interno do accordion
+  --background: #fff;
+  --color: #1a1a1a;
 }
 
 .accordion-header {
-  --background: #fff;
-  --border-radius: 14px;
+  --background: #ffffff;
+  --background-activated: #f4f5f8;
+  --background-focused: #f4f5f8;
+  --background-hover: #f9fafc;
+  --color: #1a1a1a;
+  --border-radius: 16px;
+  --min-height: 62px;
+  // seta do accordion (ícone nativo do Ionic)
+  --ion-color-base: #888 !important;
+
+  ion-label {
+    h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin: 0 0 2px;
+    }
+    p {
+      font-size: 12px;
+      color: #888;
+      margin: 0;
+    }
+  }
 
   .acc-icon-wrap {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 4px;
+    margin-right: 6px;
+    flex-shrink: 0;
 
-    ion-icon { font-size: 18px; color: #fff; }
+    ion-icon { font-size: 19px; color: #fff; }
 
     &.color-primary   { background: var(--ion-color-primary); }
     &.color-secondary { background: var(--ion-color-secondary); }
@@ -107,18 +191,32 @@ ion-accordion {
   }
 }
 
+// seta expand/collapse nativa do ion-accordion
+ion-accordion .ion-accordion-toggle-icon {
+  color: #aaa !important;
+  font-size: 18px;
+}
+
 // ── Accordion content ──────────────────────────────────────
 .accordion-content {
   background: #fff;
-  padding: 4px 12px 8px;
+  padding: 4px 14px 10px;
+  border-top: 1px solid #f0f2f5;
+}
+
+.acc-empty {
+  padding: 10px 4px;
+  font-size: 13px;
+  color: var(--ion-color-medium);
+  font-style: italic;
 }
 
 .mini-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 4px;
-  border-bottom: 1px solid #f0f2f5;
+  padding: 9px 4px;
+  border-bottom: 1px solid #f4f5f8;
 
   &:last-of-type { border-bottom: none; }
 
@@ -135,18 +233,59 @@ ion-accordion {
   }
 }
 
+.mini-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mini-status {
+  font-size: 10px;
+  padding: 2px 7px;
+}
+
 .mini-actions {
   display: flex;
-  gap: 0;
+  flex-shrink: 0;
 
   ion-button {
     --padding-start: 6px;
     --padding-end: 6px;
-    height: 32px;
+    height: 34px;
   }
 }
 
 .add-btn {
   margin: 8px 0 4px;
   --border-radius: 10px;
+  font-size: 13px;
+}
+
+// ── Logout ─────────────────────────────────────────────────
+.logout-section {
+  padding: 16px 16px 48px;
+}
+
+.logout-btn {
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1.5px solid rgba(220, 53, 69, 0.25);
+  background: rgba(220, 53, 69, 0.05);
+  color: #dc3545;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  ion-icon { font-size: 20px; }
+
+  &:active { background: rgba(220, 53, 69, 0.12); }
 }

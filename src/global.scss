@@ -23,3 +23,11 @@
  * O arquivo dark.system.css existe apenas a partir do Ionic 7.5+.
  * A abordagem via CSS variables usada em variables.scss é compatível com todas as versões do Ionic 7.
  */
+
+// ── Fundo base do app ─────────────────────────────────────
+// Evita o fundo preto padrão que aparece nos cantos arredondados
+// do tab bar e em transições de página.
+ion-app,
+body {
+  background: #f0f2f5 !important;
+}

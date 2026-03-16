@@ -3,7 +3,15 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/tabs/inicio" text=""></ion-back-button>
     </ion-buttons>
-    <ion-title>Agenda</ion-title>
+    <ion-title>{{ modoSelecao ? (countSelecionados + ' selecionado' + (countSelecionados !== 1 ? 's' : '')) : 'Agenda' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button *ngIf="!modoSelecao" (click)="toggleModoSelecao()" fill="clear">
+        <ion-icon slot="icon-only" name="checkmark-done-outline"></ion-icon>
+      </ion-button>
+      <ion-button *ngIf="modoSelecao" (click)="cancelarSelecao()" fill="clear">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
   <ion-toolbar color="primary" class="search-toolbar">
     <ion-searchbar
@@ -20,16 +28,76 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
+  <!-- ── Calendário do mês ─────────────────────────── -->
+  <div class="calendar-wrapper">
+    <div class="calendar-header">
+      <button class="cal-nav" (click)="prevMonth()">
+        <ion-icon name="chevron-back-outline"></ion-icon>
+      </button>
+      <span class="cal-title">{{ mesLabel }}</span>
+      <button class="cal-nav" (click)="nextMonth()">
+        <ion-icon name="chevron-forward-outline"></ion-icon>
+      </button>
+    </div>
+    <div class="cal-weekdays">
+      <span *ngFor="let d of diasSemana">{{ d }}</span>
+    </div>
+    <div class="cal-grid">
+      <div
+        *ngFor="let dia of diasCalendario"
+        class="cal-day"
+        [class.vazio]="dia === null"
+        [class.selecionado]="dia !== null && dia === diaSelecionado"
+        [class.hoje]="dia !== null && isHoje(dia)"
+        [class.tem-evento]="dia !== null && temAtendimento(dia)"
+        (click)="dia !== null && selecionarDia(dia)">
+        <span *ngIf="dia !== null">{{ dia }}</span>
+        <span *ngIf="dia !== null && temAtendimento(dia)" class="dot-event"></span>
+      </div>
+    </div>
+    <div class="cal-limpar" *ngIf="diaSelecionado !== null">
+      <button (click)="limparFiltro()">
+        <ion-icon name="close-circle-outline"></ion-icon> Mostrar todos
+      </button>
+    </div>
+
+    <!-- Chips de filtro rápido -->
+    <div class="chips-filtro">
+      <button class="chip" [class.chip-active]="filtroRapido === 'todos'" (click)="setFiltroRapido('todos')">Todos</button>
+      <button class="chip" [class.chip-active]="filtroRapido === 'hoje'" (click)="setFiltroRapido('hoje')">Hoje</button>
+      <button class="chip chip-pendente" [class.chip-active]="filtroRapido === 'pendentes'" (click)="setFiltroRapido('pendentes')">
+        <ion-icon name="cash-outline"></ion-icon> Não pagos
+        <span *ngIf="countNaoPagos > 0" class="chip-badge">{{ countNaoPagos }}</span>
+      </button>
+    </div>
+  </div>
+
   <div *ngIf="isLoading" class="loading-container">
     <ion-spinner name="crescent" color="primary"></ion-spinner>
   </div>
 
   <div class="list-wrapper" *ngIf="!isLoading">
-    <div *ngFor="let a of atendimentosFiltrados" class="card-item">
-      <div class="card-main" (click)="openForm(a)">
-        <div class="item-icon-wrap color-primary">
-          <ion-icon name="calendar"></ion-icon>
+    <div
+      *ngFor="let a of atendimentosFiltrados"
+      class="card-item"
+      [class.card-pago]="a.pago"
+      [class.card-selecionado]="isSelecionado(a.id!)">
+
+      <div class="card-main" (click)="modoSelecao && !a.pago ? toggleSelecionado(a.id!, $event) : openForm(a)">
+        <!-- Checkbox (modo seleção) ou ícone normal -->
+        <div *ngIf="modoSelecao && !a.pago"
+             class="sel-circle"
+             [class.sel-checked]="isSelecionado(a.id!)"
+             (click)="toggleSelecionado(a.id!, $event)">
+          <ion-icon *ngIf="isSelecionado(a.id!)" name="checkmark-outline"></ion-icon>
         </div>
+        <div *ngIf="!modoSelecao || a.pago"
+             class="item-icon-wrap"
+             [class.color-success]="a.pago"
+             [class.color-primary]="!a.pago">
+          <ion-icon [name]="a.pago ? 'checkmark-circle' : 'calendar'"></ion-icon>
+        </div>
+
         <div class="card-text">
           <h2>{{ a.animal?.nome || a.cliente?.nome || 'Sem pet/tutor' }}</h2>
           <p>{{ formatDate(a.data) }}
@@ -43,18 +111,31 @@
             <ion-icon name="gift-outline"></ion-icon> {{ a.pacote?.nome }}
           </p>
         </div>
-        <ion-badge
-          *ngIf="a.status_info?.nome"
-          class="status-badge"
-          [ngClass]="getBadgeClass(a.status_info?.nome)">
-          {{ a.status_info?.nome }}
-        </ion-badge>
+        <div class="badges-col">
+          <ion-badge
+            *ngIf="a.status_info?.nome"
+            class="status-badge"
+            [ngClass]="getBadgeClass(a.status_info?.nome)">
+            {{ a.status_info?.nome }}
+          </ion-badge>
+          <ion-badge *ngIf="a.pago" class="badge-pago">Pago</ion-badge>
+        </div>
       </div>
-      <div class="card-actions">
-        <ion-button fill="clear" color="primary" (click)="openForm(a)">
+
+      <!-- Ações — ocultas no modo seleção -->
+      <div class="card-actions" *ngIf="!modoSelecao">
+        <ion-button *ngIf="!a.pago" fill="clear" color="success"
+          (click)="abrirPagamento(a); $event.stopPropagation()">
+          <ion-icon slot="icon-only" name="cash-outline"></ion-icon>
+        </ion-button>
+        <ion-button *ngIf="a.pago" fill="clear" color="medium"
+          (click)="confirmarDesfazerPagamento(a); $event.stopPropagation()">
+          <ion-icon slot="icon-only" name="arrow-undo-outline"></ion-icon>
+        </ion-button>
+        <ion-button fill="clear" color="primary" (click)="openForm(a); $event.stopPropagation()">
           <ion-icon slot="icon-only" name="create-outline"></ion-icon>
         </ion-button>
-        <ion-button fill="clear" color="danger" (click)="confirmDelete(a)">
+        <ion-button fill="clear" color="danger" (click)="confirmDelete(a); $event.stopPropagation()">
           <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
         </ion-button>
       </div>
@@ -67,9 +148,104 @@
     <p>Toque em + para agendar</p>
   </div>
 
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+  <!-- FAB normal (oculto no modo seleção) -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="!modoSelecao">
     <ion-fab-button (click)="openForm()">
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>
   </ion-fab>
+
+  <!-- Barra de ações em lote -->
+  <div class="selecao-bar" *ngIf="modoSelecao">
+    <button class="sel-bar-btn sel-all"
+            (click)="selecionarTodos()"
+            [class.sel-all-active]="todosNaoPagesSelecionados">
+      <ion-icon [name]="todosNaoPagesSelecionados ? 'checkmark-done-outline' : 'ellipse-outline'"></ion-icon>
+      <span>{{ todosNaoPagesSelecionados ? 'Desmarcar' : 'Todos' }}</span>
+    </button>
+    <button class="sel-bar-btn sel-concluir"
+            (click)="concluirEmLote()"
+            [disabled]="countSelecionados === 0">
+      <ion-icon name="checkmark-circle-outline"></ion-icon>
+      <span>Concluir{{ countSelecionados > 0 ? ' (' + countSelecionados + ')' : '' }}</span>
+    </button>
+    <button class="sel-bar-btn sel-confirm"
+            (click)="darBaixaEmLote()"
+            [disabled]="countSelecionados === 0">
+      <ion-icon name="cash-outline"></ion-icon>
+      <span>Pagar{{ countSelecionados > 0 ? ' (' + countSelecionados + ')' : '' }}</span>
+    </button>
+    <button class="sel-bar-btn sel-cancel" (click)="cancelarSelecao()">
+      <ion-icon name="close-outline"></ion-icon>
+      <span>Cancelar</span>
+    </button>
+  </div>
 </ion-content>
+
+<!-- ── Modal de pagamento ─────────────────────────────────── -->
+<ion-modal [isOpen]="pagamentoAberto" (didDismiss)="fecharPagamento()" [breakpoints]="[0,1]" [initialBreakpoint]="1">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar color="success">
+        <ion-title>Dar Baixa</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="fecharPagamento()">Fechar</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding" *ngIf="atendimentoPagamento">
+      <div class="pag-resumo">
+        <div class="pag-pet">
+          <ion-icon name="paw"></ion-icon>
+          <span>{{ atendimentoPagamento.animal?.nome || atendimentoPagamento.cliente?.nome || '—' }}</span>
+        </div>
+        <div class="pag-servico" *ngIf="atendimentoPagamento.servico?.nome">
+          <ion-icon name="cut-outline"></ion-icon>
+          <span>{{ atendimentoPagamento.servico?.nome }}
+            <span *ngIf="atendimentoPagamento.servico?.valor" class="pag-valor-detalhe">
+              R$ {{ atendimentoPagamento.servico?.valor | number:'1.2-2' }}
+            </span>
+          </span>
+        </div>
+        <div class="pag-servico" *ngIf="atendimentoPagamento.valor_adicional">
+          <ion-icon name="add-circle-outline"></ion-icon>
+          <span>Adicional
+            <span class="pag-valor-detalhe">R$ {{ atendimentoPagamento.valor_adicional | number:'1.2-2' }}</span>
+          </span>
+        </div>
+        <div class="pag-data">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <span>{{ formatDate(atendimentoPagamento.data) }}</span>
+        </div>
+      </div>
+
+      <ion-list lines="full" class="ion-margin-top">
+        <ion-item>
+          <ion-label position="stacked">Valor recebido (R$) *</ion-label>
+          <ion-input
+            type="number"
+            step="0.01"
+            [(ngModel)]="valorPagamento"
+            placeholder="0,00">
+          </ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="stacked">Descrição no caixa</ion-label>
+          <ion-input [(ngModel)]="descricaoPagamento" placeholder="Ex: Banho e tosa — Rex"></ion-input>
+        </ion-item>
+      </ion-list>
+
+      <div class="ion-padding-top">
+        <ion-button
+          expand="block"
+          color="success"
+          (click)="confirmarPagamento()"
+          [disabled]="!valorPagamento || valorPagamento <= 0 || salvandoPagamento">
+          <ion-spinner *ngIf="salvandoPagamento" name="crescent" slot="start"></ion-spinner>
+          <ion-icon name="checkmark-circle-outline" slot="start" *ngIf="!salvandoPagamento"></ion-icon>
+          Confirmar pagamento
+        </ion-button>
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>

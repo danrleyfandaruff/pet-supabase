@@ -1,0 +1,162 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/inicio" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Controle de Caixa</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="caixa-content">
+  <ion-refresher slot="fixed" (ionRefresh)="loadData(); $event.target.complete()">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- ── Cards de resumo ──────────────────────────── -->
+  <div class="resumo-row">
+    <div class="resumo-card entrada">
+      <div class="resumo-icon"><ion-icon name="arrow-down-circle-outline"></ion-icon></div>
+      <div class="resumo-info">
+        <span class="resumo-label">Entradas</span>
+        <span class="resumo-valor">R$ {{ totalEntradas | number:'1.2-2' }}</span>
+      </div>
+    </div>
+    <div class="resumo-card saida">
+      <div class="resumo-icon"><ion-icon name="arrow-up-circle-outline"></ion-icon></div>
+      <div class="resumo-info">
+        <span class="resumo-label">Saídas</span>
+        <span class="resumo-valor">R$ {{ totalSaidas | number:'1.2-2' }}</span>
+      </div>
+    </div>
+    <div class="resumo-card saldo" [class.negativo]="saldo < 0">
+      <div class="resumo-icon"><ion-icon name="cash-outline"></ion-icon></div>
+      <div class="resumo-info">
+        <span class="resumo-label">Saldo</span>
+        <span class="resumo-valor">R$ {{ saldo | number:'1.2-2' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Gráfico mensal ───────────────────────────── -->
+  <div class="grafico-wrapper">
+    <div class="grafico-titulo">Evolução Mensal</div>
+    <div *ngIf="graficoLoading" class="grafico-loading">
+      <ion-skeleton-text animated style="width:100%;height:100px;border-radius:10px"></ion-skeleton-text>
+    </div>
+    <div *ngIf="!graficoLoading" class="grafico-area">
+      <div *ngFor="let d of dadosMensais" class="grafico-col">
+        <div class="barras">
+          <div class="barra barra-entrada" [style.height.%]="barHeight(d.entradas)"
+               [title]="'Entradas: R$ ' + d.entradas"></div>
+          <div class="barra barra-saida" [style.height.%]="barHeight(d.saidas)"
+               [title]="'Saídas: R$ ' + d.saidas"></div>
+        </div>
+        <span class="grafico-label">{{ d.mes }}</span>
+      </div>
+    </div>
+    <div class="grafico-legenda">
+      <span class="leg-item leg-entrada"><span class="leg-dot"></span>Entradas</span>
+      <span class="leg-item leg-saida"><span class="leg-dot"></span>Saídas</span>
+    </div>
+  </div>
+
+  <!-- ── Filtro de período ─────────────────────────── -->
+  <div class="filtro-wrapper">
+    <ion-segment [(ngModel)]="periodoAtivo" (ionChange)="onPeriodoChange()" mode="md">
+      <ion-segment-button value="mes">Mês</ion-segment-button>
+      <ion-segment-button value="semana">Semana</ion-segment-button>
+      <ion-segment-button value="todos">Todos</ion-segment-button>
+    </ion-segment>
+  </div>
+
+  <!-- ── Loading ────────────────────────────────────── -->
+  <div *ngIf="isLoading" class="loading-container">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+
+  <!-- ── Lista de lançamentos ──────────────────────── -->
+  <div class="lancamentos-wrapper" *ngIf="!isLoading">
+    <div *ngFor="let item of registrosFiltrados" class="card-item">
+      <div class="card-main">
+        <div class="item-icon-wrap" [class.color-success]="item.tipo === 'entrada'" [class.color-danger]="item.tipo === 'saida'">
+          <ion-icon [name]="item.tipo === 'entrada' ? 'arrow-down-outline' : 'arrow-up-outline'"></ion-icon>
+        </div>
+        <div class="card-text">
+          <h2>{{ item.descricao }}</h2>
+          <p>{{ formatDate(item.data) }}<span *ngIf="item.categoria"> · {{ item.categoria }}</span></p>
+        </div>
+        <div class="card-valor" [class.entrada]="item.tipo === 'entrada'" [class.saida]="item.tipo === 'saida'">
+          <span>{{ item.tipo === 'entrada' ? '+' : '-' }} R$ {{ item.valor | number:'1.2-2' }}</span>
+        </div>
+      </div>
+      <div class="card-actions">
+        <ion-button fill="clear" color="danger" (click)="confirmDelete(item)">
+          <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+
+    <div *ngIf="registrosFiltrados.length === 0" class="empty-state">
+      <div class="empty-icon"><ion-icon name="cash-outline"></ion-icon></div>
+      <h3>Nenhum lançamento</h3>
+      <p>Toque em + para adicionar</p>
+    </div>
+  </div>
+
+  <!-- ── FAB: novo lançamento ──────────────────────── -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button>
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+    <ion-fab-list side="top">
+      <ion-fab-button color="success" (click)="abrirForm('entrada')">
+        <ion-icon name="arrow-down-outline"></ion-icon>
+      </ion-fab-button>
+      <ion-fab-button color="danger" (click)="abrirForm('saida')">
+        <ion-icon name="arrow-up-outline"></ion-icon>
+      </ion-fab-button>
+    </ion-fab-list>
+  </ion-fab>
+</ion-content>
+
+<!-- ── Modal inline de lançamento ───────────────── -->
+<ion-modal [isOpen]="modalAberto" (didDismiss)="fecharModal()" [breakpoints]="[0, 1]" [initialBreakpoint]="1">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar [color]="tipoForm === 'entrada' ? 'success' : 'danger'">
+        <ion-title>{{ tipoForm === 'entrada' ? 'Nova Entrada' : 'Nova Saída' }}</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="fecharModal()">Fechar</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <form [formGroup]="form" (ngSubmit)="salvar()">
+        <ion-list lines="full">
+          <ion-item>
+            <ion-label position="stacked">Descrição *</ion-label>
+            <ion-input formControlName="descricao" placeholder="Ex: Banho do Rex"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Valor (R$) *</ion-label>
+            <ion-input type="number" step="0.01" formControlName="valor" placeholder="0,00"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Data *</ion-label>
+            <ion-input type="date" formControlName="data"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Categoria</ion-label>
+            <ion-input formControlName="categoria" placeholder="Ex: Serviço, Produto, Aluguel…"></ion-input>
+          </ion-item>
+        </ion-list>
+        <div class="ion-padding-top">
+          <ion-button expand="block" [color]="tipoForm === 'entrada' ? 'success' : 'danger'" type="submit" [disabled]="form.invalid || salvando">
+            <ion-spinner *ngIf="salvando" name="crescent" slot="start"></ion-spinner>
+            Salvar
+          </ion-button>
+        </div>
+      </form>
+    </ion-content>
+  </ng-template>
+</ion-modal>

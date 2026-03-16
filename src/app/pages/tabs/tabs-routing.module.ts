@@ -47,6 +47,11 @@ const routes: Routes = [
         loadChildren: () =>
           import('../pacotes/pacotes.module').then((m) => m.PacotesPageModule),
       },
+      {
+        path: 'caixa',
+        loadChildren: () =>
+          import('../caixa/caixa.module').then((m) => m.CaixaPageModule),
+      },
       { path: '', redirectTo: 'inicio', pathMatch: 'full' },
     ],
   },

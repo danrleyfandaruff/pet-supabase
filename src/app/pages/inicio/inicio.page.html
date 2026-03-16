@@ -1,34 +1,89 @@
 <ion-header class="ion-no-border">
   <ion-toolbar class="main-toolbar">
-    <ion-title class="main-title">GroomerLab <span>360</span></ion-title>
+    <ion-title class="main-title">GroomerLab<span>360</span></ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="navigate('/tabs/ajustes')" fill="clear">
+        <ion-icon name="settings" class="toolbar-settings-icon"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="inicio-content">
+<ion-content class="inicio-content" [fullscreen]="true">
 
-  <!-- Banner de boas-vindas -->
-  <div class="welcome-banner" *ngIf="currentUser$ | async as user">
-    <div class="welcome-text">
-      <p>Olá,</p>
-      <h2>{{ user.name }}</h2>
+  <!-- ── Hero ──────────────────────────────────────────── -->
+  <div class="hero" *ngIf="currentUser$ | async as user">
+    <div class="hero-text">
+      <p class="hero-greeting">Olá, <strong>{{ primeiroNome(user.name) }}</strong> 👋</p>
+      <p class="hero-date">{{ hoje }}</p>
     </div>
-    <div class="welcome-icon">
+    <div class="hero-avatar">
       <ion-icon name="paw"></ion-icon>
     </div>
   </div>
 
-  <!-- Grade de acesso rápido -->
-  <div class="section-header">
-    <span>Acesso rápido</span>
+  <!-- ── Stats do dia ─────────────────────────────────── -->
+  <div class="stats-row">
+    <div class="stat-card" (click)="navigate('/tabs/atendimentos')">
+      <span class="stat-value">
+        <ion-skeleton-text *ngIf="statsLoading" animated style="width:28px;height:20px;border-radius:6px"></ion-skeleton-text>
+        <span *ngIf="!statsLoading">{{ atendimentosHoje }}</span>
+      </span>
+      <span class="stat-label">Hoje</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-card" (click)="navigate('/tabs/caixa')">
+      <span class="stat-value stat-value--green">
+        <ion-skeleton-text *ngIf="statsLoading" animated style="width:60px;height:20px;border-radius:6px"></ion-skeleton-text>
+        <span *ngIf="!statsLoading">R$ {{ totalMes | number:'1.0-0' }}</span>
+      </span>
+      <span class="stat-label">Recebido no mês</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-card" (click)="navigate('/tabs/atendimentos')">
+      <span class="stat-value stat-value--orange">
+        <ion-skeleton-text *ngIf="statsLoading" animated style="width:24px;height:20px;border-radius:6px"></ion-skeleton-text>
+        <span *ngIf="!statsLoading">{{ pendentesPagamento }}</span>
+      </span>
+      <span class="stat-label">Sem pagamento</span>
+    </div>
   </div>
 
+  <!-- ── Acesso rápido ──────────────────────────────────── -->
+  <div class="section-label">Acesso rápido</div>
+
   <div class="cards-grid">
-    <button class="menu-card" *ngFor="let card of cards" (click)="navigate(card.route)">
-      <div class="card-icon-wrap" [class]="'color-' + card.color">
+
+    <!-- Agenda — card destaque largo -->
+    <button class="card-wide card-agenda" (click)="navigate('/tabs/atendimentos')">
+      <div class="card-wide-inner">
+        <div class="card-wide-text">
+          <span class="card-wide-label">Agenda</span>
+          <span class="card-wide-sub">Ver atendimentos</span>
+        </div>
+        <ion-icon name="calendar"></ion-icon>
+      </div>
+    </button>
+
+    <!-- Caixa — card destaque largo -->
+    <button class="card-wide card-caixa" (click)="navigate('/tabs/caixa')">
+      <div class="card-wide-inner">
+        <div class="card-wide-text">
+          <span class="card-wide-label">Caixa</span>
+          <span class="card-wide-sub">Entradas e saídas</span>
+        </div>
+        <ion-icon name="cash"></ion-icon>
+      </div>
+    </button>
+
+    <!-- Cards menores em grid 2×2 -->
+    <button class="card-small" *ngFor="let card of smallCards" (click)="navigate(card.route)">
+      <div class="card-small-icon" [class]="'bg-' + card.color">
         <ion-icon [name]="card.icon"></ion-icon>
       </div>
       <span>{{ card.label }}</span>
     </button>
+
   </div>
 
 </ion-content>

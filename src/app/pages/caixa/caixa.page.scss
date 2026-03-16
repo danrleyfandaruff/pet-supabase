@@ -1,0 +1,255 @@
+.caixa-content {
+  --background: #f0f2f5;
+}
+
+// ── Resumo ─────────────────────────────────────────────────
+.resumo-row {
+  display: flex;
+  gap: 10px;
+  padding: 16px 16px 8px;
+}
+
+.resumo-card {
+  flex: 1;
+  border-radius: 16px;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  text-align: center;
+
+  &.entrada { background: #e6f9f0; }
+  &.saida   { background: #fdecea; }
+  &.saldo   { background: #e8f0ff; }
+  &.saldo.negativo { background: #fff3cd; }
+}
+
+.resumo-icon {
+  ion-icon {
+    font-size: 22px;
+    .entrada & { color: #1a8a4a; }
+    .saida &   { color: #c0392b; }
+    .saldo &   { color: #2c5dcc; }
+  }
+}
+.entrada .resumo-icon ion-icon { color: #1a8a4a; }
+.saida .resumo-icon ion-icon   { color: #c0392b; }
+.saldo .resumo-icon ion-icon   { color: #2c5dcc; }
+.saldo.negativo .resumo-icon ion-icon { color: #b8800f; }
+
+.resumo-label {
+  font-size: 11px;
+  color: #666;
+  font-weight: 500;
+}
+
+.resumo-valor {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a1a1a;
+  word-break: break-all;
+}
+
+// ── Gráfico mensal ─────────────────────────────────────────
+.grafico-wrapper {
+  background: #fff;
+  border-radius: 20px;
+  margin: 0 16px 10px;
+  padding: 16px 16px 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+.grafico-titulo {
+  font-size: 13px;
+  font-weight: 700;
+  color: #444;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 14px;
+}
+
+.grafico-loading {
+  padding: 0;
+}
+
+.grafico-area {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 100px;
+  gap: 6px;
+}
+
+.grafico-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  gap: 4px;
+}
+
+.barras {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 88px;
+  width: 100%;
+  justify-content: center;
+}
+
+.barra {
+  flex: 1;
+  border-radius: 5px 5px 2px 2px;
+  min-height: 3px;
+  transition: height 0.4s ease;
+
+  &.barra-entrada { background: #1cc674; }
+  &.barra-saida   { background: #f87171; }
+}
+
+.grafico-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ion-color-medium);
+  text-align: center;
+}
+
+.grafico-legenda {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+  justify-content: center;
+}
+
+.leg-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #666;
+  font-weight: 600;
+
+  .leg-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+  }
+
+  &.leg-entrada .leg-dot { background: #1cc674; }
+  &.leg-saida .leg-dot   { background: #f87171; }
+}
+
+// ── Filtro de período ──────────────────────────────────────
+.filtro-wrapper {
+  padding: 4px 16px 10px;
+  ion-segment { border-radius: 12px; background: #fff; }
+}
+
+// ── Loading ────────────────────────────────────────────────
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 60px 20px;
+}
+
+// ── Lançamentos ────────────────────────────────────────────
+.lancamentos-wrapper {
+  padding: 0 16px 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card-item {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.07);
+  overflow: hidden;
+}
+
+.card-main {
+  display: flex;
+  align-items: center;
+  padding: 14px 14px 10px;
+  gap: 12px;
+  min-height: 64px;
+}
+
+.card-text {
+  flex: 1;
+  min-width: 0;
+
+  h2 {
+    margin: 0 0 3px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a1a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--ion-color-medium);
+  }
+}
+
+.card-valor {
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  &.entrada { color: #1a8a4a; }
+  &.saida   { color: #c0392b; }
+}
+
+.card-actions {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid #f0f2f5;
+  padding: 2px 6px;
+  ion-button {
+    --padding-start: 10px;
+    --padding-end: 10px;
+    height: 36px;
+  }
+}
+
+.item-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  ion-icon { font-size: 22px; color: #fff; }
+  &.color-success { background: var(--ion-color-success); }
+  &.color-danger  { background: var(--ion-color-danger); }
+}
+
+// ── Empty state ────────────────────────────────────────────
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 80px 20px 40px;
+  color: var(--ion-color-medium);
+
+  .empty-icon {
+    width: 72px;
+    height: 72px;
+    background: rgba(var(--ion-color-medium-rgb), 0.1);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    ion-icon { font-size: 36px; }
+  }
+
+  h3 { margin: 0 0 6px; font-size: 17px; font-weight: 700; color: #444; }
+  p  { margin: 0; font-size: 14px; color: var(--ion-color-medium); }
+}

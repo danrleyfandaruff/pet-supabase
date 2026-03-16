@@ -39,6 +39,9 @@
         </ion-badge>
       </div>
       <div class="card-actions">
+        <ion-button fill="clear" color="tertiary" (click)="abrirHistorico(a); $event.stopPropagation()">
+          <ion-icon slot="icon-only" name="time-outline"></ion-icon>
+        </ion-button>
         <ion-button fill="clear" color="primary" (click)="openForm(a)">
           <ion-icon slot="icon-only" name="create-outline"></ion-icon>
         </ion-button>
@@ -61,3 +64,58 @@
     </ion-fab-button>
   </ion-fab>
 </ion-content>
+
+<!-- ── Modal de histórico do pet ────────────────────────── -->
+<ion-modal [isOpen]="historicoAberto" (didDismiss)="fecharHistorico()" [breakpoints]="[0, 0.92]" [initialBreakpoint]="0.92">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar color="tertiary">
+        <ion-title>
+          <ion-icon name="time-outline" style="vertical-align:middle;margin-right:6px"></ion-icon>
+          Histórico — {{ animalHistorico?.nome }}
+        </ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="fecharHistorico()">Fechar</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="hist-content">
+      <div *ngIf="historicoLoading" class="hist-loading">
+        <ion-spinner name="crescent" color="tertiary"></ion-spinner>
+      </div>
+
+      <div *ngIf="!historicoLoading && historicoAtendimentos.length === 0" class="hist-empty">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <p>Nenhum atendimento registrado</p>
+      </div>
+
+      <div *ngIf="!historicoLoading && historicoAtendimentos.length > 0" class="hist-list">
+        <div *ngFor="let a of historicoAtendimentos" class="hist-card">
+          <div class="hist-date-col">
+            <span class="hist-day">{{ a.data ? a.data.split('-')[2] : '—' }}</span>
+            <span class="hist-mon">{{ a.data ? a.data.split('-')[1] + '/' + a.data.split('-')[0].slice(2) : '' }}</span>
+          </div>
+          <div class="hist-divider"></div>
+          <div class="hist-info">
+            <p class="hist-servico">
+              <ion-icon name="cut-outline"></ion-icon>
+              {{ a.servico?.nome || 'Atendimento' }}
+            </p>
+            <p class="hist-sub" *ngIf="a.responsavel?.nome">
+              <ion-icon name="person-outline"></ion-icon>
+              {{ a.responsavel?.nome }}
+            </p>
+            <p class="hist-sub" *ngIf="a.servico?.valor">
+              R$ {{ a.servico?.valor | number:'1.2-2' }}
+              <span *ngIf="a.valor_adicional"> + R$ {{ a.valor_adicional | number:'1.2-2' }}</span>
+            </p>
+          </div>
+          <div class="hist-status-col">
+            <ion-badge *ngIf="a.pago" class="hist-badge-pago">Pago</ion-badge>
+            <ion-badge *ngIf="!a.pago" class="hist-badge-pendente">Pendente</ion-badge>
+          </div>
+        </div>
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>

@@ -9,6 +9,7 @@ import { Raca } from '../../core/models/raca.model';
 import { Responsavel } from '../../core/models/responsavel.model';
 import { Status } from '../../core/models/status.model';
 import { TipoServico } from '../../core/models/tipo-servico.model';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({ selector: 'app-configuracoes', templateUrl: './configuracoes.page.html', styleUrls: ['./configuracoes.page.scss'] })
 export class ConfiguracoesPage implements OnInit {
@@ -23,6 +24,7 @@ export class ConfiguracoesPage implements OnInit {
     private responsavelService: ResponsavelService,
     private statusService: StatusService,
     private tipoServicoService: TipoServicoService,
+    private authService: AuthService,
     private alertCtrl: AlertController,
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
@@ -194,6 +196,26 @@ export class ConfiguracoesPage implements OnInit {
   verManual() {
     localStorage.removeItem('groomerlab360_manual_visto');
     this.router.navigate(['/manual']);
+  }
+
+  async confirmarLogout() {
+    const alert = await this.alertCtrl.create({
+      header: 'Sair da conta',
+      message: 'Deseja encerrar sua sessão?',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Sair',
+          role: 'destructive',
+          handler: () => {
+            this.authService.logout().subscribe(() => {
+              this.router.navigate(['/login'], { replaceUrl: true });
+            });
+          },
+        },
+      ],
+    });
+    await alert.present();
   }
 
   private async showToast(message: string, color: string) {

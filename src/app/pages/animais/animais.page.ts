@@ -3,6 +3,8 @@ import { AlertController, LoadingController, ModalController, ToastController } 
 import { AnimalService } from '../../core/services/animal.service';
 import { Animal } from '../../core/models/animal.model';
 import { AnimalFormComponent } from './animal-form.component';
+import { AtendimentoService } from '../../core/services/atendimento.service';
+import { Atendimento } from '../../core/models/atendimento.model';
 
 @Component({ selector: 'app-animais', templateUrl: './animais.page.html', styleUrls: ['./animais.page.scss'] })
 export class AnimaisPage implements OnInit {
@@ -10,8 +12,15 @@ export class AnimaisPage implements OnInit {
   animaisFiltrados: Animal[] = [];
   isLoading = false;
 
+  // ── Histórico ─────────────────────────────────────────
+  historicoAberto = false;
+  animalHistorico: Animal | null = null;
+  historicoAtendimentos: Atendimento[] = [];
+  historicoLoading = false;
+
   constructor(
     private animalService: AnimalService,
+    private atendimentoService: AtendimentoService,
     private modalCtrl: ModalController,
     private alertCtrl: AlertController,
     private loadingCtrl: LoadingController,
@@ -71,6 +80,33 @@ export class AnimaisPage implements OnInit {
       await this.loadData();
     } catch (e: any) { await this.showToast(e.message, 'danger'); }
     finally { await loading.dismiss(); }
+  }
+
+  // ── Histórico ─────────────────────────────────────────
+  async abrirHistorico(animal: Animal) {
+    this.animalHistorico = animal;
+    this.historicoAberto = true;
+    this.historicoLoading = true;
+    this.historicoAtendimentos = [];
+    try {
+      this.historicoAtendimentos = await this.atendimentoService.getByAnimal(animal.id!);
+    } catch (e: any) {
+      await this.showToast(e.message, 'danger');
+    } finally {
+      this.historicoLoading = false;
+    }
+  }
+
+  fecharHistorico() {
+    this.historicoAberto = false;
+    this.animalHistorico = null;
+    this.historicoAtendimentos = [];
+  }
+
+  formatDate(d: string): string {
+    if (!d) return '';
+    const [y, m, day] = d.split('-');
+    return `${day}/${m}/${y}`;
   }
 
   private async showToast(message: string, color: string) {

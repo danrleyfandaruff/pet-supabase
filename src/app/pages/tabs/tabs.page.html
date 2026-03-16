@@ -1,19 +1,30 @@
 <ion-tabs>
   <ion-tab-bar slot="bottom">
 
-    <ion-tab-button tab="inicio">
+    <ion-tab-button tab="inicio" layout="icon-top">
       <ion-icon name="home-outline"></ion-icon>
       <ion-label>Início</ion-label>
     </ion-tab-button>
 
-    <ion-tab-button tab="ajustes">
-      <ion-icon name="settings-outline"></ion-icon>
-      <ion-label>Ajustes</ion-label>
+    <ion-tab-button tab="animais" layout="icon-top">
+      <ion-icon name="paw-outline"></ion-icon>
+      <ion-label>Pets</ion-label>
     </ion-tab-button>
 
-    <ion-tab-button (click)="onLogout()" class="logout-tab">
-      <ion-icon name="log-out-outline"></ion-icon>
-      <ion-label>Sair</ion-label>
+    <ion-tab-button tab="atendimentos" layout="icon-top" class="tab-center">
+      <div class="tab-fab-circle">
+        <ion-icon name="calendar-outline"></ion-icon>
+      </div>
+    </ion-tab-button>
+
+    <ion-tab-button tab="caixa" layout="icon-top">
+      <ion-icon name="cash-outline"></ion-icon>
+      <ion-label>Caixa</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button tab="ajustes" layout="icon-top">
+      <ion-icon name="settings-outline"></ion-icon>
+      <ion-label>Ajustes</ion-label>
     </ion-tab-button>
 
   </ion-tab-bar>

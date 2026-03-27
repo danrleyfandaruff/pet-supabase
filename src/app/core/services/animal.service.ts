@@ -1,25 +1,37 @@
 import { Injectable } from '@angular/core';
-import { BaseCrudService } from './base-crud.service';
-import { SupabaseService } from './supabase.service';
+import { lastValueFrom } from 'rxjs';
+import { ApiService } from './api.service';
 import { Animal } from '../models/animal.model';
 
 @Injectable({ providedIn: 'root' })
-export class AnimalService extends BaseCrudService<Animal> {
-  protected override tableName = 'animal';
-  protected override selectQuery = '*, cliente(nome), raca(nome)';
+export class AnimalService {
+  constructor(private api: ApiService) {}
 
-  constructor(supabaseService: SupabaseService) {
-    super(supabaseService);
+  async getAll(): Promise<Animal[]> {
+    return lastValueFrom(this.api.getAnimais());
+  }
+
+  async getById(id: number): Promise<Animal> {
+    return lastValueFrom(this.api.getAnimalById(id));
   }
 
   async getByCliente(idCliente: number): Promise<Animal[]> {
-    const { data, error } = await this.supabaseService.client
-      .from(this.tableName)
-      .select(this.selectQuery)
-      .eq('id_cliente', idCliente)
-      .eq('ativo', true)
-      .order('nome');
-    if (error) throw error;
-    return (data as unknown as Animal[]) || [];
+    return lastValueFrom(this.api.getAnimaisPorCliente(idCliente));
+  }
+
+  async create(item: Partial<Animal>): Promise<any> {
+    return lastValueFrom(this.api.cadastrarAnimal(item));
+  }
+
+  async update(id: number, item: Partial<Animal>): Promise<any> {
+    return lastValueFrom(this.api.atualizarAnimal(id, item));
+  }
+
+  async delete(id: number): Promise<any> {
+    return lastValueFrom(this.api.deletarAnimal(id));
+  }
+
+  async softDelete(id: number): Promise<any> {
+    return lastValueFrom(this.api.softDeletarAnimal(id));
   }
 }

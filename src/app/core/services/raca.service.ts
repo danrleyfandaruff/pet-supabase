@@ -1,25 +1,33 @@
 import { Injectable } from '@angular/core';
-import { BaseCrudService } from './base-crud.service';
-import { SupabaseService } from './supabase.service';
+import { lastValueFrom } from 'rxjs';
+import { ApiService } from './api.service';
 import { Raca } from '../models/raca.model';
 
 @Injectable({ providedIn: 'root' })
-export class RacaService extends BaseCrudService<Raca> {
-  protected tableName = 'raca';
+export class RacaService {
+  constructor(private api: ApiService) {}
 
-  constructor(supabaseService: SupabaseService) {
-    super(supabaseService);
+  async getAll(): Promise<Raca[]> {
+    return lastValueFrom(this.api.getRacas());
   }
 
-  // Raças não têm campo 'atualizacao', sobrescreve update sem esse campo
-  override async update(id: number, item: Partial<Raca>): Promise<Raca> {
-    const { data, error } = await this.supabaseService.client
-      .from(this.tableName)
-      .update(item)
-      .eq('id', id)
-      .select()
-      .single();
-    if (error) throw error;
-    return data as Raca;
+  async getById(id: number): Promise<Raca> {
+    return lastValueFrom(this.api.getRacaById(id));
+  }
+
+  async create(item: Partial<Raca>): Promise<any> {
+    return lastValueFrom(this.api.cadastrarRaca(item));
+  }
+
+  async update(id: number, item: Partial<Raca>): Promise<any> {
+    return lastValueFrom(this.api.atualizarRaca(id, item));
+  }
+
+  async delete(id: number): Promise<any> {
+    return lastValueFrom(this.api.deletarRaca(id));
+  }
+
+  async softDelete(id: number): Promise<any> {
+    return lastValueFrom(this.api.softDeletarRaca(id));
   }
 }

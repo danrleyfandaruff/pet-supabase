@@ -5,10 +5,12 @@ import { RacaService } from '../../core/services/raca.service';
 import { ResponsavelService } from '../../core/services/responsavel.service';
 import { StatusService } from '../../core/services/status.service';
 import { TipoServicoService } from '../../core/services/tipo-servico.service';
+import { ColaboradorService } from '../../core/services/colaborador.service';
 import { Raca } from '../../core/models/raca.model';
 import { Responsavel } from '../../core/models/responsavel.model';
 import { Status } from '../../core/models/status.model';
 import { TipoServico } from '../../core/models/tipo-servico.model';
+import { Colaborador } from '../../core/models/colaborador.model';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({ selector: 'app-configuracoes', templateUrl: './configuracoes.page.html', styleUrls: ['./configuracoes.page.scss'] })
@@ -17,6 +19,7 @@ export class ConfiguracoesPage implements OnInit {
   responsaveis: Responsavel[] = [];
   statusList: Status[] = [];
   tiposServico: TipoServico[] = [];
+  colaboradores: Colaborador[] = [];
   isLoading = false;
 
   constructor(
@@ -24,6 +27,7 @@ export class ConfiguracoesPage implements OnInit {
     private responsavelService: ResponsavelService,
     private statusService: StatusService,
     private tipoServicoService: TipoServicoService,
+    private colaboradorService: ColaboradorService,
     private authService: AuthService,
     private alertCtrl: AlertController,
     private loadingCtrl: LoadingController,
@@ -37,16 +41,18 @@ export class ConfiguracoesPage implements OnInit {
   async loadAll() {
     this.isLoading = true;
     try {
-      const [racas, responsaveis, statusList, tiposServico] = await Promise.all([
+      const [racas, responsaveis, statusList, tiposServico, colaboradores] = await Promise.all([
         this.racaService.getAll(),
         this.responsavelService.getAll(),
         this.statusService.getAll(),
         this.tipoServicoService.getAll(),
+        this.colaboradorService.getAll(),
       ]);
       this.racas = racas;
       this.responsaveis = responsaveis;
       this.statusList = statusList;
       this.tiposServico = tiposServico;
+      this.colaboradores = colaboradores;
     } catch (e: any) { await this.showToast(e.message, 'danger'); }
     finally { this.isLoading = false; }
   }
@@ -188,6 +194,105 @@ export class ConfiguracoesPage implements OnInit {
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         { text: 'Excluir', role: 'destructive', handler: async () => { await this.tipoServicoService.delete(t.id!); await this.loadAll(); } },
+      ],
+    });
+    await alert.present();
+  }
+
+  // ── COLABORADORES ────────────────────────
+  async addColaborador() {
+    const alert = await this.alertCtrl.create({
+      header: 'Novo Colaborador',
+      inputs: [
+        { name: 'email', type: 'email', placeholder: 'E-mail' },
+        { name: 'password', type: 'password', placeholder: 'Senha temporária' },
+        { name: 'nome', placeholder: 'Nome (opcional)' },
+        { name: 'cargo', placeholder: 'Cargo (opcional)' },
+      ],
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Convidar',
+          handler: async (d) => {
+            if (!d.email || !d.password) {
+              await this.showToast('E-mail e senha são obrigatórios', 'warning');
+              return false;
+            }
+            try {
+              await this.colaboradorService.convidar({
+                email: d.email,
+                password: d.password,
+                nome: d.nome || undefined,
+                cargo: d.cargo || undefined,
+              });
+              await this.showToast('Colaborador adicionado!', 'success');
+              await this.loadAll();
+            } catch (e: any) {
+              await this.showToast(e?.error?.message || e.message, 'danger');
+            }
+            return true;
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  async editColaborador(c: Colaborador) {
+    const alert = await this.alertCtrl.create({
+      header: 'Editar Colaborador',
+      inputs: [
+        { name: 'nome', value: c.nome || '', placeholder: 'Nome' },
+        { name: 'cargo', value: c.cargo || '', placeholder: 'Cargo' },
+      ],
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Salvar',
+          handler: async (d) => {
+            await this.colaboradorService.update(c.id, { nome: d.nome, cargo: d.cargo });
+            await this.loadAll();
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  async toggleAtivoColaborador(c: Colaborador) {
+    const novoStatus = !c.ativo;
+    const label = novoStatus ? 'Reativar' : 'Desativar';
+    const alert = await this.alertCtrl.create({
+      header: `${label} Colaborador`,
+      message: `${label} "${c.nome || c.email}"?`,
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: label,
+          handler: async () => {
+            await this.colaboradorService.update(c.id, { ativo: novoStatus });
+            await this.loadAll();
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  async removeColaborador(c: Colaborador) {
+    const alert = await this.alertCtrl.create({
+      header: 'Remover Colaborador',
+      message: `Remover "${c.nome || c.email}" da empresa? O acesso será desativado.`,
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Remover',
+          role: 'destructive',
+          handler: async () => {
+            await this.colaboradorService.remove(c.id);
+            await this.loadAll();
+          },
+        },
       ],
     });
     await alert.present();

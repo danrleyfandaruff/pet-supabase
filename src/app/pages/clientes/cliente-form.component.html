@@ -18,8 +18,8 @@
   <ion-note *ngIf="form.get('nome')?.invalid && form.get('nome')?.touched" color="danger" class="ion-padding-start">Nome obrigatório</ion-note>
 
   <ion-item>
-    <ion-label position="stacked">Data de Nascimento</ion-label>
-    <ion-input formControlName="data_nascimento" type="date"></ion-input>
+    <ion-label position="stacked">Data de Nascimento <span style="color:var(--ion-color-medium);font-size:12px;font-weight:normal">(opcional)</span></ion-label>
+    <ion-input formControlName="data_nascimento" type="date" [attr.required]="null"></ion-input>
   </ion-item>
 
   <ion-item>

@@ -32,7 +32,7 @@ export class RegisterPage implements OnInit {
     private authService: AuthService,
     private router: Router,
     private loadingCtrl: LoadingController,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
   ) {}
 
   ngOnInit(): void {

@@ -22,7 +22,7 @@ export class ClienteFormComponent implements OnInit {
     this.isEdit = !!this.cliente?.id;
     this.form = this.fb.group({
       nome: [this.cliente?.nome || '', Validators.required],
-      data_nascimento: [this.cliente?.data_nascimento || ''],
+      data_nascimento: [this.cliente?.data_nascimento || null],
       telefone: [this.cliente?.telefone || ''],
       email: [this.cliente?.email || '', Validators.email],
       ativo: [this.cliente?.ativo ?? true],

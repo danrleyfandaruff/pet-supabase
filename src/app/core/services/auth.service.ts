@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, from, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, from, throwError, lastValueFrom } from 'rxjs';
 import { filter, map, catchError, switchMap } from 'rxjs/operators';
 import { AuthChangeEvent, Session } from '@supabase/supabase-js';
 import { SupabaseService } from './supabase.service';
 import { TenantService } from './tenant.service';
+import { ApiService } from './api.service';
 import { User, LoginRequest, RegisterRequest } from '../models/user.model';
 
 @Injectable({
@@ -25,7 +26,8 @@ export class AuthService {
 
   constructor(
     private supabaseService: SupabaseService,
-    private tenantService: TenantService
+    private tenantService: TenantService,
+    private apiService: ApiService,
   ) {
     this.initSession();
     this.listenToAuthChanges();
@@ -100,38 +102,36 @@ export class AuthService {
   }
 
   /**
-   * Registra novo usuário.
-   * A criação de empresa + usuario é feita automaticamente via trigger no Supabase
-   * (função handle_new_user), usando os metadados passados no signUp.
+   * Registra novo usuário via NestJS.
+   * O NestJS faz o signUp no Supabase e dispara o seed de dados padrão (status, raças, etc.).
+   * Após o cadastro, aplica a sessão retornada pelo backend no cliente Supabase local.
    */
   register(data: RegisterRequest): Observable<void> {
     this.isLoadingSubject.next(true);
 
-    return from(
-      this.supabaseService.auth.signUp({
-        email: data.email,
-        password: data.password,
-        options: {
-          // nomeEmpresa e name são lidos pelo trigger handle_new_user no Supabase
-          data: {
-            name: data.name,
-            nomeEmpresa: data.nomeEmpresa,
-          },
-        },
-      })
-    ).pipe(
-      switchMap(async ({ data: authData, error }) => {
-        if (error) throw new Error(this.translateError(error.message));
-        if (!authData.user) throw new Error('Erro ao criar usuário. Tente novamente.');
+    const promise = lastValueFrom(
+      this.apiService.signup(data.email, data.password, { name: data.name, nomeEmpresa: data.nomeEmpresa })
+    ).then(async (response: any) => {
+      if (!response?.user) throw new Error('Erro ao criar usuário. Tente novamente.');
 
-        // O trigger já criou empresa + usuario. Atualiza estado se há sessão.
-        if (authData.session) await this.updateState(authData.session);
+      // NestJS retorna { user, session } do Supabase.
+      // Se a confirmação de e-mail está desabilitada, session já vem preenchida.
+      if (response.session) {
+        await this.supabaseService.auth.setSession({
+          access_token: response.session.access_token,
+          refresh_token: response.session.refresh_token,
+        });
+        await this.updateState(response.session);
+      }
 
-        this.isLoadingSubject.next(false);
-      }),
+      this.isLoadingSubject.next(false);
+    });
+
+    return from(promise).pipe(
       catchError((err) => {
         this.isLoadingSubject.next(false);
-        return throwError(() => err);
+        const message = err?.error?.message || err?.message || 'Erro ao criar conta.';
+        return throwError(() => new Error(this.translateError(message)));
       })
     );
   }

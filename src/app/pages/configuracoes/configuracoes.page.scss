@@ -188,6 +188,7 @@ ion-accordion {
     &.color-secondary { background: var(--ion-color-secondary); }
     &.color-warning   { background: var(--ion-color-warning); }
     &.color-tertiary  { background: var(--ion-color-tertiary); }
+    &.color-success   { background: var(--ion-color-success); }
   }
 }
 
@@ -235,8 +236,15 @@ ion-accordion .ion-accordion-toggle-icon {
 
 .mini-info {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.mini-badges {
+  display: flex;
+  gap: 5px;
   flex-wrap: wrap;
 }
 

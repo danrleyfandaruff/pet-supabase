@@ -1,25 +1,29 @@
 import { Injectable } from '@angular/core';
-import { BaseCrudService } from './base-crud.service';
-import { SupabaseService } from './supabase.service';
+import { lastValueFrom } from 'rxjs';
+import { ApiService } from './api.service';
 import { Status } from '../models/status.model';
 
 @Injectable({ providedIn: 'root' })
-export class StatusService extends BaseCrudService<Status> {
-  protected tableName = 'status';
+export class StatusService {
+  constructor(private api: ApiService) {}
 
-  constructor(supabaseService: SupabaseService) {
-    super(supabaseService);
+  async getAll(): Promise<Status[]> {
+    return lastValueFrom(this.api.getStatus());
   }
 
-  // Status não tem campo 'atualizacao'
-  override async update(id: number, item: Partial<Status>): Promise<Status> {
-    const { data, error } = await this.supabaseService.client
-      .from(this.tableName)
-      .update(item)
-      .eq('id', id)
-      .select()
-      .single();
-    if (error) throw error;
-    return data as Status;
+  async getById(id: number): Promise<Status> {
+    return lastValueFrom(this.api.getStatusById(id));
+  }
+
+  async create(item: Partial<Status>): Promise<any> {
+    return lastValueFrom(this.api.cadastrarStatus(item));
+  }
+
+  async update(id: number, item: Partial<Status>): Promise<any> {
+    return lastValueFrom(this.api.atualizarStatus(id, item));
+  }
+
+  async delete(id: number): Promise<any> {
+    return lastValueFrom(this.api.deletarStatus(id));
   }
 }

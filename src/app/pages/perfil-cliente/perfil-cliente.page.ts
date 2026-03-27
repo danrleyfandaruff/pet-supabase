@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { ClienteService } from '../../core/services/cliente.service';
 import { AnimalService } from '../../core/services/animal.service';
 import { AtendimentoService } from '../../core/services/atendimento.service';
@@ -7,6 +8,7 @@ import { Cliente } from '../../core/models/cliente.model';
 import { Animal } from '../../core/models/animal.model';
 import { Atendimento } from '../../core/models/atendimento.model';
 import { NavController } from '@ionic/angular';
+import { AnimalFormComponent } from '../animais/animal-form.component';
 
 @Component({
   selector: 'app-perfil-cliente',
@@ -28,6 +30,10 @@ export class PerfilClientePage implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private navCtrl: NavController,
+    private modalCtrl: ModalController,
+    private alertCtrl: AlertController,
+    private loadingCtrl: LoadingController,
+    private toastCtrl: ToastController,
     private clienteService: ClienteService,
     private animalService: AnimalService,
     private atendimentoService: AtendimentoService,
@@ -72,6 +78,19 @@ export class PerfilClientePage implements OnInit {
 
   get ultimosAtendimentos() {
     return this.atendimentos.slice(0, 10);
+  }
+
+  // Abre formulário completo de cadastro de animal com tutor pré-selecionado
+  async adicionarPet() {
+    const modal = await this.modalCtrl.create({
+      component: AnimalFormComponent,
+      componentProps: { presetClienteId: this.clienteId },
+      breakpoints: [0, 1],
+      initialBreakpoint: 1,
+    });
+    await modal.present();
+    const { data } = await modal.onDidDismiss();
+    if (data) await this.loadData();
   }
 
   irParaProntuario(animal: Animal) {

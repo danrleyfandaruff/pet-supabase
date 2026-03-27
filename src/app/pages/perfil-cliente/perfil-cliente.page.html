@@ -51,10 +51,14 @@
     </div>
 
     <!-- Pets -->
-    <div class="section" *ngIf="animais.length > 0">
+    <div class="section">
       <div class="section-header">
         <ion-icon name="paw-outline"></ion-icon>
         <h2>Pets ({{ animais.length }})</h2>
+        <ion-button fill="clear" size="small" (click)="adicionarPet()" class="add-pet-btn">
+          <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+          Novo Pet
+        </ion-button>
       </div>
       <div class="pets-list">
         <div class="pet-chip" *ngFor="let pet of animais" (click)="irParaProntuario(pet)">
@@ -95,9 +99,13 @@
     </div>
 
     <!-- Empty animais -->
-    <div class="section-empty" *ngIf="animais.length === 0">
+    <div class="section-empty" *ngIf="animais.length === 0" (click)="adicionarPet()">
       <ion-icon name="paw-outline"></ion-icon>
       <span>Nenhum pet cadastrado</span>
+      <ion-button fill="outline" size="small" color="primary" style="margin-top: 12px">
+        <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+        Cadastrar Pet
+      </ion-button>
     </div>
 
   </div>

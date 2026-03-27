@@ -180,6 +180,49 @@
         </div>
       </ion-accordion>
 
+      <!-- COLABORADORES -->
+      <ion-accordion value="colaboradores">
+        <ion-item slot="header" lines="none" class="accordion-header">
+          <div class="acc-icon-wrap color-success" slot="start">
+            <ion-icon name="people-outline"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>Colaboradores</h3>
+            <p>Usuários com acesso ao sistema</p>
+          </ion-label>
+          <ion-badge slot="end" color="success">{{ colaboradores.length }}</ion-badge>
+        </ion-item>
+        <div slot="content" class="accordion-content">
+          <div *ngFor="let c of colaboradores" class="mini-card">
+            <div class="mini-info">
+              <span>{{ c.nome || c.email }}</span>
+              <p *ngIf="c.nome" class="mini-desc">{{ c.email }}</p>
+              <div class="mini-badges">
+                <ion-badge [color]="c.ativo ? 'success' : 'medium'" class="mini-status">
+                  {{ c.ativo ? 'Ativo' : 'Inativo' }}
+                </ion-badge>
+                <ion-badge *ngIf="c.cargo" color="light" class="mini-status">{{ c.cargo }}</ion-badge>
+              </div>
+            </div>
+            <div class="mini-actions">
+              <ion-button fill="clear" color="primary" size="small" (click)="editColaborador(c)">
+                <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+              </ion-button>
+              <ion-button fill="clear" [color]="c.ativo ? 'warning' : 'success'" size="small" (click)="toggleAtivoColaborador(c)">
+                <ion-icon slot="icon-only" [name]="c.ativo ? 'pause-circle-outline' : 'play-circle-outline'"></ion-icon>
+              </ion-button>
+              <ion-button fill="clear" color="danger" size="small" (click)="removeColaborador(c)">
+                <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+          <div *ngIf="colaboradores.length === 0" class="acc-empty">Nenhum colaborador cadastrado</div>
+          <ion-button expand="block" fill="outline" color="success" class="add-btn" (click)="addColaborador()">
+            <ion-icon name="person-add-outline" slot="start"></ion-icon> Adicionar Colaborador
+          </ion-button>
+        </div>
+      </ion-accordion>
+
     </ion-accordion-group>
 
     <!-- ── Logout ────────────────────────────────────────── -->

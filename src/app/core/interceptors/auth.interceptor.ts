@@ -49,7 +49,11 @@ export class AuthInterceptor implements HttpInterceptor {
       }),
       catchError((error: HttpErrorResponse) => {
         if (error.status === 401) {
-          this.router.navigate(['/login']);
+          // Limpa a sessão local e redireciona para login
+          this.authService.logout().subscribe({
+            complete: () => this.router.navigate(['/login'], { replaceUrl: true }),
+            error: () => this.router.navigate(['/login'], { replaceUrl: true }),
+          });
         }
         return throwError(() => error);
       })

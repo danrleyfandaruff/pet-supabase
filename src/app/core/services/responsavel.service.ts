@@ -1,23 +1,37 @@
 import { Injectable } from '@angular/core';
-import { BaseCrudService } from './base-crud.service';
-import { SupabaseService } from './supabase.service';
+import { lastValueFrom } from 'rxjs';
+import { ApiService } from './api.service';
 import { Responsavel } from '../models/responsavel.model';
 
 @Injectable({ providedIn: 'root' })
-export class ResponsavelService extends BaseCrudService<Responsavel> {
-  protected tableName = 'responsavel';
+export class ResponsavelService {
+  constructor(private api: ApiService) {}
 
-  constructor(supabaseService: SupabaseService) {
-    super(supabaseService);
+  async getAll(): Promise<Responsavel[]> {
+    return lastValueFrom(this.api.getResponsaveis());
   }
 
   async getAllAtivos(): Promise<Responsavel[]> {
-    const { data, error } = await this.supabaseService.client
-      .from(this.tableName)
-      .select('*')
-      .eq('ativo', true)
-      .order('nome');
-    if (error) throw error;
-    return (data as Responsavel[]) || [];
+    return lastValueFrom(this.api.getResponsaveisAtivos());
+  }
+
+  async getById(id: number): Promise<Responsavel> {
+    return lastValueFrom(this.api.getResponsavelById(id));
+  }
+
+  async create(item: Partial<Responsavel>): Promise<any> {
+    return lastValueFrom(this.api.cadastrarResponsavel(item));
+  }
+
+  async update(id: number, item: Partial<Responsavel>): Promise<any> {
+    return lastValueFrom(this.api.atualizarResponsavel(id, item));
+  }
+
+  async delete(id: number): Promise<any> {
+    return lastValueFrom(this.api.deletarResponsavel(id));
+  }
+
+  async softDelete(id: number): Promise<any> {
+    return lastValueFrom(this.api.softDeletarResponsavel(id));
   }
 }

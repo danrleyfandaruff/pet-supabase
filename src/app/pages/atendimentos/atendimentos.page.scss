@@ -622,3 +622,61 @@
   font-weight: 700;
   line-height: 1;
 }
+
+// ── Modal de pagamento — Forma ──────────────────────────────
+.pag-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #9aa5b8;
+  margin: 20px 16px 10px;
+}
+
+.pag-formas-row {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px;
+  flex-wrap: wrap;
+}
+
+.pag-forma-btn {
+  all: unset;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 2px solid #e8eaed;
+  background: #f8f9fb;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex: 1;
+  min-width: 60px;
+
+  ion-icon {
+    font-size: 20px;
+    color: #9aa5b8;
+  }
+
+  span {
+    font-size: 10px;
+    font-weight: 600;
+    color: #9aa5b8;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  &.pag-forma-ativa {
+    border-color: var(--ion-color-success);
+    background: rgba(28, 198, 116, 0.08);
+
+    ion-icon { color: var(--ion-color-success); }
+    span { color: var(--ion-color-success); }
+  }
+
+  &:active {
+    transform: scale(0.94);
+  }
+}

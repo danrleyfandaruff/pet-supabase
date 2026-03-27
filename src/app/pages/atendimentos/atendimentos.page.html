@@ -257,6 +257,19 @@
         </div>
       </div>
 
+      <!-- Forma de pagamento -->
+      <div class="pag-section-label">Forma de pagamento</div>
+      <div class="pag-formas-row">
+        <button
+          *ngFor="let fp of formasPagamento"
+          class="pag-forma-btn"
+          [class.pag-forma-ativa]="formaPagamento === fp"
+          (click)="formaPagamento = fp">
+          <ion-icon [name]="fp === 'PIX' ? 'qr-code-outline' : fp === 'Dinheiro' ? 'cash-outline' : 'card-outline'"></ion-icon>
+          <span>{{ fp }}</span>
+        </button>
+      </div>
+
       <ion-list lines="full" class="ion-margin-top">
         <ion-item>
           <ion-label position="stacked">Valor recebido (R$) *</ion-label>

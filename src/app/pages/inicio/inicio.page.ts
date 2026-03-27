@@ -4,9 +4,10 @@ import { AuthService } from '../../core/services/auth.service';
 import { Observable } from 'rxjs';
 import { User } from '../../core/models/user.model';
 import { addIcons } from 'ionicons';
-import { calendar, people, paw, cut, gift, settings, cash, barChartOutline, peopleOutline, layersOutline } from 'ionicons/icons';
+import { calendar, people, paw, cut, gift, settings, cash, barChartOutline, peopleOutline, layersOutline, checkmarkCircle, timeOutline, alertCircleOutline, chevronForwardOutline, chevronDownOutline, chevronUpOutline, calendarOutline } from 'ionicons/icons';
 import { AtendimentoService } from '../../core/services/atendimento.service';
 import { CaixaService } from '../../core/services/caixa.service';
+import { Atendimento } from '../../core/models/atendimento.model';
 
 interface SmallCard {
   label: string;
@@ -24,11 +25,28 @@ export class InicioPage implements OnInit {
   currentUser$: Observable<User | null>;
   hoje: string = '';
 
-  // Dashboard
+  // Stats gerais
   statsLoading = true;
   atendimentosHoje = 0;
   totalMes = 0;
   pendentesPagamento = 0;
+
+  // Dashboard do dia
+  atendimentosHojeList: Atendimento[] = [];
+  receitaHoje = 0;
+  atendimentosPagosHoje = 0;
+  mostrarTodosHoje = false;
+  readonly LIMITE_HOJE = 3;
+
+  get atendimentosHojeVisiveis(): Atendimento[] {
+    return this.mostrarTodosHoje
+      ? this.atendimentosHojeList
+      : this.atendimentosHojeList.slice(0, this.LIMITE_HOJE);
+  }
+
+  get temMaisHoje(): boolean {
+    return this.atendimentosHojeList.length > this.LIMITE_HOJE;
+  }
 
   smallCards: SmallCard[] = [
     { label: 'Tutores',    icon: 'people',          color: 'blue',   route: '/tabs/clientes'  },
@@ -47,7 +65,7 @@ export class InicioPage implements OnInit {
     private caixaService: CaixaService,
   ) {
     this.currentUser$ = this.authService.currentUser$;
-    addIcons({ calendar, people, paw, cut, gift, settings, cash, barChartOutline, peopleOutline, layersOutline });
+    addIcons({ calendar, people, paw, cut, gift, settings, cash, barChartOutline, peopleOutline, layersOutline, checkmarkCircle, timeOutline, alertCircleOutline, chevronForwardOutline, chevronDownOutline, chevronUpOutline, calendarOutline });
     this.hoje = this.formatarHoje();
   }
 
@@ -56,15 +74,26 @@ export class InicioPage implements OnInit {
 
   async carregarStats() {
     this.statsLoading = true;
+    this.mostrarTodosHoje = false;
     try {
       const [hoje, total, pendentes] = await Promise.all([
         this.atendimentoService.getHoje(),
         this.caixaService.getTotalMesAtual(),
         this.atendimentoService.countPendentes(),
       ]);
-      this.atendimentosHoje   = hoje.length;
-      this.totalMes           = total;
-      this.pendentesPagamento = pendentes;
+
+      this.atendimentosHojeList = hoje;
+      this.atendimentosHoje     = hoje.length;
+      this.totalMes             = total;
+      this.pendentesPagamento   = pendentes;
+
+      // Receita do dia: soma dos atendimentos pagos hoje
+      const pagos = hoje.filter(a => a.pago);
+      this.atendimentosPagosHoje = pagos.length;
+      this.receitaHoje = pagos.reduce(
+        (sum, a) => sum + Number(a.servico?.valor ?? 0) + Number(a.valor_adicional ?? 0),
+        0
+      );
     } catch (_) {}
     finally { this.statsLoading = false; }
   }
@@ -82,5 +111,20 @@ export class InicioPage implements OnInit {
 
   navigate(route: string) {
     this.router.navigate([route]);
+  }
+
+  getStatusClass(a: Atendimento): string {
+    if (a.pago) return 'status-pago';
+    const nome = a.status_info?.nome?.toLowerCase() ?? '';
+    if (nome.includes('conclu')) return 'status-concluido';
+    if (nome.includes('cancel')) return 'status-cancelado';
+    return 'status-pendente';
+  }
+
+  getStatusIcon(a: Atendimento): string {
+    if (a.pago) return 'checkmark-circle';
+    const nome = a.status_info?.nome?.toLowerCase() ?? '';
+    if (nome.includes('cancel')) return 'alert-circle-outline';
+    return 'time-outline';
   }
 }

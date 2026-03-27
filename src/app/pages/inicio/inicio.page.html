@@ -35,22 +35,105 @@
     <div class="stat-card" (click)="navigate('/tabs/caixa')">
       <span class="stat-value stat-value--green">
         <ion-skeleton-text *ngIf="statsLoading" animated style="width:60px;height:20px;border-radius:6px"></ion-skeleton-text>
-        <span *ngIf="!statsLoading">R$ {{ totalMes | number:'1.0-0' }}</span>
+        <span *ngIf="!statsLoading">R$ {{ receitaHoje | number:'1.0-0' }}</span>
       </span>
-      <span class="stat-label">Recebido no mês</span>
+      <span class="stat-label">Recebido hoje</span>
     </div>
     <div class="stat-divider"></div>
-    <div class="stat-card" (click)="navigate('/tabs/atendimentos')">
-      <span class="stat-value stat-value--orange">
-        <ion-skeleton-text *ngIf="statsLoading" animated style="width:24px;height:20px;border-radius:6px"></ion-skeleton-text>
-        <span *ngIf="!statsLoading">{{ pendentesPagamento }}</span>
+    <div class="stat-card" (click)="navigate('/tabs/caixa')">
+      <span class="stat-value stat-value--blue">
+        <ion-skeleton-text *ngIf="statsLoading" animated style="width:60px;height:20px;border-radius:6px"></ion-skeleton-text>
+        <span *ngIf="!statsLoading">R$ {{ totalMes | number:'1.0-0' }}</span>
       </span>
-      <span class="stat-label">Sem pagamento</span>
+      <span class="stat-label">No mês</span>
+    </div>
+  </div>
+
+  <!-- ── Dashboard do Dia ──────────────────────────────── -->
+  <div class="section-label">
+    <span>Agenda de hoje</span>
+    <button class="section-action" (click)="navigate('/tabs/atendimentos')">
+      Ver todos <ion-icon name="chevron-forward-outline"></ion-icon>
+    </button>
+  </div>
+
+  <!-- Loading skeleton -->
+  <div *ngIf="statsLoading" class="hoje-list">
+    <div class="hoje-card hoje-skeleton" *ngFor="let i of [1,2,3]">
+      <ion-skeleton-text animated style="width:40px;height:40px;border-radius:12px"></ion-skeleton-text>
+      <div class="hoje-skeleton-lines">
+        <ion-skeleton-text animated style="width:60%;height:14px;border-radius:6px"></ion-skeleton-text>
+        <ion-skeleton-text animated style="width:40%;height:11px;border-radius:6px;margin-top:6px"></ion-skeleton-text>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista de atendimentos de hoje -->
+  <div class="hoje-list" *ngIf="!statsLoading && atendimentosHojeList.length > 0">
+    <div
+      class="hoje-card"
+      *ngFor="let a of atendimentosHojeVisiveis"
+      [class.hoje-pago]="a.pago"
+      (click)="navigate('/tabs/atendimentos')">
+
+      <div class="hoje-icon" [ngClass]="getStatusClass(a)">
+        <ion-icon [name]="getStatusIcon(a)"></ion-icon>
+      </div>
+
+      <div class="hoje-info">
+        <span class="hoje-pet">{{ a.animal?.nome || a.cliente?.nome || 'Sem identificação' }}</span>
+        <span class="hoje-servico">
+          {{ a.servico?.nome || a.pacote?.nome || 'Atendimento' }}
+          <span *ngIf="a.responsavel?.nome"> · {{ a.responsavel?.nome }}</span>
+        </span>
+      </div>
+
+      <div class="hoje-right">
+        <span class="hoje-valor" *ngIf="a.servico?.valor">
+          R$ {{ (+a.servico!.valor! + +(a.valor_adicional || 0)) | number:'1.0-0' }}
+        </span>
+        <span class="hoje-status-badge" [ngClass]="getStatusClass(a)">
+          {{ a.pago ? 'Pago' : (a.status_info?.nome || 'Pendente') }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estado vazio -->
+  <div class="hoje-vazio" *ngIf="!statsLoading && atendimentosHojeList.length === 0">
+    <ion-icon name="calendar-outline"></ion-icon>
+    <p>Nenhum atendimento hoje</p>
+    <button class="hoje-vazio-btn" (click)="navigate('/tabs/atendimentos')">Agendar agora</button>
+  </div>
+
+  <!-- Ver mais / Ver menos -->
+  <div class="hoje-ver-mais" *ngIf="!statsLoading && temMaisHoje">
+    <button (click)="mostrarTodosHoje = !mostrarTodosHoje">
+      <ion-icon [name]="mostrarTodosHoje ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+      {{ mostrarTodosHoje ? 'Ver menos' : 'Ver mais ' + (atendimentosHoje - LIMITE_HOJE) + ' atendimento' + (atendimentosHoje - LIMITE_HOJE !== 1 ? 's' : '') }}
+    </button>
+  </div>
+
+  <!-- ── Resumo financeiro do dia ──────────────────────── -->
+  <div class="financeiro-row" *ngIf="!statsLoading && atendimentosHoje > 0">
+    <div class="fin-item">
+      <span class="fin-label">Atendimentos</span>
+      <span class="fin-value">{{ atendimentosHoje }}</span>
+    </div>
+    <div class="fin-item">
+      <span class="fin-label">Pagos</span>
+      <span class="fin-value fin-value--green">{{ atendimentosPagosHoje }}</span>
+    </div>
+    <div class="fin-item">
+      <span class="fin-label">A receber</span>
+      <span class="fin-value fin-value--orange">{{ atendimentosHoje - atendimentosPagosHoje }}</span>
     </div>
   </div>
 
   <!-- ── Acesso rápido ──────────────────────────────────── -->
-  <div class="section-label">Acesso rápido</div>
+  <div class="section-label">
+    <span>Acesso rápido</span>
+  </div>
 
   <div class="cards-grid">
 
@@ -59,7 +142,9 @@
       <div class="card-wide-inner">
         <div class="card-wide-text">
           <span class="card-wide-label">Agenda</span>
-          <span class="card-wide-sub">Ver atendimentos</span>
+          <span class="card-wide-sub">
+            {{ pendentesPagamento > 0 ? (pendentesPagamento + ' sem pagamento') : 'Ver atendimentos' }}
+          </span>
         </div>
         <ion-icon name="calendar"></ion-icon>
       </div>
@@ -70,7 +155,7 @@
       <div class="card-wide-inner">
         <div class="card-wide-text">
           <span class="card-wide-label">Caixa</span>
-          <span class="card-wide-sub">Entradas e saídas</span>
+          <span class="card-wide-sub">R$ {{ totalMes | number:'1.0-0' }} no mês</span>
         </div>
         <ion-icon name="cash"></ion-icon>
       </div>

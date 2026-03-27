@@ -6,6 +6,7 @@ import { AtendimentoFormComponent } from './atendimento-form.component';
 import { CaixaService } from '../../core/services/caixa.service';
 import { StatusService } from '../../core/services/status.service';
 import { Status } from '../../core/models/status.model';
+import { FORMAS_PAGAMENTO, FormaPagamento } from '../../core/models/caixa.model';
 
 @Component({
   selector: 'app-atendimentos',
@@ -121,18 +122,36 @@ export class AtendimentosPage implements OnInit {
       return sum + Number(a.servico?.valor ?? 0) + Number(a.valor_adicional ?? 0);
     }, 0);
 
+    // Escolhe forma de pagamento antes de confirmar
+    const sheet = await this.actionSheetCtrl.create({
+      header: `Forma de pagamento — R$ ${total.toFixed(2).replace('.', ',')}`,
+      buttons: [
+        ...this.formasPagamento.map(fp => ({
+          text: fp,
+          handler: () => {
+            this.confirmarLote(itens, fp);
+          },
+        })),
+        { text: 'Cancelar', role: 'cancel', icon: 'close-outline' },
+      ],
+    });
+    await sheet.present();
+  }
+
+  private async confirmarLote(itens: Atendimento[], forma: FormaPagamento) {
+    const total = itens.reduce((sum, a) => sum + Number(a.servico?.valor ?? 0) + Number(a.valor_adicional ?? 0), 0);
     const alert = await this.alertCtrl.create({
       header: `Dar baixa em ${itens.length} atendimento${itens.length > 1 ? 's' : ''}`,
-      message: `Total: R$ ${total.toFixed(2).replace('.', ',')}. Confirmar pagamento e lançar no caixa?`,
+      message: `Total: R$ ${total.toFixed(2).replace('.', ',')} via ${forma}. Confirmar e lançar no caixa?`,
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
-        { text: 'Confirmar', handler: () => this.processarLote(itens) },
+        { text: 'Confirmar', handler: () => this.processarLote(itens, forma) },
       ],
     });
     await alert.present();
   }
 
-  private async processarLote(itens: Atendimento[]) {
+  private async processarLote(itens: Atendimento[], forma: FormaPagamento = 'PIX') {
     const loading = await this.loadingCtrl.create({ message: 'Registrando pagamentos...', spinner: 'crescent' });
     await loading.present();
     try {
@@ -148,6 +167,7 @@ export class AtendimentosPage implements OnInit {
             valor,
             data: a.data?.split('T')[0] ?? new Date().toISOString().split('T')[0],
             categoria: 'Banho/Tosa',
+            forma_pagamento: forma,
             id_atendimento: a.id,
           }),
         ]);
@@ -207,6 +227,8 @@ export class AtendimentosPage implements OnInit {
   valorPagamento: number | null = null;
   descricaoPagamento = '';
   salvandoPagamento = false;
+  formaPagamento: FormaPagamento = 'PIX';
+  readonly formasPagamento = FORMAS_PAGAMENTO;
 
   // Lista e ID de status (carregados no init)
   private statusConcluidoId: number | null = null;
@@ -455,6 +477,7 @@ export class AtendimentosPage implements OnInit {
     this.atendimentoPagamento = null;
     this.valorPagamento = null;
     this.descricaoPagamento = '';
+    this.formaPagamento = 'PIX';
   }
 
   async confirmarPagamento() {
@@ -471,6 +494,7 @@ export class AtendimentosPage implements OnInit {
         valor: this.valorPagamento,
         data: this.atendimentoPagamento.data?.split('T')[0] ?? new Date().toISOString().split('T')[0],
         categoria: 'Banho/Tosa',
+        forma_pagamento: this.formaPagamento,
         id_atendimento: this.atendimentoPagamento.id,
       });
 

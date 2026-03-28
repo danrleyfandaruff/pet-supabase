@@ -1,0 +1,93 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="fechar()">
+        <ion-icon name="arrow-back-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>
+      <div class="modal-title-wrap">
+        <span class="modal-pet">{{ plano.petNome }}</span>
+        <span class="modal-pacote">{{ plano.pacoteNome }}</span>
+      </div>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="detalhe-content">
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="detalhe-loading">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+
+    <!-- ── Progresso ─────────────────────────────────────────────── -->
+    <div class="detalhe-progresso">
+      <div class="prog-header">
+        <span class="prog-label">Progresso do plano</span>
+        <span class="prog-valor">{{ concluidosAtuais }} de {{ plano.total }} sessões</span>
+      </div>
+      <div class="prog-bar-wrap">
+        <div class="prog-bar-fill" [style.width.%]="progresso"></div>
+      </div>
+    </div>
+
+    <!-- ── Hint ──────────────────────────────────────────────────── -->
+    <p class="detalhe-hint">
+      <ion-icon name="tap-outline"></ion-icon>
+      Toque no status de uma sessão para alterá-lo
+    </p>
+
+    <!-- Sem sessões -->
+    <div class="sem-sessoes" *ngIf="sessoes.length === 0">
+      <ion-icon name="calendar-outline"></ion-icon>
+      <p>Nenhuma sessão encontrada para este plano.</p>
+    </div>
+
+    <!-- ── Lista de sessões ──────────────────────────────────────── -->
+    <div class="sessoes-lista" *ngIf="sessoes.length > 0">
+      <div class="sessao-card"
+           *ngFor="let s of sessoes; trackBy: trackById"
+           [class.sessao-concluida]="s.concluida"
+           [class.sessao-proxima]="s.proxima">
+
+        <!-- Número + indicador -->
+        <div class="sessao-num-wrap">
+          <div class="sessao-indicador"
+               [class.ind-concluida]="s.concluida"
+               [class.ind-proxima]="s.proxima && !s.concluida">
+            <ion-icon *ngIf="s.concluida" name="checkmark-outline"></ion-icon>
+            <span *ngIf="!s.concluida">{{ s.sessaoNum }}</span>
+          </div>
+        </div>
+
+        <!-- Data e serviço -->
+        <div class="sessao-info">
+          <span class="sessao-data-label">{{ formatDate(s.data) }}</span>
+          <span class="sessao-servico" *ngIf="s.servicoNome">{{ s.servicoNome }}</span>
+          <span class="sessao-pago" *ngIf="s.pago">
+            <ion-icon name="checkmark-circle"></ion-icon> Pago
+          </span>
+        </div>
+
+        <!-- Status (botão de troca) -->
+        <button class="sessao-status-btn"
+                [attr.data-cor]="corPorStatus(s.statusNome)"
+                (click)="trocarStatus(s)"
+                [disabled]="s.atualizando">
+          <ion-spinner *ngIf="s.atualizando" name="crescent" class="btn-spinner"></ion-spinner>
+          <ng-container *ngIf="!s.atualizando">
+            <ion-icon [name]="iconePorStatus(s.statusNome)"></ion-icon>
+            <span>{{ s.statusNome }}</span>
+            <ion-icon name="chevron-down-outline" class="chevron"></ion-icon>
+          </ng-container>
+        </button>
+
+      </div>
+    </div>
+
+  </ng-container>
+
+</ion-content>

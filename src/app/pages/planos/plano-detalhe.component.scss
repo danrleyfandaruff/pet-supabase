@@ -1,0 +1,214 @@
+.detalhe-content {
+  --background: #f0f2f5;
+}
+
+// ── Título no header ──────────────────────────────────────────────────
+.modal-title-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+}
+.modal-pet    { font-size: 15px; font-weight: 700; }
+.modal-pacote { font-size: 11px; opacity: 0.85; font-weight: 400; }
+
+// ── Loading ───────────────────────────────────────────────────────────
+.detalhe-loading {
+  display: flex;
+  justify-content: center;
+  padding: 80px 20px;
+}
+
+// ── Progresso ─────────────────────────────────────────────────────────
+.detalhe-progresso {
+  background: #fff;
+  margin: 16px 16px 0;
+  border-radius: 16px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+}
+
+.prog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.prog-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--ion-color-medium);
+}
+
+.prog-valor {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ion-color-primary);
+}
+
+.prog-bar-wrap {
+  height: 7px;
+  background: #f0f2f5;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.prog-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--ion-color-primary), #6c8eff);
+  border-radius: 10px;
+  transition: width 0.4s ease;
+  min-width: 7px;
+}
+
+// ── Hint ──────────────────────────────────────────────────────────────
+.detalhe-hint {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 10px 16px 4px;
+  font-size: 12px;
+  color: var(--ion-color-medium);
+  ion-icon { font-size: 14px; }
+}
+
+// ── Estado vazio ──────────────────────────────────────────────────────
+.sem-sessoes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 24px;
+  color: var(--ion-color-medium);
+  ion-icon { font-size: 40px; margin-bottom: 12px; }
+  p { font-size: 14px; text-align: center; margin: 0; }
+}
+
+// ── Lista de sessões ──────────────────────────────────────────────────
+.sessoes-lista {
+  padding: 8px 16px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sessao-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  transition: box-shadow 0.15s;
+
+  &.sessao-proxima {
+    border-left: 3px solid var(--ion-color-primary);
+    box-shadow: 0 2px 10px rgba(var(--ion-color-primary-rgb), 0.12);
+  }
+
+  &.sessao-concluida {
+    opacity: 0.75;
+  }
+}
+
+// Indicador numérico / check
+.sessao-num-wrap {
+  flex-shrink: 0;
+}
+
+.sessao-indicador {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #f0f2f5;
+  border: 2px solid #dde1e8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #666;
+
+  &.ind-concluida {
+    background: var(--ion-color-success);
+    border-color: var(--ion-color-success);
+    color: #fff;
+    ion-icon { font-size: 16px; }
+  }
+
+  &.ind-proxima {
+    background: var(--ion-color-primary);
+    border-color: var(--ion-color-primary);
+    color: #fff;
+    box-shadow: 0 0 0 4px rgba(var(--ion-color-primary-rgb), 0.18);
+  }
+}
+
+// Infos da sessão
+.sessao-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sessao-data-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.sessao-servico {
+  font-size: 11px;
+  color: var(--ion-color-medium);
+}
+
+.sessao-pago {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--ion-color-success);
+  font-weight: 600;
+  ion-icon { font-size: 12px; }
+}
+
+// Botão de status (tappable)
+.sessao-status-btn {
+  all: unset;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity 0.15s, transform 0.1s;
+  white-space: nowrap;
+
+  ion-icon { font-size: 14px; }
+  .chevron { font-size: 11px; opacity: 0.7; }
+  .btn-spinner { width: 16px; height: 16px; }
+
+  &:active { opacity: 0.75; transform: scale(0.97); }
+  &:disabled { opacity: 0.6; cursor: default; }
+
+  // Cores por status via atributo data-cor
+  &[data-cor="success"] { background: #e6f9f0; color: #1a8a4a; }
+  &[data-cor="danger"]  { background: #fdecea; color: #c0392b; }
+  &[data-cor="primary"] { background: #e8f0ff; color: #2c5dcc; }
+  &[data-cor="warning"] { background: #fff8e1; color: #c77c00; }
+  &[data-cor="medium"]  { background: #f0f2f5; color: #555;    }
+}
+
+// ActionSheet: item selecionado
+::ng-deep .action-selected button {
+  color: var(--ion-color-primary) !important;
+  font-weight: 700 !important;
+}

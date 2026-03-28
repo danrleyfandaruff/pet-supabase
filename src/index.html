@@ -11,15 +11,19 @@
     />
     <meta name="format-detection" content="telephone=no" />
     <meta name="msapplication-tap-highlight" content="no" />
-    <link rel="icon" type="image/png" href="src/assets/icon/favicon.png" />
-    <!-- Add to home screen for Safari on iOS -->
 
-      <!-- ✅ PWA -->
-      <link rel="manifest" href="manifest.webmanifest" />
-<!--      <meta name="theme-color" content="#0f4c5c" />-->
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/icon/favicon.png" />
 
+    <!-- PWA manifest (Android / Chrome) -->
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="theme-color" content="#3880ff" />
+
+    <!-- iOS — sem isso o ícone fica branco ao salvar na tela inicial -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-title" content="GroomerLab360" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="apple-touch-icon" href="assets/icon/icon-192x192.png" />
   </head>
   <body>
     <app-root></app-root>

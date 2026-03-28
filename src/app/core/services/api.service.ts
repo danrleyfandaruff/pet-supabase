@@ -61,6 +61,14 @@ export class ApiService {
     return this._post('auth/logout');
   }
 
+  me(): Observable<{ id: string; email: string; name: string; id_empresa: string | null; created_at: string }> {
+    return this.http.get<any>(this.url('auth/me'));
+  }
+
+  refresh(refreshToken: string): Observable<{ access_token: string; refresh_token: string; expires_at: number }> {
+    return this.http.post<any>(this.url('auth/refresh'), { refresh_token: refreshToken });
+  }
+
   // ─────────────────────────────────────────────
   // CLIENTES
   // ─────────────────────────────────────────────

@@ -12,29 +12,20 @@ import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
 /**
- * Injeta automaticamente o token JWT do Supabase em todas as requisições HTTP
+ * Injeta automaticamente o token JWT em todas as requisições HTTP ao NestJS
  * e redireciona para login em caso de 401 (token expirado ou inválido).
- *
- * Nota: chamadas diretas ao Supabase (via SupabaseService) já são autenticadas
- * pelo cliente Supabase internamente — este interceptor serve para outras APIs REST
- * que você possa vir a consumir.
  */
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
   ) {}
 
   intercept(
     request: HttpRequest<unknown>,
-    next: HttpHandler
+    next: HttpHandler,
   ): Observable<HttpEvent<unknown>> {
-    // Ignora requisições para a própria API do Supabase (já autenticadas pelo cliente)
-    if (request.url.includes('supabase.co')) {
-      return next.handle(request);
-    }
-
     return from(this.authService.getToken()).pipe(
       switchMap((token) => {
         if (token) {
@@ -49,14 +40,13 @@ export class AuthInterceptor implements HttpInterceptor {
       }),
       catchError((error: HttpErrorResponse) => {
         if (error.status === 401) {
-          // Limpa a sessão local e redireciona para login
-          this.authService.logout().subscribe({
-            complete: () => this.router.navigate(['/login'], { replaceUrl: true }),
-            error: () => this.router.navigate(['/login'], { replaceUrl: true }),
-          });
+          // Limpa o estado local e redireciona sem chamar o servidor
+          // (o token pode já estar inválido, evitando loop de logout)
+          this.authService.clearLocalState();
+          this.router.navigate(['/login'], { replaceUrl: true });
         }
         return throwError(() => error);
-      })
+      }),
     );
   }
 }

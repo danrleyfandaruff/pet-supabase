@@ -1,225 +1,237 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, from, throwError, lastValueFrom } from 'rxjs';
-import { filter, map, catchError, switchMap } from 'rxjs/operators';
-import { AuthChangeEvent, Session } from '@supabase/supabase-js';
-import { SupabaseService } from './supabase.service';
+import { BehaviorSubject, Observable, from, throwError, lastValueFrom, of } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
+import { TokenService } from './token.service';
 import { TenantService } from './tenant.service';
 import { ApiService } from './api.service';
 import { User, LoginRequest, RegisterRequest } from '../models/user.model';
 
-@Injectable({
-  providedIn: 'root',
-})
+/**
+ * Serviço de autenticação — zero Supabase no frontend.
+ * Toda a comunicação passa pelo NestJS:
+ *   POST /auth/login    → login com e-mail e senha
+ *   POST /auth/signup   → cadastro
+ *   POST /auth/logout   → logout
+ *   GET  /auth/me       → dados do usuário autenticado + id_empresa
+ *   POST /auth/refresh  → renova o access_token
+ */
+@Injectable({ providedIn: 'root' })
 export class AuthService {
-  // Estado global reativo
-  private currentUserSubject = new BehaviorSubject<User | null>(null);
+  private currentUserSubject     = new BehaviorSubject<User | null>(null);
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
-  private isLoadingSubject = new BehaviorSubject<boolean>(false);
-  /** Emite `true` uma única vez, quando initSession() termina. Guards usam isso para não agir antes da sessão ser restaurada. */
-  private isReadySubject = new BehaviorSubject<boolean>(false);
+  private isLoadingSubject       = new BehaviorSubject<boolean>(false);
+  /** Emite true uma única vez quando initSession() termina — guards aguardam este sinal. */
+  private isReadySubject         = new BehaviorSubject<boolean>(false);
 
-  // Observables públicos para componentes assinarem
-  public currentUser$: Observable<User | null> = this.currentUserSubject.asObservable();
-  public isAuthenticated$: Observable<boolean> = this.isAuthenticatedSubject.asObservable();
-  public isLoading$: Observable<boolean> = this.isLoadingSubject.asObservable();
-  public isReady$: Observable<boolean> = this.isReadySubject.asObservable();
+  public currentUser$:     Observable<User | null> = this.currentUserSubject.asObservable();
+  public isAuthenticated$: Observable<boolean>     = this.isAuthenticatedSubject.asObservable();
+  public isLoading$:       Observable<boolean>     = this.isLoadingSubject.asObservable();
+  public isReady$:         Observable<boolean>     = this.isReadySubject.asObservable();
 
   constructor(
-    private supabaseService: SupabaseService,
+    private tokenService: TokenService,
     private tenantService: TenantService,
     private apiService: ApiService,
   ) {
     this.initSession();
-    this.listenToAuthChanges();
   }
 
-  // Getter síncrono do usuário atual
+  // ─── Getters síncronos ────────────────────────────────────────────────────
+
   get currentUser(): User | null {
     return this.currentUserSubject.value;
   }
 
-  // Getter síncrono do estado de autenticação
   get isAuthenticated(): boolean {
     return this.isAuthenticatedSubject.value;
   }
 
+  // ─── Restauração de sessão ────────────────────────────────────────────────
+
   /**
-   * Restaura sessão existente ao iniciar o app.
+   * Ao iniciar o app, verifica se há tokens no localStorage.
+   * Se o access_token estiver expirado, tenta renová-lo antes de
+   * chamar /auth/me para reconstruir o estado do usuário.
    */
   private async initSession(): Promise<void> {
-    const { data } = await this.supabaseService.auth.getSession();
-    if (data.session) {
-      await this.updateState(data.session);
+    if (this.tokenService.hasTokens()) {
+      // Renova proativamente se o token estiver próximo do vencimento
+      if (this.tokenService.isTokenExpired()) {
+        const renewed = await this.tentarRenovarToken();
+        if (!renewed) {
+          this.isReadySubject.next(true);
+          return;
+        }
+      }
+
+      try {
+        const meData = await lastValueFrom(this.apiService.me());
+        this.setUser(meData);
+      } catch {
+        // Token inválido mesmo após possível renovação — tenta mais uma vez
+        const renewed = await this.tentarRenovarToken();
+        if (renewed) {
+          try {
+            const meData = await lastValueFrom(this.apiService.me());
+            this.setUser(meData);
+          } catch {
+            this.clearLocalState();
+          }
+        } else {
+          this.clearLocalState();
+        }
+      }
     }
-    // Sinaliza que a verificação de sessão terminou —
-    // a partir daqui os guards podem checar isAuthenticated$ com segurança.
+
     this.isReadySubject.next(true);
   }
 
   /**
-   * Escuta mudanças de estado da autenticação.
+   * Renova o access_token via /auth/refresh.
+   * Retorna true em caso de sucesso, false caso contrário.
+   * Nota: /auth/refresh é @Public() no NestJS — não requer token válido.
    */
-  private listenToAuthChanges(): void {
-    this.supabaseService.auth.onAuthStateChange(
-      (event: AuthChangeEvent, session: Session | null) => {
-        if (
-          event === 'SIGNED_IN' ||
-          event === 'TOKEN_REFRESHED' ||
-          event === 'USER_UPDATED'
-        ) {
-          if (session) {
-            this.updateState(session);
-          }
-        } else if (event === 'SIGNED_OUT') {
-          this.clearState();
-        }
-      }
-    );
+  private async tentarRenovarToken(): Promise<boolean> {
+    const refreshToken = this.tokenService.getRefreshToken();
+    if (!refreshToken) return false;
+
+    try {
+      const tokens = await lastValueFrom(this.apiService.refresh(refreshToken));
+      this.tokenService.saveTokens(
+        tokens.access_token,
+        tokens.refresh_token,
+        tokens.expires_at,
+      );
+      return true;
+    } catch {
+      this.tokenService.clearTokens();
+      return false;
+    }
   }
 
+  // ─── Login / Cadastro / Logout ────────────────────────────────────────────
+
   /**
-   * Realiza login com e-mail e senha.
+   * Realiza login com e-mail e senha via NestJS.
    */
   login(credentials: LoginRequest): Observable<void> {
     this.isLoadingSubject.next(true);
 
-    return from(
-      this.supabaseService.auth.signInWithPassword({
-        email: credentials.email,
-        password: credentials.password,
-      })
-    ).pipe(
-      switchMap(async ({ data, error }) => {
+    return this.apiService.login(credentials.email, credentials.password).pipe(
+      switchMap(async (response: any) => {
         this.isLoadingSubject.next(false);
-        if (error) throw new Error(this.translateError(error.message));
-        if (data.session) await this.updateState(data.session);
+        if (!response?.session) throw new Error('Resposta inválida do servidor.');
+
+        this.tokenService.saveTokens(
+          response.session.access_token,
+          response.session.refresh_token,
+          response.session.expires_at,
+        );
+
+        const meData = await lastValueFrom(this.apiService.me());
+        this.setUser(meData);
       }),
       catchError((err) => {
         this.isLoadingSubject.next(false);
-        return throwError(() => err);
-      })
+        const msg = err?.error?.message || err?.message || 'Erro ao entrar.';
+        return throwError(() => new Error(this.translateError(msg)));
+      }),
     );
   }
 
   /**
    * Registra novo usuário via NestJS.
-   * O NestJS faz o signUp no Supabase e dispara o seed de dados padrão (status, raças, etc.).
-   * Após o cadastro, aplica a sessão retornada pelo backend no cliente Supabase local.
+   * O NestJS faz o signUp no Supabase e dispara o seed de dados padrão.
    */
   register(data: RegisterRequest): Observable<void> {
     this.isLoadingSubject.next(true);
 
-    const promise = lastValueFrom(
-      this.apiService.signup(data.email, data.password, { name: data.name, nomeEmpresa: data.nomeEmpresa })
-    ).then(async (response: any) => {
-      if (!response?.user) throw new Error('Erro ao criar usuário. Tente novamente.');
+    return this.apiService.signup(data.email, data.password, { name: data.name, nomeEmpresa: data.nomeEmpresa }).pipe(
+      switchMap(async (response: any) => {
+        this.isLoadingSubject.next(false);
+        if (!response?.user) throw new Error('Erro ao criar usuário. Tente novamente.');
 
-      // NestJS retorna { user, session } do Supabase.
-      // Se a confirmação de e-mail está desabilitada, session já vem preenchida.
-      if (response.session) {
-        await this.supabaseService.auth.setSession({
-          access_token: response.session.access_token,
-          refresh_token: response.session.refresh_token,
-        });
-        await this.updateState(response.session);
-      }
-
-      this.isLoadingSubject.next(false);
-    });
-
-    return from(promise).pipe(
+        // Se a confirmação de e-mail estiver desabilitada, session vem preenchida.
+        if (response.session) {
+          this.tokenService.saveTokens(
+            response.session.access_token,
+            response.session.refresh_token,
+            response.session.expires_at,
+          );
+          const meData = await lastValueFrom(this.apiService.me());
+          this.setUser(meData);
+        }
+      }),
       catchError((err) => {
         this.isLoadingSubject.next(false);
-        const message = err?.error?.message || err?.message || 'Erro ao criar conta.';
-        return throwError(() => new Error(this.translateError(message)));
-      })
+        const msg = err?.error?.message || err?.message || 'Erro ao criar conta.';
+        return throwError(() => new Error(this.translateError(msg)));
+      }),
     );
   }
 
   /**
-   * Realiza logout e limpa o estado.
+   * Realiza logout — limpa o estado local e notifica o backend (best-effort).
    */
   logout(): Observable<void> {
-    return from(this.supabaseService.auth.signOut()).pipe(
-      map(({ error }) => {
-        if (error) console.warn('Erro no logout:', error.message);
-        this.clearState();
-      })
+    // Limpa o estado local imediatamente, independente da resposta do servidor
+    this.clearLocalState();
+
+    return this.apiService.logout().pipe(
+      map(() => undefined as void),
+      catchError(() => of(undefined as void)), // Ignora falhas de rede no logout
     );
   }
 
+  // ─── Token para o interceptor HTTP ───────────────────────────────────────
+
   /**
-   * Retorna o token JWT da sessão atual (para o interceptor HTTP).
+   * Retorna o access_token armazenado.
+   * O interceptor usa este método para injetar o Bearer token nas requisições.
    */
   async getToken(): Promise<string | null> {
-    const { data } = await this.supabaseService.auth.getSession();
-    return data.session?.access_token ?? null;
+    return this.tokenService.getAccessToken();
   }
 
-  /**
-   * Atualiza o estado com os dados da sessão e carrega id_empresa do DB.
-   */
-  private async updateState(session: Session): Promise<void> {
-    const supabaseUser = session.user;
+  // ─── Estado interno ───────────────────────────────────────────────────────
 
-    // Busca id_empresa do usuário. Tenta até 3 vezes com delay,
-    // pois o trigger pode demorar alguns ms para commitar após o signUp.
-    let idEmpresa: string | null = null;
-    for (let tentativa = 0; tentativa < 3; tentativa++) {
-      if (tentativa > 0) {
-        await new Promise(resolve => setTimeout(resolve, 800));
-      }
-      const { data: usuarioData, error: usuarioError } = await this.supabaseService.client
-        .from('usuario')
-        .select('id_empresa')
-        .eq('id', supabaseUser.id)
-        .maybeSingle();
-
-      if (usuarioError) {
-        console.warn(`Tentativa ${tentativa + 1} — erro ao carregar usuario:`, usuarioError.message);
-        continue;
-      }
-      if (usuarioData?.id_empresa) {
-        idEmpresa = usuarioData.id_empresa;
-        break;
-      }
-    }
-    if (!idEmpresa) {
-      console.warn('id_empresa não encontrado após 3 tentativas.');
-    }
-
-    // Salva no TenantService para uso global
-    this.tenantService.setIdEmpresa(idEmpresa);
+  private setUser(meData: { id: string; email: string; name: string; id_empresa: string | null; created_at: string }): void {
+    this.tenantService.setIdEmpresa(meData.id_empresa);
 
     const user: User = {
-      id: supabaseUser.id,
-      email: supabaseUser.email ?? '',
-      name: supabaseUser.user_metadata?.['name'] ?? supabaseUser.email ?? '',
-      id_empresa: idEmpresa ?? undefined,
-      createdAt: supabaseUser.created_at,
+      id:         meData.id,
+      email:      meData.email,
+      name:       meData.name,
+      id_empresa: meData.id_empresa ?? undefined,
+      createdAt:  meData.created_at,
     };
+
     this.currentUserSubject.next(user);
     this.isAuthenticatedSubject.next(true);
   }
 
-  // Limpa o estado ao sair
-  private clearState(): void {
+  /**
+   * Limpa tokens e estado reativo — usado pelo logout e pelo interceptor no 401.
+   */
+  clearLocalState(): void {
+    this.tokenService.clearTokens();
     this.tenantService.setIdEmpresa(null);
     this.currentUserSubject.next(null);
     this.isAuthenticatedSubject.next(false);
   }
 
-  // Traduz mensagens de erro do Supabase para português
+  // ─── Tradução de erros ────────────────────────────────────────────────────
+
   private translateError(message: string): string {
     const errors: Record<string, string> = {
-      'Invalid login credentials': 'E-mail ou senha inválidos.',
-      'Email not confirmed': 'Confirme seu e-mail antes de entrar.',
-      'User already registered': 'Este e-mail já está cadastrado.',
-      'Password should be at least 6 characters': 'A senha deve ter ao menos 6 caracteres.',
-      'Unable to validate email address: invalid format': 'Formato de e-mail inválido.',
-      'Email rate limit exceeded': 'Muitas tentativas. Aguarde alguns minutos.',
-      'over_email_send_rate_limit': 'Muitas tentativas. Aguarde alguns minutos.',
-      'signup_disabled': 'Cadastro desativado. Contate o suporte.',
+      'Invalid login credentials':                          'E-mail ou senha inválidos.',
+      'Email not confirmed':                                'Confirme seu e-mail antes de entrar.',
+      'User already registered':                            'Este e-mail já está cadastrado.',
+      'Password should be at least 6 characters':           'A senha deve ter ao menos 6 caracteres.',
+      'Unable to validate email address: invalid format':   'Formato de e-mail inválido.',
+      'Email rate limit exceeded':                          'Muitas tentativas. Aguarde alguns minutos.',
+      'over_email_send_rate_limit':                         'Muitas tentativas. Aguarde alguns minutos.',
+      'signup_disabled':                                    'Cadastro desativado. Contate o suporte.',
     };
     return errors[message] ?? message;
   }

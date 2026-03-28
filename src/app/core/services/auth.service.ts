@@ -49,41 +49,82 @@ export class AuthService {
   // ─── Restauração de sessão ────────────────────────────────────────────────
 
   /**
-   * Ao iniciar o app, verifica se há tokens no localStorage.
-   * Se o access_token estiver expirado, tenta renová-lo antes de
-   * chamar /auth/me para reconstruir o estado do usuário.
+   * Restaura a sessão ao iniciar o app.
+   *
+   * Estratégia em duas etapas:
+   *  1. Restauração imediata — lê o cache local (sem rede). O guard é liberado
+   *     logo após, evitando flicker de tela de login em cada refresh de página.
+   *  2. Verificação em segundo plano — chama /auth/me para confirmar que o
+   *     token ainda é válido e atualizar os dados do usuário. Se o token
+   *     expirou, tenta renová-lo silenciosamente antes de verificar.
    */
   private async initSession(): Promise<void> {
-    if (this.tokenService.hasTokens()) {
-      // Renova proativamente se o token estiver próximo do vencimento
-      if (this.tokenService.isTokenExpired()) {
-        const renewed = await this.tentarRenovarToken();
-        if (!renewed) {
-          this.isReadySubject.next(true);
-          return;
-        }
-      }
+    if (!this.tokenService.hasTokens()) {
+      this.isReadySubject.next(true);
+      return;
+    }
 
+    // ── Etapa 1: restauração imediata do cache ───────────────────────────
+    const cached = this.tokenService.getUserCache();
+    if (cached) {
+      this.setUser(cached);          // isAuthenticated = true imediatamente
+      this.isReadySubject.next(true); // guard liberado, sem esperar rede
+      this.verificarTokenEmBackground();
+      return;
+    }
+
+    // ── Etapa 2: sem cache — precisa bater na rede para obter os dados ───
+    // (só acontece no primeiro uso após login, antes do cache ser populado)
+    await this.restaurarSessaoViaRede();
+    this.isReadySubject.next(true);
+  }
+
+  /**
+   * Verifica em segundo plano se o token ainda é válido.
+   * Não bloqueia a navegação — falhas silenciosas são toleradas.
+   */
+  private verificarTokenEmBackground(): void {
+    // Usa setTimeout para não bloquear o ciclo atual do Angular
+    setTimeout(async () => {
       try {
+        if (this.tokenService.isTokenExpired()) {
+          const renewed = await this.tentarRenovarToken();
+          if (!renewed) { this.clearLocalState(); return; }
+        }
         const meData = await lastValueFrom(this.apiService.me());
+        // Atualiza cache e estado com dados frescos
+        this.tokenService.saveUserCache(meData);
         this.setUser(meData);
-      } catch {
-        // Token inválido mesmo após possível renovação — tenta mais uma vez
-        const renewed = await this.tentarRenovarToken();
-        if (renewed) {
-          try {
-            const meData = await lastValueFrom(this.apiService.me());
-            this.setUser(meData);
-          } catch {
-            this.clearLocalState();
-          }
-        } else {
+      } catch (err: any) {
+        // 401 = token genuinamente inválido → logout
+        // Erros de rede (status 0) → mantém a sessão local, tenta na próxima vez
+        if (err?.status === 401) {
           this.clearLocalState();
         }
       }
-    }
+    }, 0);
+  }
 
-    this.isReadySubject.next(true);
+  /**
+   * Restaura a sessão via rede quando não há cache local.
+   * Tenta renovar o token se estiver expirado.
+   */
+  private async restaurarSessaoViaRede(): Promise<void> {
+    try {
+      if (this.tokenService.isTokenExpired()) {
+        const renewed = await this.tentarRenovarToken();
+        if (!renewed) return;
+      }
+      const meData = await lastValueFrom(this.apiService.me());
+      this.tokenService.saveUserCache(meData);
+      this.setUser(meData);
+    } catch (err: any) {
+      if (err?.status === 401) {
+        // Token inválido definitivamente — limpa tudo
+        this.clearLocalState();
+      }
+      // Erros de rede: não limpa tokens (usuário tenta novamente depois)
+    }
   }
 
   /**
@@ -129,6 +170,7 @@ export class AuthService {
         );
 
         const meData = await lastValueFrom(this.apiService.me());
+        this.tokenService.saveUserCache(meData);
         this.setUser(meData);
       }),
       catchError((err) => {
@@ -159,6 +201,7 @@ export class AuthService {
             response.session.expires_at,
           );
           const meData = await lastValueFrom(this.apiService.me());
+          this.tokenService.saveUserCache(meData);
           this.setUser(meData);
         }
       }),

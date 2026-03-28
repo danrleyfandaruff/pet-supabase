@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { AlertController, LoadingController, ToastController } from '@ionic/angular';
+import { AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { AquisicaoPacoteService } from '../../core/services/aquisicao-pacote.service';
 import { AquisicaoPacote } from '../../core/models/aquisicao-pacote.model';
+import { PlanoDetalheComponent } from './plano-detalhe.component';
 
 interface PlanoVm {
   aquisicao: AquisicaoPacote;
@@ -29,6 +30,7 @@ export class PlanosPage implements OnInit {
     private alertCtrl: AlertController,
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
+    private modalCtrl: ModalController,
   ) {}
 
   ngOnInit() { this.loadData(); }
@@ -123,6 +125,32 @@ export class PlanosPage implements OnInit {
       await loading.dismiss();
     }
   }
+
+  async abrirDetalhe(vm: PlanoVm) {
+    const modal = await this.modalCtrl.create({
+      component: PlanoDetalheComponent,
+      componentProps: {
+        plano: {
+          petNome:      vm.petNome,
+          pacoteNome:   vm.pacoteNome,
+          total:        vm.total,
+          concluidos:   vm.concluidos,
+          proxData:     vm.proxData,
+          atendimentos: vm.aquisicao.atendimento ?? [],
+        },
+      },
+      breakpoints: [0, 1],
+      initialBreakpoint: 1,
+    });
+    await modal.present();
+
+    const { data } = await modal.onWillDismiss();
+    if (data?.alterado) {
+      await this.loadData(); // recarrega a lista se houve mudança de status
+    }
+  }
+
+  trackById(_: number, vm: PlanoVm) { return vm.aquisicao.id; }
 
   barraProgresso(vm: PlanoVm): number {
     if (!vm.total) return 0;

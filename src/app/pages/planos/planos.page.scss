@@ -58,6 +58,21 @@
   border-radius: 18px;
   overflow: hidden;
   box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  cursor: pointer;
+  transition: box-shadow 0.15s, transform 0.1s;
+
+  &:active {
+    transform: scale(0.985);
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  }
+}
+
+// Seta indicativa de clicável
+.card-arrow {
+  font-size: 16px;
+  color: var(--ion-color-medium);
+  flex-shrink: 0;
+  margin-left: 4px;
 }
 
 // Cabeçalho

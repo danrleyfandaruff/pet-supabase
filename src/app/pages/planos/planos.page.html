@@ -28,7 +28,8 @@
 
   <!-- Lista de planos -->
   <div class="planos-list" *ngIf="!isLoading && planos.length > 0">
-    <div class="plano-card" *ngFor="let vm of planos">
+    <div class="plano-card" *ngFor="let vm of planos; trackBy: trackById"
+         (click)="abrirDetalhe(vm)" role="button">
 
       <!-- Cabeçalho do card -->
       <div class="plano-header">
@@ -42,6 +43,7 @@
         <span class="status-badge" [ngClass]="vm.statusClass">
           {{ vm.statusLabel }}
         </span>
+        <ion-icon name="chevron-forward-outline" class="card-arrow"></ion-icon>
       </div>
 
       <!-- Progresso -->
@@ -80,7 +82,7 @@
       <div class="plano-footer">
         <button class="btn-cancelar"
                 *ngIf="vm.cancelavel"
-                (click)="confirmarCancelamento(vm)">
+                (click)="confirmarCancelamento(vm); $event.stopPropagation()">
           <ion-icon name="close-circle-outline"></ion-icon>
           Cancelar plano
         </button>

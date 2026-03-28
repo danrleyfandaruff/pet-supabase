@@ -11,6 +11,9 @@ export interface AquisicaoPacote {
     id: number;
     data: string;
     pago?: boolean;
-    status_info?: { nome: string };
+    status?: number;                 // id do status (para atualização)
+    status_info?: { id?: number; nome: string };
+    id_servico?: number;
+    servico?: { nome: string; valor?: number };
   }>;
 }

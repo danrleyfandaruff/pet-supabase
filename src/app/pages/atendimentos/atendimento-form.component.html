@@ -140,6 +140,18 @@
         </ion-select>
       </ion-item>
 
+      <!-- Aviso de replicação: serviço/valor aplicados em todas as sessões -->
+      <div class="replicacao-notice" *ngIf="isPacoteMultisessao && nomeServico">
+        <ion-icon name="copy-outline"></ion-icon>
+        <div class="replicacao-text">
+          <strong>{{ nomeServico }}</strong> será aplicado em cada uma das
+          <strong>{{ pacoteSelecionado?.quantidade }} sessões</strong>
+          <span *ngIf="valorTotal > 0">
+            — R$ {{ valorTotal | number:'1.2-2' }}/sessão
+          </span>
+        </div>
+      </div>
+
       <!-- Banner informativo do pacote — clicável quando multi-sessão -->
       <div class="pacote-banner"
            *ngIf="pacoteSelecionado"
@@ -179,10 +191,22 @@
         <span>Adicional</span>
         <span>R$ {{ form.get('valor_adicional')?.value | number:'1.2-2' }}</span>
       </div>
-      <div class="valor-linha total">
+      <!-- Sessão única -->
+      <div class="valor-linha total" *ngIf="!isPacoteMultisessao">
         <span>Total</span>
         <span>R$ {{ valorTotal | number:'1.2-2' }}</span>
       </div>
+      <!-- Pacote multi-sessão -->
+      <ng-container *ngIf="isPacoteMultisessao">
+        <div class="valor-linha">
+          <span>Por sessão</span>
+          <span>R$ {{ valorTotal | number:'1.2-2' }}</span>
+        </div>
+        <div class="valor-linha total">
+          <span>Total ({{ pacoteSelecionado?.quantidade }}x)</span>
+          <span>R$ {{ valorTotalPacote | number:'1.2-2' }}</span>
+        </div>
+      </ng-container>
     </div>
 
   </ion-content>
@@ -239,6 +263,10 @@
         <div class="preview-label">
           <span class="preview-sessao">Sessão {{ i + 1 }}</span>
           <span class="preview-data-full">{{ data | date:'dd/MM/yyyy' }}</span>
+          <span class="preview-servico-tag" *ngIf="nomeServico">
+            <ion-icon name="cut-outline"></ion-icon> {{ nomeServico }}
+            <span *ngIf="valorTotal > 0"> · R$ {{ valorTotal | number:'1.2-2' }}</span>
+          </span>
         </div>
 
         <!-- Botão de edição com input transparente sobreposto -->
@@ -251,6 +279,15 @@
         </div>
 
       </div>
+    </div>
+
+    <!-- Resumo financeiro do pacote -->
+    <div class="preview-valor-resumo" *ngIf="valorTotal > 0">
+      <div class="preview-valor-linha">
+        <span>{{ nomeServico || 'Serviço' }} × {{ datasGeradas.length }}</span>
+        <span>R$ {{ valorTotalPacote | number:'1.2-2' }}</span>
+      </div>
+      <div class="preview-valor-hint">R$ {{ valorTotal | number:'1.2-2' }} por sessão</div>
     </div>
 
     <!-- Botão confirmar -->

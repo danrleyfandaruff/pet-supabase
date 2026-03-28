@@ -124,8 +124,20 @@ export class AtendimentoFormComponent implements OnInit {
     return this.servicos.find(s => s.id === id)?.valor || 0;
   }
 
+  get nomeServico(): string {
+    const id = this.form.get('id_servico')?.value;
+    if (!id) return '';
+    return this.servicos.find(s => s.id === id)?.nome || '';
+  }
+
   get valorTotal(): number {
     return this.valorServico + (this.form.get('valor_adicional')?.value || 0);
+  }
+
+  /** Valor total do pacote inteiro (valor por sessão × quantidade de sessões). */
+  get valorTotalPacote(): number {
+    const qtd = this.pacoteSelecionado?.quantidade ?? 1;
+    return this.valorTotal * qtd;
   }
 
   // ── Pacote selecionado ───────────────────────────────

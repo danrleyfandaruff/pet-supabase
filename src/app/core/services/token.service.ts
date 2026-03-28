@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 const ACCESS_TOKEN_KEY  = 'gl360_access_token';
 const REFRESH_TOKEN_KEY = 'gl360_refresh_token';
 const EXPIRES_AT_KEY    = 'gl360_expires_at';
+const USER_CACHE_KEY    = 'gl360_user';
 
 /**
  * Gerencia o armazenamento e recuperação dos tokens JWT no localStorage.
@@ -47,5 +48,18 @@ export class TokenService {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(EXPIRES_AT_KEY);
+    localStorage.removeItem(USER_CACHE_KEY);
+  }
+
+  // ── Cache do usuário (evita chamada de rede no refresh de página) ─────────
+
+  saveUserCache(user: { id: string; email: string; name: string; id_empresa: string | null; created_at: string }): void {
+    localStorage.setItem(USER_CACHE_KEY, JSON.stringify(user));
+  }
+
+  getUserCache(): { id: string; email: string; name: string; id_empresa: string | null; created_at: string } | null {
+    const raw = localStorage.getItem(USER_CACHE_KEY);
+    if (!raw) return null;
+    try { return JSON.parse(raw); } catch { return null; }
   }
 }

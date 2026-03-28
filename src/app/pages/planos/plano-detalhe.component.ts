@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { ActionSheetController, LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { AtendimentoService } from '../../core/services/atendimento.service';
 import { StatusService } from '../../core/services/status.service';
@@ -38,7 +38,7 @@ export interface PlanoDetalheInput {
   templateUrl: './plano-detalhe.component.html',
   styleUrls: ['./plano-detalhe.component.scss'],
 })
-export class PlanoDetalheComponent implements OnInit {
+export class PlanoDetalheComponent implements OnInit, OnChanges, AfterViewInit {
   @Input() plano!: PlanoDetalheInput;
 
   sessoes: SessaoVm[] = [];
@@ -56,9 +56,20 @@ export class PlanoDetalheComponent implements OnInit {
     private cdr: ChangeDetectorRef,
   ) {}
 
+  ngOnChanges(changes: SimpleChanges) {
+    // Ionic define componentProps após a instanciação — rebuildar sempre que plano mudar
+    if (changes['plano'] && this.plano) {
+      this.construirSessoes();
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
   async ngOnInit() {
-    // Monta a lista imediatamente com os dados já disponíveis (sem esperar a rede)
-    this.construirSessoes();
+    // Garante que a lista é construída mesmo se ngOnChanges não disparar antes
+    if (this.plano) {
+      this.construirSessoes();
+    }
     this.isLoading = false;
     this.cdr.detectChanges();
 
@@ -67,6 +78,14 @@ export class PlanoDetalheComponent implements OnInit {
       this.statusList = await this.statusService.getAll();
     } catch {
       // lista de status vazia — trocar status ficará desabilitado silenciosamente
+    }
+  }
+
+  ngAfterViewInit() {
+    // Última linha de defesa: se sessoes ainda estiver vazia com plano disponível, reconstruir
+    if (this.sessoes.length === 0 && this.plano?.atendimentos?.length) {
+      this.construirSessoes();
+      this.cdr.detectChanges();
     }
   }
 

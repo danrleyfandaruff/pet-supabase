@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { SearchableSelectComponent } from './searchable-select.component';
+import { PwaInstallBannerComponent } from './pwa-install-banner.component';
 
 /**
  * Módulo compartilhado — componentes reutilizáveis genéricos.
@@ -10,7 +11,7 @@ import { SearchableSelectComponent } from './searchable-select.component';
  */
 @NgModule({
   imports: [CommonModule, FormsModule, IonicModule],
-  declarations: [SearchableSelectComponent],
-  exports: [SearchableSelectComponent],
+  declarations: [SearchableSelectComponent, PwaInstallBannerComponent],
+  exports: [SearchableSelectComponent, PwaInstallBannerComponent],
 })
 export class SharedModule {}

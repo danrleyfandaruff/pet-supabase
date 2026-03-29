@@ -1,3 +1,4 @@
+import { errorMsg } from '../../core/utils/error.utils';
 import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
@@ -204,7 +205,7 @@ export class AtendimentoFormComponent implements OnInit {
       });
       await t.present();
     } catch (e: any) {
-      const t = await this.toastCtrl.create({ message: e.message, duration: 3000, color: 'danger', position: 'top' });
+      const t = await this.toastCtrl.create({ message: errorMsg(e), duration: 3000, color: 'danger', position: 'top' });
       await t.present();
     } finally { await loading.dismiss(); }
   }
@@ -270,7 +271,7 @@ export class AtendimentoFormComponent implements OnInit {
       });
       await t.present();
     } catch (e: any) {
-      const t = await this.toastCtrl.create({ message: e.message, duration: 3000, color: 'danger', position: 'top' });
+      const t = await this.toastCtrl.create({ message: errorMsg(e), duration: 3000, color: 'danger', position: 'top' });
       await t.present();
     } finally { await loading.dismiss(); }
   }
@@ -305,7 +306,7 @@ export class AtendimentoFormComponent implements OnInit {
       this.form.patchValue({ id_cliente: novo.id });
       this.onTutorChange(novo.id!);
     } catch (e: any) {
-      const t = await this.toastCtrl.create({ message: e.message, duration: 3000, color: 'danger', position: 'top' });
+      const t = await this.toastCtrl.create({ message: errorMsg(e), duration: 3000, color: 'danger', position: 'top' });
       await t.present();
     }
   }
@@ -352,7 +353,7 @@ export class AtendimentoFormComponent implements OnInit {
       }
       this.form.patchValue({ id_animal: novo.id });
     } catch (e: any) {
-      const t = await this.toastCtrl.create({ message: e.message, duration: 3000, color: 'danger', position: 'top' });
+      const t = await this.toastCtrl.create({ message: errorMsg(e), duration: 3000, color: 'danger', position: 'top' });
       await t.present();
     }
   }

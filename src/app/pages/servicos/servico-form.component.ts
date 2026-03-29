@@ -1,3 +1,4 @@
+import { errorMsg } from '../../core/utils/error.utils';
 import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController, LoadingController, ToastController } from '@ionic/angular';
@@ -47,7 +48,7 @@ export class ServicoFormComponent implements OnInit {
       const t = await this.toastCtrl.create({ message: `Serviço ${this.isEdit ? 'atualizado' : 'criado'}!`, duration: 2000, color: 'success', position: 'top' });
       await t.present();
     } catch (e: any) {
-      const t = await this.toastCtrl.create({ message: e.message, duration: 3000, color: 'danger', position: 'top' });
+      const t = await this.toastCtrl.create({ message: errorMsg(e), duration: 3000, color: 'danger', position: 'top' });
       await t.present();
     } finally { await loading.dismiss(); }
   }

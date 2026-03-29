@@ -1,3 +1,4 @@
+import { errorMsg } from '../../core/utils/error.utils';
 import { Component, OnInit } from '@angular/core';
 import { AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { ClienteService } from '../../core/services/cliente.service';
@@ -27,7 +28,7 @@ export class ClientesPage implements OnInit {
       this.clientes = await this.clienteService.getAll();
       this.clientesFiltrados = [...this.clientes];
     } catch (e: any) {
-      await this.showToast(e.message, 'danger');
+      await this.showToast(errorMsg(e), 'danger');
     } finally { this.isLoading = false; }
   }
 
@@ -70,7 +71,7 @@ export class ClientesPage implements OnInit {
       await this.showToast('Cliente excluído!', 'success');
       await this.loadData();
     } catch (e: any) {
-      await this.showToast(e.message, 'danger');
+      await this.showToast(errorMsg(e), 'danger');
     } finally { await loading.dismiss(); }
   }
 

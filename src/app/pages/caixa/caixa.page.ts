@@ -1,3 +1,4 @@
+import { errorMsg } from '../../core/utils/error.utils';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AlertController, LoadingController, ToastController } from '@ionic/angular';
@@ -67,7 +68,7 @@ export class CaixaPage implements OnInit {
       this.registros = await this.caixaService.getAllOrdenado();
       this.aplicarFiltro();
     } catch (e: any) {
-      await this.showToast(e.message, 'danger');
+      await this.showToast(errorMsg(e), 'danger');
     } finally {
       this.isLoading = false;
     }
@@ -134,7 +135,7 @@ export class CaixaPage implements OnInit {
       this.fecharModal();
       await this.loadData();
     } catch (e: any) {
-      await this.showToast(e.message, 'danger');
+      await this.showToast(errorMsg(e), 'danger');
     } finally {
       this.salvando = false;
     }
@@ -160,7 +161,7 @@ export class CaixaPage implements OnInit {
       await this.showToast('Lançamento excluído!', 'success');
       await this.loadData();
     } catch (e: any) {
-      await this.showToast(e.message, 'danger');
+      await this.showToast(errorMsg(e), 'danger');
     } finally {
       await loading.dismiss();
     }

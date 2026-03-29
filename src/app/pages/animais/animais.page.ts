@@ -1,3 +1,4 @@
+import { errorMsg } from '../../core/utils/error.utils';
 import { Component, OnInit } from '@angular/core';
 import { AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { AnimalService } from '../../core/services/animal.service';
@@ -35,7 +36,7 @@ export class AnimaisPage implements OnInit {
     try {
       this.animais = await this.animalService.getAll();
       this.animaisFiltrados = [...this.animais];
-    } catch (e: any) { await this.showToast(e.message, 'danger'); }
+    } catch (e: any) { await this.showToast(errorMsg(e), 'danger'); }
     finally { this.isLoading = false; }
   }
 
@@ -78,7 +79,7 @@ export class AnimaisPage implements OnInit {
       await this.animalService.delete(animal.id!);
       await this.showToast('Animal excluído!', 'success');
       await this.loadData();
-    } catch (e: any) { await this.showToast(e.message, 'danger'); }
+    } catch (e: any) { await this.showToast(errorMsg(e), 'danger'); }
     finally { await loading.dismiss(); }
   }
 
@@ -91,7 +92,7 @@ export class AnimaisPage implements OnInit {
     try {
       this.historicoAtendimentos = await this.atendimentoService.getByAnimal(animal.id!);
     } catch (e: any) {
-      await this.showToast(e.message, 'danger');
+      await this.showToast(errorMsg(e), 'danger');
     } finally {
       this.historicoLoading = false;
     }

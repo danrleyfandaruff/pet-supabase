@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { ActionSheetController, AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
+import { errorMsg } from '../../core/utils/error.utils';
 import { AtendimentoService } from '../../core/services/atendimento.service';
 import { StatusService } from '../../core/services/status.service';
 import { AquisicaoPacoteService } from '../../core/services/aquisicao-pacote.service';
@@ -83,7 +84,7 @@ export class PlanoDetalheComponent implements OnInit {
         });
     } catch (e: any) {
       this.erro = true;
-      await this.showToast(e?.message ?? 'Erro ao carregar sessões', 'danger');
+      await this.showToast(errorMsg(e, 'Erro ao carregar sessões'), 'danger');
     } finally {
       this.isLoading = false;
       this.cdr.detectChanges();
@@ -120,7 +121,7 @@ export class PlanoDetalheComponent implements OnInit {
         this.cdr.detectChanges();
         await this.showToast(`Sessão ${sessao.sessaoNum} desmarcada como paga`, 'medium');
       } catch (e: any) {
-        await this.showToast(e?.message ?? 'Erro ao desfazer pagamento', 'danger');
+        await this.showToast(errorMsg(e, 'Erro ao desfazer pagamento'), 'danger');
       } finally {
         sessao.atualizando = false;
       }
@@ -195,7 +196,7 @@ export class PlanoDetalheComponent implements OnInit {
       this.cdr.detectChanges();
       await this.showToast(`Sessão ${sessao.sessaoNum} paga via ${forma} ✓`, 'success');
     } catch (e: any) {
-      await this.showToast(e?.message ?? 'Erro ao registrar pagamento', 'danger');
+      await this.showToast(errorMsg(e, 'Erro ao registrar pagamento'), 'danger');
     } finally {
       sessao.atualizando = false;
     }
@@ -248,7 +249,7 @@ export class PlanoDetalheComponent implements OnInit {
       this.alterado = true;
       await this.showToast(`Sessão ${sessao.sessaoNum} → ${novoStatus.nome}`, 'success');
     } catch (e: any) {
-      await this.showToast(e.message ?? 'Erro ao salvar', 'danger');
+      await this.showToast(errorMsg(e, 'Erro ao salvar'), 'danger');
     } finally {
       sessao.atualizando = false;
     }

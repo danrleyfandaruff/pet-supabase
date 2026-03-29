@@ -1,3 +1,4 @@
+import { errorMsg } from '../../core/utils/error.utils';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -58,7 +59,7 @@ export class LoginPage implements OnInit {
       },
       error: async (err: Error) => {
         await loading.dismiss();
-        await this.showToast(err.message, 'danger');
+        await this.showToast(errorMsg(err), 'danger');
       },
     });
   }

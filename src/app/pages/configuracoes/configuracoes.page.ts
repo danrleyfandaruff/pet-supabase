@@ -1,3 +1,4 @@
+import { errorMsg } from '../../core/utils/error.utils';
 import { Component, OnInit } from '@angular/core';
 import { AlertController, LoadingController, ToastController } from '@ionic/angular';
 import { Router } from '@angular/router';
@@ -53,7 +54,7 @@ export class ConfiguracoesPage implements OnInit {
       this.statusList = statusList;
       this.tiposServico = tiposServico;
       this.colaboradores = colaboradores;
-    } catch (e: any) { await this.showToast(e.message, 'danger'); }
+    } catch (e: any) { await this.showToast(errorMsg(e), 'danger'); }
     finally { this.isLoading = false; }
   }
 
@@ -228,7 +229,7 @@ export class ConfiguracoesPage implements OnInit {
               await this.showToast('Colaborador adicionado!', 'success');
               await this.loadAll();
             } catch (e: any) {
-              await this.showToast(e?.error?.message || e.message, 'danger');
+              await this.showToast(errorMsg(e), 'danger');
             }
             return true;
           },

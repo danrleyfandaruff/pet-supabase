@@ -1,3 +1,4 @@
+import { errorMsg } from '../../core/utils/error.utils';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ToastController } from '@ionic/angular';
@@ -80,7 +81,7 @@ export class ProntuarioPage implements OnInit {
       const t = await this.toastCtrl.create({ message: 'Prontuário atualizado!', duration: 2000, color: 'success', position: 'top' });
       await t.present();
     } catch (e: any) {
-      const t = await this.toastCtrl.create({ message: e.message, duration: 2500, color: 'danger', position: 'top' });
+      const t = await this.toastCtrl.create({ message: errorMsg(e), duration: 2500, color: 'danger', position: 'top' });
       await t.present();
     }
   }

@@ -1,3 +1,4 @@
+import { errorMsg } from '../../core/utils/error.utils';
 import { Component, OnInit } from '@angular/core';
 import {
   FormBuilder,
@@ -79,7 +80,7 @@ export class RegisterPage implements OnInit {
       },
       error: async (err: Error) => {
         await loading.dismiss();
-        await this.showToast(err.message, 'danger');
+        await this.showToast(errorMsg(err), 'danger');
       },
     });
   }

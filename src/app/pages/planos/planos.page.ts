@@ -1,3 +1,4 @@
+import { errorMsg } from '../../core/utils/error.utils';
 import { Component, OnInit } from '@angular/core';
 import { AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { AquisicaoPacoteService } from '../../core/services/aquisicao-pacote.service';
@@ -42,7 +43,7 @@ export class PlanosPage implements OnInit {
       const lista = await this.aquisicaoPacoteService.getAll();
       this.planos = lista.map(aq => this.mapToVm(aq));
     } catch (e: any) {
-      await this.showToast(e.message, 'danger');
+      await this.showToast(errorMsg(e), 'danger');
     } finally {
       this.isLoading = false;
     }
@@ -120,7 +121,7 @@ export class PlanosPage implements OnInit {
       await this.showToast('Plano cancelado com sucesso.', 'success');
       await this.loadData();
     } catch (e: any) {
-      await this.showToast(e.message, 'danger');
+      await this.showToast(errorMsg(e), 'danger');
     } finally {
       await loading.dismiss();
     }

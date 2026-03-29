@@ -1,3 +1,4 @@
+import { errorMsg } from '../../core/utils/error.utils';
 import { Component, OnInit } from '@angular/core';
 import { AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { AquisicaoPacoteService } from '../../core/services/aquisicao-pacote.service';
@@ -31,7 +32,7 @@ export class AquisicaoPacotesPage implements OnInit {
       this.aquisicoes = await this.aquisicaoService.getAll();
       this.aquisicoesFiltradas = [...this.aquisicoes];
     } catch (e: any) {
-      await this.showToast(e.message, 'danger');
+      await this.showToast(errorMsg(e), 'danger');
     } finally { this.isLoading = false; }
   }
 
@@ -81,7 +82,7 @@ export class AquisicaoPacotesPage implements OnInit {
       await this.showToast('Aquisição excluída!', 'success');
       await this.loadData();
     } catch (e: any) {
-      await this.showToast(e.message, 'danger');
+      await this.showToast(errorMsg(e), 'danger');
     } finally { await loading.dismiss(); }
   }
 

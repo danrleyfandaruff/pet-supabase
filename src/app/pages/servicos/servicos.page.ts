@@ -1,3 +1,4 @@
+import { errorMsg } from '../../core/utils/error.utils';
 import { Component, OnInit } from '@angular/core';
 import { AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { ServicoService } from '../../core/services/servico.service';
@@ -26,7 +27,7 @@ export class ServicosPage implements OnInit {
     try {
       this.servicos = await this.servicoService.getAll();
       this.servicosFiltrados = [...this.servicos];
-    } catch (e: any) { await this.showToast(e.message, 'danger'); }
+    } catch (e: any) { await this.showToast(errorMsg(e), 'danger'); }
     finally { this.isLoading = false; }
   }
 
@@ -67,7 +68,7 @@ export class ServicosPage implements OnInit {
       await this.servicoService.delete(servico.id!);
       await this.showToast('Serviço excluído!', 'success');
       await this.loadData();
-    } catch (e: any) { await this.showToast(e.message, 'danger'); }
+    } catch (e: any) { await this.showToast(errorMsg(e), 'danger'); }
     finally { await loading.dismiss(); }
   }
 

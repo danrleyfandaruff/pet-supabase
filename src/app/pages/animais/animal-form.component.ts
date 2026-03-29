@@ -1,3 +1,4 @@
+import { errorMsg } from '../../core/utils/error.utils';
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController, LoadingController, ToastController } from '@ionic/angular';
@@ -135,7 +136,7 @@ export class AnimalFormComponent implements OnInit {
       });
       await t.present();
     } catch (e: any) {
-      const t = await this.toastCtrl.create({ message: e.message, duration: 3000, color: 'danger', position: 'top' });
+      const t = await this.toastCtrl.create({ message: errorMsg(e), duration: 3000, color: 'danger', position: 'top' });
       await t.present();
     } finally { await loading.dismiss(); }
   }

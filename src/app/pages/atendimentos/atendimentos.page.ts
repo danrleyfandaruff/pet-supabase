@@ -1,3 +1,4 @@
+import { errorMsg } from '../../core/utils/error.utils';
 import { Component, OnInit } from '@angular/core';
 import { ActionSheetController, AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { AtendimentoService } from '../../core/services/atendimento.service';
@@ -176,7 +177,7 @@ export class AtendimentosPage implements OnInit {
       this.cancelarSelecao();
       await this.loadData();
     } catch (e: any) {
-      await this.showToast(e.message, 'danger');
+      await this.showToast(errorMsg(e), 'danger');
     } finally {
       await loading.dismiss();
     }
@@ -215,7 +216,7 @@ export class AtendimentosPage implements OnInit {
       this.cancelarSelecao();
       await this.loadData();
     } catch (e: any) {
-      await this.showToast(e.message, 'danger');
+      await this.showToast(errorMsg(e), 'danger');
     } finally {
       await loading.dismiss();
     }
@@ -275,7 +276,7 @@ export class AtendimentosPage implements OnInit {
           await this.atendimentoService.update(atendimento.id!, { status: s.id });
           await this.loadData();
         } catch (e: any) {
-          await this.showToast(e.message, 'danger');
+          await this.showToast(errorMsg(e), 'danger');
         }
       },
     }));
@@ -399,7 +400,7 @@ export class AtendimentosPage implements OnInit {
     try {
       this.atendimentos = await this.atendimentoService.getAll();
       this.aplicarFiltros();
-    } catch (e: any) { await this.showToast(e.message, 'danger'); }
+    } catch (e: any) { await this.showToast(errorMsg(e), 'danger'); }
     finally { this.isLoading = false; }
   }
 
@@ -456,7 +457,7 @@ export class AtendimentosPage implements OnInit {
       await this.atendimentoService.delete(atendimento.id!);
       await this.showToast('Atendimento excluído!', 'success');
       await this.loadData();
-    } catch (e: any) { await this.showToast(e.message, 'danger'); }
+    } catch (e: any) { await this.showToast(errorMsg(e), 'danger'); }
     finally { await loading.dismiss(); }
   }
 
@@ -502,7 +503,7 @@ export class AtendimentosPage implements OnInit {
       this.fecharPagamento();
       await this.loadData();
     } catch (e: any) {
-      await this.showToast(e.message, 'danger');
+      await this.showToast(errorMsg(e), 'danger');
     } finally {
       this.salvandoPagamento = false;
     }
@@ -533,7 +534,7 @@ export class AtendimentosPage implements OnInit {
       await this.showToast('Pagamento desfeito e removido do caixa.', 'warning');
       await this.loadData();
     } catch (e: any) {
-      await this.showToast(e.message, 'danger');
+      await this.showToast(errorMsg(e), 'danger');
     } finally {
       await loading.dismiss();
     }

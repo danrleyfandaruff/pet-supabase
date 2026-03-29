@@ -1,3 +1,4 @@
+import { errorMsg } from '../../core/utils/error.utils';
 import { Component, OnInit } from '@angular/core';
 import { AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { PacoteService } from '../../core/services/pacote.service';
@@ -26,7 +27,7 @@ export class PacotesPage implements OnInit {
     try {
       this.pacotes = await this.pacoteService.getAll();
       this.pacotesFiltrados = [...this.pacotes];
-    } catch (e: any) { await this.showToast(e.message, 'danger'); }
+    } catch (e: any) { await this.showToast(errorMsg(e), 'danger'); }
     finally { this.isLoading = false; }
   }
 
@@ -65,7 +66,7 @@ export class PacotesPage implements OnInit {
       await this.pacoteService.delete(pacote.id!);
       await this.showToast('Pacote excluído!', 'success');
       await this.loadData();
-    } catch (e: any) { await this.showToast(e.message, 'danger'); }
+    } catch (e: any) { await this.showToast(errorMsg(e), 'danger'); }
     finally { await loading.dismiss(); }
   }
 

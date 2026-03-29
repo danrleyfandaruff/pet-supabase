@@ -1,7 +1,8 @@
-import { AfterViewInit, ChangeDetectorRef, Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { ActionSheetController, LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { AtendimentoService } from '../../core/services/atendimento.service';
 import { StatusService } from '../../core/services/status.service';
+import { AquisicaoPacoteService } from '../../core/services/aquisicao-pacote.service';
 import { Status } from '../../core/models/status.model';
 
 export interface SessaoVm {
@@ -17,34 +18,23 @@ export interface SessaoVm {
   atualizando: boolean;
 }
 
-export interface PlanoDetalheInput {
-  petNome: string;
-  pacoteNome: string;
-  total: number;
-  concluidos: number;
-  proxData: string | null;
-  atendimentos: Array<{
-    id: number;
-    data: string;
-    pago?: boolean;
-    status?: number;
-    status_info?: { id?: number; nome: string };
-    servico?: { nome: string; valor?: number };
-  }>;
-}
-
 @Component({
   selector: 'app-plano-detalhe',
   templateUrl: './plano-detalhe.component.html',
   styleUrls: ['./plano-detalhe.component.scss'],
 })
-export class PlanoDetalheComponent implements OnInit, OnChanges, AfterViewInit {
-  @Input() plano!: PlanoDetalheInput;
+export class PlanoDetalheComponent implements OnInit {
+  @Input() aquisicaoId!: number;
+  @Input() petNome = '';
+  @Input() pacoteNome = '';
+  @Input() total = 0;
+  @Input() proxData: string | null = null;
 
   sessoes: SessaoVm[] = [];
   statusList: Status[] = [];
   isLoading = true;
-  alterado = false; // indica se algo foi salvo (para reload na página pai)
+  alterado = false;
+  erro = false;
 
   constructor(
     private modalCtrl: ModalController,
@@ -52,73 +42,54 @@ export class PlanoDetalheComponent implements OnInit, OnChanges, AfterViewInit {
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
     private atendimentoService: AtendimentoService,
+    private aquisicaoService: AquisicaoPacoteService,
     private statusService: StatusService,
     private cdr: ChangeDetectorRef,
   ) {}
 
-  ngOnChanges(changes: SimpleChanges) {
-    // Ionic define componentProps após a instanciação — rebuildar sempre que plano mudar
-    if (changes['plano'] && this.plano) {
-      this.construirSessoes();
+  async ngOnInit() {
+    try {
+      const [ats, statusList] = await Promise.all([
+        this.aquisicaoService.getSessoes(this.aquisicaoId),
+        this.statusService.getAll().catch(() => [] as Status[]),
+      ]);
+
+      this.statusList = statusList;
+
+      this.sessoes = (ats ?? [])
+        .slice()
+        .sort((a: any, b: any) => (a.data ?? '').localeCompare(b.data ?? ''))
+        .map((at: any, i: number) => {
+          const statusNome = statusList.find((s: Status) => s.id === at.status)?.nome ?? 'Agendado';
+          const concluida  = !!(at.pago || statusNome.toLowerCase().includes('conclu'));
+          return {
+            id:          at.id,
+            data:        at.data,
+            sessaoNum:   i + 1,
+            statusId:    at.status ?? null,
+            statusNome,
+            pago:        !!at.pago,
+            servicoNome: '',
+            concluida,
+            proxima:     at.data === this.proxData && !concluida,
+            atualizando: false,
+          } as SessaoVm;
+        });
+    } catch (e: any) {
+      this.erro = true;
+      await this.showToast(e?.message ?? 'Erro ao carregar sessões', 'danger');
+    } finally {
       this.isLoading = false;
       this.cdr.detectChanges();
     }
   }
 
-  async ngOnInit() {
-    // Garante que a lista é construída mesmo se ngOnChanges não disparar antes
-    if (this.plano) {
-      this.construirSessoes();
-    }
-    this.isLoading = false;
-    this.cdr.detectChanges();
-
-    // Carrega lista de status em segundo plano para o ActionSheet
-    try {
-      this.statusList = await this.statusService.getAll();
-    } catch {
-      // lista de status vazia — trocar status ficará desabilitado silenciosamente
-    }
-  }
-
-  ngAfterViewInit() {
-    // Última linha de defesa: se sessoes ainda estiver vazia com plano disponível, reconstruir
-    if (this.sessoes.length === 0 && this.plano?.atendimentos?.length) {
-      this.construirSessoes();
-      this.cdr.detectChanges();
-    }
-  }
-
-  private construirSessoes() {
-    if (!this.plano?.atendimentos?.length) {
-      this.sessoes = [];
-      return;
-    }
-    this.sessoes = this.plano.atendimentos
-      .slice()
-      .sort((a, b) => (a.data ?? '').localeCompare(b.data ?? ''))
-      .map((at, i) => {
-        const concluida = !!(at.pago || at.status_info?.nome?.toLowerCase().includes('conclu'));
-        return {
-          id:          at.id,
-          data:        at.data,
-          sessaoNum:   i + 1,
-          statusId:    at.status ?? at.status_info?.id ?? null,
-          statusNome:  at.status_info?.nome ?? 'Agendado',
-          pago:        !!at.pago,
-          servicoNome: at.servico?.nome ?? '',
-          concluida,
-          proxima:     at.data === this.plano.proxData && !concluida,
-          atualizando: false,
-        };
-      });
-  }
-
   // ── Progresso ──────────────────────────────────────────────────────────────
 
   get progresso(): number {
-    if (!this.plano.total) return 0;
-    return Math.round((this.plano.concluidos / this.plano.total) * 100);
+    if (!this.total) return 0;
+    const concluidos = this.sessoes.filter(s => s.concluida).length;
+    return Math.round((concluidos / this.total) * 100);
   }
 
   get concluidosAtuais(): number {

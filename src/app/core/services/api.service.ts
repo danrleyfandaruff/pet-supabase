@@ -405,12 +405,16 @@ export class ApiService {
     return this.http.get(this.url(`pacote/aquisicao/${id}`));
   }
 
+  getSessoesPorAquisicao(id: number): Observable<any[]> {
+    return this.http.get<any[]>(this.url(`pacote/aquisicao/${id}/sessoes`));
+  }
+
   getAquisicoesPorAnimal(idAnimal: number): Observable<any[]> {
     return this.http.get<any[]>(this.url(`pacote/aquisicao/por-animal/${idAnimal}`));
   }
 
   cadastrarAquisicaoPacote(data: any): Observable<any> {
-    return this._post('pacote/aquisicao/cadastrar', data);
+    return this.http.post<any>(this.url('pacote/aquisicao/cadastrar'), data);
   }
 
   deletarAquisicaoPacote(id: number): Observable<any> {

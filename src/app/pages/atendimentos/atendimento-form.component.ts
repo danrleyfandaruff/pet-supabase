@@ -167,16 +167,31 @@ export class AtendimentoFormComponent implements OnInit {
     const loading = await this.loadingCtrl.create({ message: 'Salvando...', spinner: 'crescent' });
     await loading.present();
     try {
+      const fv = this.form.value;
+      let idAquisicaoPacote: number | null = this.atendimento?.id_aquisicao_pacote ?? null;
+
+      // Se está criando (não editando) e tem pacote selecionado, registra o vínculo
+      if (!this.isEdit && fv.id_pacote) {
+        const aq = await this.aquisicaoPacoteService.create({
+          id_pacote:      fv.id_pacote,
+          id_animal:      fv.id_animal || null,
+          data_aquisicao: fv.data,
+        });
+        idAquisicaoPacote = aq.id ?? null;
+      }
+
       const payload = {
-        ...this.form.value,
-        id_cliente:      this.form.value.id_cliente      || null,
-        id_animal:       this.form.value.id_animal       || null,
-        id_responsavel:  this.form.value.id_responsavel  || null,
-        id_servico:      this.form.value.id_servico      || null,
-        id_pacote:       this.form.value.id_pacote       || null,
-        status:          this.form.value.status          || null,
-        valor_adicional: this.form.value.valor_adicional || null,
+        ...fv,
+        id_cliente:          fv.id_cliente      || null,
+        id_animal:           fv.id_animal       || null,
+        id_responsavel:      fv.id_responsavel  || null,
+        id_servico:          fv.id_servico      || null,
+        id_pacote:           fv.id_pacote       || null,
+        status:              fv.status          || null,
+        valor_adicional:     fv.valor_adicional || null,
+        id_aquisicao_pacote: idAquisicaoPacote,
       };
+
       if (this.isEdit) {
         await this.atendimentoService.update(this.atendimento!.id!, payload);
       } else {

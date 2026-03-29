@@ -130,14 +130,11 @@ export class PlanosPage implements OnInit {
     const modal = await this.modalCtrl.create({
       component: PlanoDetalheComponent,
       componentProps: {
-        plano: {
-          petNome:      vm.petNome,
-          pacoteNome:   vm.pacoteNome,
-          total:        vm.total,
-          concluidos:   vm.concluidos,
-          proxData:     vm.proxData,
-          atendimentos: vm.aquisicao.atendimento ?? [],
-        },
+        aquisicaoId: vm.aquisicao.id,
+        petNome:     vm.petNome,
+        pacoteNome:  vm.pacoteNome,
+        total:       vm.total,
+        proxData:    vm.proxData,
       },
       breakpoints: [0, 1],
       initialBreakpoint: 1,

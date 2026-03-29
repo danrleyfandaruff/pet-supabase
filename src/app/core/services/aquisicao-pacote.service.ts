@@ -15,6 +15,10 @@ export class AquisicaoPacoteService {
     return lastValueFrom(this.api.getAquisicaoPacoteById(id));
   }
 
+  async getSessoes(id: number): Promise<any[]> {
+    return lastValueFrom(this.api.getSessoesPorAquisicao(id));
+  }
+
   async getByAnimal(idAnimal: number): Promise<AquisicaoPacote[]> {
     return lastValueFrom(this.api.getAquisicoesPorAnimal(idAnimal));
   }

@@ -7,8 +7,8 @@
     </ion-buttons>
     <ion-title>
       <div class="modal-title-wrap">
-        <span class="modal-pet">{{ plano.petNome }}</span>
-        <span class="modal-pacote">{{ plano.pacoteNome }}</span>
+        <span class="modal-pet">{{ petNome }}</span>
+        <span class="modal-pacote">{{ pacoteNome }}</span>
       </div>
     </ion-title>
   </ion-toolbar>
@@ -27,7 +27,7 @@
     <div class="detalhe-progresso">
       <div class="prog-header">
         <span class="prog-label">Progresso do plano</span>
-        <span class="prog-valor">{{ concluidosAtuais }} de {{ plano.total }} sessões</span>
+        <span class="prog-valor">{{ concluidosAtuais }} de {{ total }} sessões</span>
       </div>
       <div class="prog-bar-wrap">
         <div class="prog-bar-fill" [style.width.%]="progresso"></div>
@@ -40,14 +40,20 @@
       Toque no status de uma sessão para alterá-lo
     </p>
 
+    <!-- Erro ao carregar -->
+    <div class="sem-sessoes" *ngIf="erro">
+      <ion-icon name="warning-outline" color="danger"></ion-icon>
+      <p>Erro ao carregar as sessões. Tente novamente.</p>
+    </div>
+
     <!-- Sem sessões -->
-    <div class="sem-sessoes" *ngIf="sessoes.length === 0">
+    <div class="sem-sessoes" *ngIf="!erro && sessoes.length === 0">
       <ion-icon name="calendar-outline"></ion-icon>
       <p>Nenhuma sessão encontrada para este plano.</p>
     </div>
 
     <!-- ── Lista de sessões ──────────────────────────────────────── -->
-    <div class="sessoes-lista" *ngIf="sessoes.length > 0">
+    <div class="sessoes-lista" *ngIf="!erro && sessoes.length > 0">
       <div class="sessao-card"
            *ngFor="let s of sessoes; trackBy: trackById"
            [class.sessao-concluida]="s.concluida"

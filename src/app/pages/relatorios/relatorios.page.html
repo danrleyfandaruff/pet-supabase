@@ -99,54 +99,41 @@
 
     </div>
 
-    <!-- Top Serviços -->
-    <div class="ranking-section" *ngIf="topServicos.length > 0">
-      <h3 class="ranking-title">
-        <ion-icon name="cut-outline"></ion-icon>
-        Top Serviços
-      </h3>
-      <div class="ranking-list">
-        <div class="ranking-item" *ngFor="let item of topServicos; let i = index">
-          <div class="rank-pos">{{ i + 1 }}</div>
-          <div class="rank-info">
-            <div class="rank-nome">{{ item.nome }}</div>
-            <div class="rank-bar-wrap">
-              <div class="rank-bar" [style.width.%]="(item.total / maxTopServico()) * 100"></div>
-            </div>
-          </div>
-          <div class="rank-values">
-            <div class="rank-valor">{{ formatCurrency(item.total) }}</div>
-            <div class="rank-qtd">{{ item.quantidade }}x</div>
-          </div>
-        </div>
+    <!-- Gráfico: Faturamento por dia -->
+    <div class="chart-section" *ngIf="faturamentoDias.length > 0">
+      <div class="chart-header">
+        <ion-icon name="trending-up-outline"></ion-icon>
+        <span>Faturamento no período</span>
+      </div>
+      <div class="chart-wrap chart-wrap-line">
+        <canvas #faturamentoCanvas class="chart-canvas"></canvas>
       </div>
     </div>
 
-    <!-- Top Clientes -->
-    <div class="ranking-section" *ngIf="topClientes.length > 0">
-      <h3 class="ranking-title">
-        <ion-icon name="person-outline"></ion-icon>
-        Top Clientes
-      </h3>
-      <div class="ranking-list">
-        <div class="ranking-item" *ngFor="let item of topClientes; let i = index">
-          <div class="rank-pos">{{ i + 1 }}</div>
-          <div class="rank-info">
-            <div class="rank-nome">{{ item.nome }}</div>
-            <div class="rank-bar-wrap">
-              <div class="rank-bar rank-bar-purple" [style.width.%]="(item.total / maxTopCliente()) * 100"></div>
-            </div>
-          </div>
-          <div class="rank-values">
-            <div class="rank-valor">{{ formatCurrency(item.total) }}</div>
-            <div class="rank-qtd">{{ item.quantidade }}x</div>
-          </div>
-        </div>
+    <!-- Gráfico: Serviços mais realizados -->
+    <div class="chart-section" *ngIf="topServicos.length > 0">
+      <div class="chart-header">
+        <ion-icon name="cut-outline"></ion-icon>
+        <span>Serviços mais realizados</span>
+      </div>
+      <div class="chart-wrap" [style.height.px]="topServicos.length * 42 + 20">
+        <canvas #servicosCanvas class="chart-canvas"></canvas>
+      </div>
+    </div>
+
+    <!-- Gráfico: Top clientes -->
+    <div class="chart-section" *ngIf="topClientes.length > 0">
+      <div class="chart-header">
+        <ion-icon name="people-outline"></ion-icon>
+        <span>Clientes com maior faturamento</span>
+      </div>
+      <div class="chart-wrap" [style.height.px]="topClientes.length * 42 + 20">
+        <canvas #clientesCanvas class="chart-canvas"></canvas>
       </div>
     </div>
 
     <!-- Empty state -->
-    <div class="empty-state" *ngIf="totalAtendimentos === 0">
+    <div class="empty-state" *ngIf="semDados">
       <div class="empty-icon">
         <ion-icon name="bar-chart-outline"></ion-icon>
       </div>

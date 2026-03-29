@@ -1,9 +1,11 @@
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
-import { ActionSheetController, LoadingController, ModalController, ToastController } from '@ionic/angular';
+import { ActionSheetController, AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { AtendimentoService } from '../../core/services/atendimento.service';
 import { StatusService } from '../../core/services/status.service';
 import { AquisicaoPacoteService } from '../../core/services/aquisicao-pacote.service';
+import { CaixaService } from '../../core/services/caixa.service';
 import { Status } from '../../core/models/status.model';
+import { FORMAS_PAGAMENTO, FormaPagamento } from '../../core/models/caixa.model';
 
 export interface SessaoVm {
   id: number;
@@ -13,6 +15,7 @@ export interface SessaoVm {
   statusNome: string;
   pago: boolean;
   servicoNome: string;
+  valor: number;
   concluida: boolean;
   proxima: boolean;
   atualizando: boolean;
@@ -39,11 +42,13 @@ export class PlanoDetalheComponent implements OnInit {
   constructor(
     private modalCtrl: ModalController,
     private actionSheetCtrl: ActionSheetController,
+    private alertCtrl: AlertController,
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
     private atendimentoService: AtendimentoService,
     private aquisicaoService: AquisicaoPacoteService,
     private statusService: StatusService,
+    private caixaService: CaixaService,
     private cdr: ChangeDetectorRef,
   ) {}
 
@@ -69,7 +74,8 @@ export class PlanoDetalheComponent implements OnInit {
             statusId:    at.status ?? null,
             statusNome,
             pago:        !!at.pago,
-            servicoNome: '',
+            servicoNome: at.servico?.nome ?? '',
+            valor:       Number(at.servico?.valor ?? 0) + Number(at.valor_adicional ?? 0),
             concluida,
             proxima:     at.data === this.proxData && !concluida,
             atualizando: false,
@@ -94,6 +100,115 @@ export class PlanoDetalheComponent implements OnInit {
 
   get concluidosAtuais(): number {
     return this.sessoes.filter(s => s.concluida).length;
+  }
+
+  // ── Marcar / desmarcar pago ────────────────────────────────────────────────
+
+  async togglePago(sessao: SessaoVm) {
+    if (sessao.atualizando) return;
+
+    if (sessao.pago) {
+      // Desmarcar: remove caixa + desmarca pago
+      sessao.atualizando = true;
+      try {
+        await Promise.all([
+          this.caixaService.deleteByAtendimento(sessao.id),
+          this.atendimentoService.desmarcarPago(sessao.id),
+        ]);
+        sessao.pago = false;
+        this.alterado = true;
+        this.cdr.detectChanges();
+        await this.showToast(`Sessão ${sessao.sessaoNum} desmarcada como paga`, 'medium');
+      } catch (e: any) {
+        await this.showToast(e?.message ?? 'Erro ao desfazer pagamento', 'danger');
+      } finally {
+        sessao.atualizando = false;
+      }
+      return;
+    }
+
+    // Marcar: escolhe forma de pagamento primeiro
+    const formaButtons: { text: string; icon: string; role?: string; handler: () => void }[] =
+      (FORMAS_PAGAMENTO as FormaPagamento[]).map(f => ({
+        text: f,
+        icon: this.iconeFormaPagamento(f),
+        handler: () => { this.confirmarPagamento(sessao, f); },
+      }));
+    formaButtons.push({ text: 'Cancelar', icon: 'close-outline', role: 'cancel', handler: () => {} });
+
+    const sheet = await this.actionSheetCtrl.create({
+      header: `Sessão ${sessao.sessaoNum} — Forma de pagamento`,
+      subHeader: sessao.valor > 0
+        ? `Valor: R$ ${sessao.valor.toFixed(2).replace('.', ',')}`
+        : undefined,
+      buttons: formaButtons,
+    });
+    await sheet.present();
+  }
+
+  private async confirmarPagamento(sessao: SessaoVm, forma: FormaPagamento) {
+    const hoje = new Date().toISOString().split('T')[0];
+
+    const alert = await this.alertCtrl.create({
+      header: 'Data do pagamento',
+      inputs: [
+        {
+          name: 'data',
+          type: 'date',
+          value: hoje,
+        },
+      ],
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Confirmar',
+          handler: (d) => this.processarPagamento(sessao, forma, d.data || hoje),
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  private async processarPagamento(sessao: SessaoVm, forma: FormaPagamento, data: string) {
+    sessao.atualizando = true;
+    try {
+      const valor = sessao.valor || 1;
+      const descricao = sessao.servicoNome
+        ? `${sessao.servicoNome} — ${this.petNome}`
+        : `Sessão ${sessao.sessaoNum} — ${this.petNome}`;
+
+      await Promise.all([
+        this.atendimentoService.marcarPago(sessao.id),
+        this.caixaService.create({
+          tipo: 'entrada',
+          descricao,
+          valor,
+          data,
+          categoria: 'Banho/Tosa',
+          forma_pagamento: forma,
+          id_atendimento: sessao.id,
+        }),
+      ]);
+
+      sessao.pago = true;
+      this.alterado = true;
+      this.cdr.detectChanges();
+      await this.showToast(`Sessão ${sessao.sessaoNum} paga via ${forma} ✓`, 'success');
+    } catch (e: any) {
+      await this.showToast(e?.message ?? 'Erro ao registrar pagamento', 'danger');
+    } finally {
+      sessao.atualizando = false;
+    }
+  }
+
+  private iconeFormaPagamento(forma: FormaPagamento): string {
+    switch (forma) {
+      case 'PIX':           return 'qr-code-outline';
+      case 'Dinheiro':      return 'cash-outline';
+      case 'Cartão Débito': return 'card-outline';
+      case 'Cartão Crédito':return 'card-outline';
+      default:              return 'wallet-outline';
+    }
   }
 
   // ── Trocar status via ActionSheet ──────────────────────────────────────────

@@ -76,24 +76,23 @@ export class InicioPage implements OnInit {
     this.statsLoading = true;
     this.mostrarTodosHoje = false;
     try {
-      const [hoje, total, pendentes] = await Promise.all([
+      const dataHoje = new Date().toISOString().split('T')[0];
+      const [atendHoje, total, pendentes, caixaHoje] = await Promise.all([
         this.atendimentoService.getHoje(),
         this.caixaService.getTotalMesAtual(),
         this.atendimentoService.countPendentes(),
+        this.caixaService.getByPeriodo(dataHoje, dataHoje),
       ]);
 
-      this.atendimentosHojeList = hoje;
-      this.atendimentosHoje     = hoje.length;
+      this.atendimentosHojeList = atendHoje;
+      this.atendimentosHoje     = atendHoje.length;
       this.totalMes             = total;
       this.pendentesPagamento   = pendentes;
 
-      // Receita do dia: soma dos atendimentos pagos hoje
-      const pagos = hoje.filter(a => a.pago);
-      this.atendimentosPagosHoje = pagos.length;
-      this.receitaHoje = pagos.reduce(
-        (sum, a) => sum + Number(a.servico?.valor ?? 0) + Number(a.valor_adicional ?? 0),
-        0
-      );
+      // Receita do dia: soma das ENTRADAS do caixa com data de hoje
+      const entradasHoje = caixaHoje.filter(c => c.tipo === 'entrada');
+      this.atendimentosPagosHoje = entradasHoje.length;
+      this.receitaHoje = entradasHoje.reduce((sum, c) => sum + Number(c.valor ?? 0), 0);
     } catch (_) {}
     finally { this.statsLoading = false; }
   }

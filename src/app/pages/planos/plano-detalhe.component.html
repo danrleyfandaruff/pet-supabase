@@ -78,18 +78,28 @@
           </span>
         </div>
 
-        <!-- Status (botão de troca) -->
-        <button class="sessao-status-btn"
-                [attr.data-cor]="corPorStatus(s.statusNome)"
-                (click)="trocarStatus(s)"
-                [disabled]="s.atualizando">
-          <ion-spinner *ngIf="s.atualizando" name="crescent" class="btn-spinner"></ion-spinner>
-          <ng-container *ngIf="!s.atualizando">
-            <ion-icon [name]="iconePorStatus(s.statusNome)"></ion-icon>
-            <span>{{ s.statusNome }}</span>
-            <ion-icon name="chevron-down-outline" class="chevron"></ion-icon>
-          </ng-container>
-        </button>
+        <!-- Ações (status + pago) -->
+        <div class="sessao-acoes">
+          <button class="sessao-status-btn"
+                  [attr.data-cor]="corPorStatus(s.statusNome)"
+                  (click)="trocarStatus(s)"
+                  [disabled]="s.atualizando">
+            <ion-spinner *ngIf="s.atualizando" name="crescent" class="btn-spinner"></ion-spinner>
+            <ng-container *ngIf="!s.atualizando">
+              <ion-icon [name]="iconePorStatus(s.statusNome)"></ion-icon>
+              <span>{{ s.statusNome }}</span>
+              <ion-icon name="chevron-down-outline" class="chevron"></ion-icon>
+            </ng-container>
+          </button>
+
+          <button class="sessao-pago-btn"
+                  [class.pago-ativo]="s.pago"
+                  (click)="togglePago(s)"
+                  [disabled]="s.atualizando">
+            <ion-icon [name]="s.pago ? 'checkmark-circle' : 'cash-outline'"></ion-icon>
+            <span>{{ s.pago ? 'Pago' : 'Pagar' }}</span>
+          </button>
+        </div>
 
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { errorMsg } from '../../core/utils/error.utils';
 import { Component, OnInit } from '@angular/core';
-import { AlertController, LoadingController, ToastController } from '@ionic/angular';
+import { ActionSheetController, AlertController, LoadingController, ToastController } from '@ionic/angular';
+import { PerfilUsuario } from '../../core/models/user.model';
 import { Router } from '@angular/router';
 import { RacaService } from '../../core/services/raca.service';
 import { ResponsavelService } from '../../core/services/responsavel.service';
@@ -31,6 +32,7 @@ export class ConfiguracoesPage implements OnInit {
     private colaboradorService: ColaboradorService,
     private authService: AuthService,
     private alertCtrl: AlertController,
+    private actionSheetCtrl: ActionSheetController,
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
     private router: Router
@@ -201,6 +203,38 @@ export class ConfiguracoesPage implements OnInit {
   }
 
   // ── COLABORADORES ────────────────────────
+  /** Abre ActionSheet para escolher o perfil de acesso. */
+  private selecionarPerfil(atual?: PerfilUsuario): Promise<PerfilUsuario | null> {
+    return new Promise(async (resolve) => {
+      const sheet = await this.actionSheetCtrl.create({
+        header: 'Nível de acesso',
+        buttons: [
+          {
+            text: `Administrador${atual === 'admin' ? ' ✓' : ''}`,
+            icon: 'shield-checkmark-outline',
+            handler: () => { resolve('admin'); },
+          },
+          {
+            text: `Atendente${atual === 'atendente' ? ' ✓' : ''}`,
+            icon: 'person-outline',
+            handler: () => { resolve('atendente'); },
+          },
+          {
+            text: `Tosador / Banista${atual === 'tosador' ? ' ✓' : ''}`,
+            icon: 'cut-outline',
+            handler: () => { resolve('tosador'); },
+          },
+          {
+            text: 'Cancelar',
+            role: 'cancel',
+            handler: () => { resolve(null); },
+          },
+        ],
+      });
+      await sheet.present();
+    });
+  }
+
   async addColaborador() {
     const alert = await this.alertCtrl.create({
       header: 'Novo Colaborador',
@@ -208,27 +242,32 @@ export class ConfiguracoesPage implements OnInit {
         { name: 'email', type: 'email', placeholder: 'E-mail' },
         { name: 'password', type: 'password', placeholder: 'Senha temporária' },
         { name: 'nome', placeholder: 'Nome (opcional)' },
-        { name: 'cargo', placeholder: 'Cargo (opcional)' },
+        { name: 'cargo', placeholder: 'Cargo (opcional, ex: Tosadora)' },
       ],
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         {
-          text: 'Convidar',
+          text: 'Próximo →',
           handler: async (d) => {
             if (!d.email || !d.password) {
               await this.showToast('E-mail e senha são obrigatórios', 'warning');
               return false;
             }
+
+            const perfil = await this.selecionarPerfil('atendente');
+            if (!perfil) return true; // cancelou
+
             try {
               await this.colaboradorService.convidar({
                 email: d.email,
                 password: d.password,
                 nome: d.nome || undefined,
                 cargo: d.cargo || undefined,
+                perfil,
               });
               await this.showToast('Colaborador adicionado!', 'success');
               await this.loadAll();
-            } catch (e: any) {
+            } catch (e: unknown) {
               await this.showToast(errorMsg(e), 'danger');
             }
             return true;
@@ -244,15 +283,27 @@ export class ConfiguracoesPage implements OnInit {
       header: 'Editar Colaborador',
       inputs: [
         { name: 'nome', value: c.nome || '', placeholder: 'Nome' },
-        { name: 'cargo', value: c.cargo || '', placeholder: 'Cargo' },
+        { name: 'cargo', value: c.cargo || '', placeholder: 'Cargo (ex: Tosadora)' },
       ],
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         {
           text: 'Salvar',
           handler: async (d) => {
-            await this.colaboradorService.update(c.id, { nome: d.nome, cargo: d.cargo });
-            await this.loadAll();
+            const perfil = await this.selecionarPerfil(c.perfil);
+            if (!perfil) return true; // cancelou
+
+            try {
+              await this.colaboradorService.update(c.id, {
+                nome: d.nome,
+                cargo: d.cargo,
+                perfil,
+              });
+              await this.loadAll();
+            } catch (e: unknown) {
+              await this.showToast(errorMsg(e), 'danger');
+            }
+            return true;
           },
         },
       ],

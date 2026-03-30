@@ -238,7 +238,7 @@ export class AuthService {
 
   // ─── Estado interno ───────────────────────────────────────────────────────
 
-  private setUser(meData: { id: string; email: string; name: string; id_empresa: string | null; created_at: string }): void {
+  private setUser(meData: { id: string; email: string; name: string; id_empresa: string | null; perfil?: string; created_at: string }): void {
     this.tenantService.setIdEmpresa(meData.id_empresa);
 
     const user: User = {
@@ -246,6 +246,7 @@ export class AuthService {
       email:      meData.email,
       name:       meData.name,
       id_empresa: meData.id_empresa ?? undefined,
+      perfil:     (meData.perfil as User['perfil']) ?? 'admin',
       createdAt:  meData.created_at,
     };
 

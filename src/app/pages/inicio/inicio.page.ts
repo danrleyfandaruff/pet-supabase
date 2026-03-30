@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
-import { Observable } from 'rxjs';
+import { PermissaoService, Permissao } from '../../core/services/permissao.service';
+import { Observable, Subscription } from 'rxjs';
 import { User } from '../../core/models/user.model';
 import { addIcons } from 'ionicons';
 import { calendar, people, paw, cut, gift, settings, cash, barChartOutline, peopleOutline, layersOutline, checkmarkCircle, timeOutline, alertCircleOutline, chevronForwardOutline, chevronDownOutline, chevronUpOutline, calendarOutline } from 'ionicons/icons';
@@ -16,12 +17,22 @@ interface SmallCard {
   route: string;
 }
 
+const ALL_CARDS: (SmallCard & { permissao?: Permissao })[] = [
+  { label: 'Tutores',    icon: 'people',            color: 'blue',   route: '/tabs/clientes',   permissao: 'ver_clientes'      },
+  { label: 'Pets',       icon: 'paw',               color: 'green',  route: '/tabs/animais'                                    },
+  { label: 'Serviços',   icon: 'cut',               color: 'purple', route: '/tabs/servicos',   permissao: 'ver_configuracoes' },
+  { label: 'Pacotes',    icon: 'gift',              color: 'orange', route: '/tabs/pacotes',    permissao: 'ver_configuracoes' },
+  { label: 'Planos',     icon: 'layers-outline',    color: 'teal',   route: '/tabs/planos'                                    },
+  { label: 'Relatórios', icon: 'bar-chart-outline', color: 'indigo', route: '/tabs/relatorios', permissao: 'ver_relatorios'    },
+  { label: 'Comissões',  icon: 'people-outline',    color: 'pink',   route: '/tabs/comissoes',  permissao: 'ver_relatorios'    },
+];
+
 @Component({
   selector: 'app-inicio',
   templateUrl: './inicio.page.html',
   styleUrls: ['./inicio.page.scss'],
 })
-export class InicioPage implements OnInit {
+export class InicioPage implements OnInit, OnDestroy {
   currentUser$: Observable<User | null>;
   hoje: string = '';
 
@@ -33,34 +44,22 @@ export class InicioPage implements OnInit {
 
   // Dashboard do dia
   atendimentosHojeList: Atendimento[] = [];
+  atendimentosHojeVisiveis: Atendimento[] = [];
   receitaHoje = 0;
   atendimentosPagosHoje = 0;
   mostrarTodosHoje = false;
+  temMaisHoje = false;
   readonly LIMITE_HOJE = 3;
 
-  get atendimentosHojeVisiveis(): Atendimento[] {
-    return this.mostrarTodosHoje
-      ? this.atendimentosHojeList
-      : this.atendimentosHojeList.slice(0, this.LIMITE_HOJE);
-  }
+  // Cards de acesso rápido — propriedade normal, não getter
+  smallCards: SmallCard[] = [];
 
-  get temMaisHoje(): boolean {
-    return this.atendimentosHojeList.length > this.LIMITE_HOJE;
-  }
-
-  smallCards: SmallCard[] = [
-    { label: 'Tutores',    icon: 'people',          color: 'blue',   route: '/tabs/clientes'  },
-    { label: 'Pets',       icon: 'paw',             color: 'green',  route: '/tabs/animais'   },
-    { label: 'Serviços',   icon: 'cut',             color: 'purple', route: '/tabs/servicos'  },
-    { label: 'Pacotes',    icon: 'gift',            color: 'orange', route: '/tabs/pacotes'   },
-    { label: 'Planos',     icon: 'layers-outline',  color: 'teal',   route: '/tabs/planos'    },
-    { label: 'Relatórios', icon: 'bar-chart-outline', color: 'indigo', route: '/tabs/relatorios' },
-    { label: 'Comissões',  icon: 'people-outline',  color: 'pink',   route: '/tabs/comissoes' },
-  ];
+  private userSub?: Subscription;
 
   constructor(
     private router: Router,
     private authService: AuthService,
+    public permissao: PermissaoService,
     private atendimentoService: AtendimentoService,
     private caixaService: CaixaService,
   ) {
@@ -69,8 +68,33 @@ export class InicioPage implements OnInit {
     this.hoje = this.formatarHoje();
   }
 
-  ngOnInit() { this.carregarStats(); }
+  ngOnInit() {
+    // Atualiza os cards sempre que o perfil do usuário mudar (login/logout)
+    this.userSub = this.authService.currentUser$.subscribe(() => {
+      this.smallCards = ALL_CARDS.filter(
+        c => !c.permissao || this.permissao.pode(c.permissao),
+      );
+    });
+    this.carregarStats();
+  }
+
   ionViewWillEnter() { this.carregarStats(); }
+
+  ngOnDestroy() {
+    this.userSub?.unsubscribe();
+  }
+
+  toggleMostrarTodos() {
+    this.mostrarTodosHoje = !this.mostrarTodosHoje;
+    this.atualizarVisiveis();
+  }
+
+  private atualizarVisiveis() {
+    this.temMaisHoje = this.atendimentosHojeList.length > this.LIMITE_HOJE;
+    this.atendimentosHojeVisiveis = this.mostrarTodosHoje
+      ? this.atendimentosHojeList
+      : this.atendimentosHojeList.slice(0, this.LIMITE_HOJE);
+  }
 
   async carregarStats() {
     this.statsLoading = true;
@@ -88,8 +112,8 @@ export class InicioPage implements OnInit {
       this.atendimentosHoje     = atendHoje.length;
       this.totalMes             = total;
       this.pendentesPagamento   = pendentes;
+      this.atualizarVisiveis();
 
-      // Receita do dia: soma das ENTRADAS do caixa com data de hoje
       const entradasHoje = caixaHoje.filter(c => c.tipo === 'entrada');
       this.atendimentosPagosHoje = entradasHoje.length;
       this.receitaHoje = entradasHoje.reduce((sum, c) => sum + Number(c.valor ?? 0), 0);

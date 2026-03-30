@@ -31,22 +31,24 @@
       </span>
       <span class="stat-label">Hoje</span>
     </div>
-    <div class="stat-divider"></div>
-    <div class="stat-card" (click)="navigate('/tabs/caixa')">
-      <span class="stat-value stat-value--green">
-        <ion-skeleton-text *ngIf="statsLoading" animated style="width:60px;height:20px;border-radius:6px"></ion-skeleton-text>
-        <span *ngIf="!statsLoading">R$ {{ receitaHoje | number:'1.0-0' }}</span>
-      </span>
-      <span class="stat-label">Recebido hoje</span>
-    </div>
-    <div class="stat-divider"></div>
-    <div class="stat-card" (click)="navigate('/tabs/caixa')">
-      <span class="stat-value stat-value--blue">
-        <ion-skeleton-text *ngIf="statsLoading" animated style="width:60px;height:20px;border-radius:6px"></ion-skeleton-text>
-        <span *ngIf="!statsLoading">R$ {{ totalMes | number:'1.0-0' }}</span>
-      </span>
-      <span class="stat-label">No mês</span>
-    </div>
+    <ng-container *ngIf="permissao.pode('ver_caixa')">
+      <div class="stat-divider"></div>
+      <div class="stat-card" (click)="navigate('/tabs/caixa')">
+        <span class="stat-value stat-value--green">
+          <ion-skeleton-text *ngIf="statsLoading" animated style="width:60px;height:20px;border-radius:6px"></ion-skeleton-text>
+          <span *ngIf="!statsLoading">R$ {{ receitaHoje | number:'1.0-0' }}</span>
+        </span>
+        <span class="stat-label">Recebido hoje</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-card" (click)="navigate('/tabs/caixa')">
+        <span class="stat-value stat-value--blue">
+          <ion-skeleton-text *ngIf="statsLoading" animated style="width:60px;height:20px;border-radius:6px"></ion-skeleton-text>
+          <span *ngIf="!statsLoading">R$ {{ totalMes | number:'1.0-0' }}</span>
+        </span>
+        <span class="stat-label">No mês</span>
+      </div>
+    </ng-container>
   </div>
 
   <!-- ── Dashboard do Dia ──────────────────────────────── -->
@@ -108,14 +110,14 @@
 
   <!-- Ver mais / Ver menos -->
   <div class="hoje-ver-mais" *ngIf="!statsLoading && temMaisHoje">
-    <button (click)="mostrarTodosHoje = !mostrarTodosHoje">
+    <button (click)="toggleMostrarTodos()">
       <ion-icon [name]="mostrarTodosHoje ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
       {{ mostrarTodosHoje ? 'Ver menos' : 'Ver mais ' + (atendimentosHoje - LIMITE_HOJE) + ' atendimento' + (atendimentosHoje - LIMITE_HOJE !== 1 ? 's' : '') }}
     </button>
   </div>
 
   <!-- ── Resumo financeiro do dia ──────────────────────── -->
-  <div class="financeiro-row" *ngIf="!statsLoading && atendimentosHoje > 0">
+  <div class="financeiro-row" *ngIf="!statsLoading && atendimentosHoje > 0 && permissao.pode('ver_caixa')">
     <div class="fin-item">
       <span class="fin-label">Atendimentos</span>
       <span class="fin-value">{{ atendimentosHoje }}</span>
@@ -150,8 +152,8 @@
       </div>
     </button>
 
-    <!-- Caixa — card destaque largo -->
-    <button class="card-wide card-caixa" (click)="navigate('/tabs/caixa')">
+    <!-- Caixa — card destaque largo (somente admin) -->
+    <button class="card-wide card-caixa" (click)="navigate('/tabs/caixa')" *ngIf="permissao.pode('ver_caixa')">
       <div class="card-wide-inner">
         <div class="card-wide-text">
           <span class="card-wide-label">Caixa</span>

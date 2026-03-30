@@ -17,12 +17,13 @@
       </div>
     </ion-tab-button>
 
-    <ion-tab-button tab="caixa" layout="icon-top">
+    <!-- *ngIf quebra o roteamento do Ionic — usar [hidden] mantém o elemento no DOM -->
+    <ion-tab-button tab="caixa" layout="icon-top" [hidden]="!permissao.pode('ver_caixa')">
       <ion-icon name="cash-outline"></ion-icon>
       <ion-label>Caixa</ion-label>
     </ion-tab-button>
 
-    <ion-tab-button tab="ajustes" layout="icon-top">
+    <ion-tab-button tab="ajustes" layout="icon-top" [hidden]="!permissao.pode('ver_configuracoes')">
       <ion-icon name="settings-outline"></ion-icon>
       <ion-label>Ajustes</ion-label>
     </ion-tab-button>

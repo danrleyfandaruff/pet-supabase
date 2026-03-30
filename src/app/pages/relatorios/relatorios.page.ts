@@ -1,7 +1,7 @@
 import {
-  AfterViewChecked,
   Component,
   ElementRef,
+  NgZone,
   OnInit,
   ViewChild,
 } from '@angular/core';
@@ -27,7 +27,7 @@ interface DiaReceita {
   templateUrl: './relatorios.page.html',
   styleUrls: ['./relatorios.page.scss'],
 })
-export class RelatoriosPage implements OnInit, AfterViewChecked {
+export class RelatoriosPage implements OnInit {
   @ViewChild('faturamentoCanvas') faturamentoCanvasRef?: ElementRef<HTMLCanvasElement>;
   @ViewChild('servicosCanvas') servicosCanvasRef?: ElementRef<HTMLCanvasElement>;
   @ViewChild('clientesCanvas') clientesCanvasRef?: ElementRef<HTMLCanvasElement>;
@@ -57,30 +57,17 @@ export class RelatoriosPage implements OnInit, AfterViewChecked {
   // Dados dos gráficos
   faturamentoDias: DiaReceita[] = [];
 
-  private chartsDrawn = false;
-
   constructor(
     private atendimentoService: AtendimentoService,
     private caixaService: CaixaService,
+    private ngZone: NgZone,
   ) {}
 
   ngOnInit() { this.loadData(); }
-
-  ionViewWillEnter() {
-    this.chartsDrawn = false;
-    this.loadData();
-  }
-
-  ngAfterViewChecked() {
-    if (!this.isLoading && !this.chartsDrawn && this.faturamentoDias.length > 0) {
-      this.chartsDrawn = true;
-      setTimeout(() => this.drawAllCharts(), 50);
-    }
-  }
+  ionViewWillEnter() { this.loadData(); }
 
   async changePeriodo(valor: string) {
     this.periodoSelecionado = valor;
-    this.chartsDrawn = false;
     await this.loadData();
   }
 
@@ -106,6 +93,12 @@ export class RelatoriosPage implements OnInit, AfterViewChecked {
       this.calcularFaturamentoPorDia(caixaEntries, inicio, fim);
       this.calcularTopServicos(atendimentos);
       this.calcularTopClientes(atendimentos);
+
+      // Desenha os gráficos fora da zona do Angular para não disparar
+      // change detection em loop — aguarda o DOM renderizar primeiro.
+      this.ngZone.runOutsideAngular(() => {
+        setTimeout(() => this.drawAllCharts(), 80);
+      });
     } catch (e: unknown) {
       console.error(errorMsg(e));
     } finally {

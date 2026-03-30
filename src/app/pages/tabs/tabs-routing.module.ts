@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { TabsPage } from './tabs.page';
+import { RoleGuard } from '../../core/guards/role.guard';
 
 const routes: Routes = [
   {
@@ -13,9 +14,11 @@ const routes: Routes = [
         loadChildren: () =>
           import('../inicio/inicio.module').then((m) => m.InicioPageModule),
       },
-      // Tab de ajustes
+      // Tab de ajustes — somente admin e atendente
       {
         path: 'ajustes',
+        canActivate: [RoleGuard],
+        data: { permissao: 'ver_configuracoes' },
         loadChildren: () =>
           import('../configuracoes/configuracoes.module').then(
             (m) => m.ConfiguracoesPageModule
@@ -29,6 +32,8 @@ const routes: Routes = [
       },
       {
         path: 'clientes',
+        canActivate: [RoleGuard],
+        data: { permissao: 'ver_clientes' },
         loadChildren: () =>
           import('../clientes/clientes.module').then((m) => m.ClientesPageModule),
       },
@@ -39,16 +44,22 @@ const routes: Routes = [
       },
       {
         path: 'servicos',
+        canActivate: [RoleGuard],
+        data: { permissao: 'ver_configuracoes' },
         loadChildren: () =>
           import('../servicos/servicos.module').then((m) => m.ServicosPageModule),
       },
       {
         path: 'pacotes',
+        canActivate: [RoleGuard],
+        data: { permissao: 'ver_configuracoes' },
         loadChildren: () =>
           import('../pacotes/pacotes.module').then((m) => m.PacotesPageModule),
       },
       {
         path: 'caixa',
+        canActivate: [RoleGuard],
+        data: { permissao: 'ver_caixa' },
         loadChildren: () =>
           import('../caixa/caixa.module').then((m) => m.CaixaPageModule),
       },
@@ -59,6 +70,8 @@ const routes: Routes = [
       },
       {
         path: 'relatorios',
+        canActivate: [RoleGuard],
+        data: { permissao: 'ver_relatorios' },
         loadChildren: () =>
           import('../relatorios/relatorios.module').then((m) => m.RelatoriosPageModule),
       },
@@ -74,6 +87,8 @@ const routes: Routes = [
       },
       {
         path: 'comissoes',
+        canActivate: [RoleGuard],
+        data: { permissao: 'ver_relatorios' },
         loadChildren: () =>
           import('../comissoes/comissoes.module').then((m) => m.ComissoesPageModule),
       },

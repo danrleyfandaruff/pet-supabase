@@ -1,8 +1,11 @@
+export type PerfilUsuario = 'admin' | 'atendente' | 'tosador';
+
 export interface User {
   id: string;
   name: string;
   email: string;
   id_empresa?: string;
+  perfil: PerfilUsuario;
   createdAt?: string;
 }
 

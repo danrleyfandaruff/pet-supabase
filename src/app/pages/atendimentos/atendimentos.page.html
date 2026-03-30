@@ -272,15 +272,6 @@
 
       <ion-list lines="full" class="ion-margin-top">
         <ion-item>
-          <ion-label position="stacked">Valor recebido (R$) *</ion-label>
-          <ion-input
-            type="number"
-            step="0.01"
-            [(ngModel)]="valorPagamento"
-            placeholder="0,00">
-          </ion-input>
-        </ion-item>
-        <ion-item>
           <ion-label position="stacked">Descrição no caixa</ion-label>
           <ion-input [(ngModel)]="descricaoPagamento" placeholder="Ex: Banho e tosa — Rex"></ion-input>
         </ion-item>
@@ -291,7 +282,7 @@
           expand="block"
           color="success"
           (click)="confirmarPagamento()"
-          [disabled]="!valorPagamento || valorPagamento <= 0 || salvandoPagamento">
+          [disabled]="salvandoPagamento">
           <ion-spinner *ngIf="salvandoPagamento" name="crescent" slot="start"></ion-spinner>
           <ion-icon name="checkmark-circle-outline" slot="start" *ngIf="!salvandoPagamento"></ion-icon>
           Confirmar pagamento

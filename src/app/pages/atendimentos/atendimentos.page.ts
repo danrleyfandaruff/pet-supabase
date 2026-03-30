@@ -225,11 +225,15 @@ export class AtendimentosPage implements OnInit {
   // ── Pagamento ───────────────────────────────────────
   pagamentoAberto = false;
   atendimentoPagamento: Atendimento | null = null;
-  valorPagamento: number | null = null;
   descricaoPagamento = '';
   salvandoPagamento = false;
   formaPagamento: FormaPagamento = 'PIX';
   readonly formasPagamento = FORMAS_PAGAMENTO;
+
+  get valorPagamento(): number {
+    const a = this.atendimentoPagamento;
+    return Number(a?.servico?.valor ?? 0) + Number(a?.valor_adicional ?? 0);
+  }
 
   // Lista e ID de status (carregados no init)
   private statusConcluidoId: number | null = null;
@@ -464,9 +468,6 @@ export class AtendimentosPage implements OnInit {
   // ── Pagamento ────────────────────────────────────────
   abrirPagamento(a: Atendimento) {
     this.atendimentoPagamento = a;
-    const valorServico = Number(a.servico?.valor ?? 0);
-    const valorAdicional = Number(a.valor_adicional ?? 0);
-    this.valorPagamento = valorServico + valorAdicional || null;
     const pet = a.animal?.nome || a.cliente?.nome || '';
     const servico = a.servico?.nome || 'Atendimento';
     this.descricaoPagamento = pet ? `${servico} — ${pet}` : servico;
@@ -476,13 +477,12 @@ export class AtendimentosPage implements OnInit {
   fecharPagamento() {
     this.pagamentoAberto = false;
     this.atendimentoPagamento = null;
-    this.valorPagamento = null;
     this.descricaoPagamento = '';
     this.formaPagamento = 'PIX';
   }
 
   async confirmarPagamento() {
-    if (!this.atendimentoPagamento || !this.valorPagamento) return;
+    if (!this.atendimentoPagamento) return;
     this.salvandoPagamento = true;
     try {
       // 1. Marca o atendimento como pago

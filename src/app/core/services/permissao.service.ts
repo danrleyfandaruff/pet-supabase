@@ -42,7 +42,7 @@ const MATRIZ: Record<PerfilUsuario, Record<Permissao, boolean>> = {
     ver_caixa:          false,
     ver_relatorios:     false,
     ver_valores:        false,
-    ver_configuracoes:  false,
+    ver_configuracoes:  true,   // precisa acessar para poder deslogar
     ver_clientes:       false,
     cadastrar:          false,
   },

@@ -40,7 +40,9 @@
       </div>
     </div>
 
-    <!-- ── Seção: Cadastros auxiliares ─────────────────── -->
+    <!-- ── Seção: Cadastros auxiliares (oculto para tosador) ── -->
+    <ng-container *ngIf="permissao.perfil !== 'tosador'">
+
     <div class="section-header">
       <span class="section-label">Cadastros auxiliares</span>
       <span class="section-desc">Dados usados em agendamentos</span>
@@ -79,8 +81,8 @@
         </div>
       </ion-accordion>
 
-      <!-- RESPONSÁVEIS -->
-      <ion-accordion value="responsaveis">
+      <!-- RESPONSÁVEIS — somente admin -->
+      <ion-accordion value="responsaveis" *ngIf="permissao.perfil === 'admin'">
         <ion-item slot="header" lines="none" class="accordion-header">
           <div class="acc-icon-wrap color-secondary" slot="start">
             <ion-icon name="person-outline"></ion-icon>
@@ -180,15 +182,15 @@
         </div>
       </ion-accordion>
 
-      <!-- COLABORADORES -->
-      <ion-accordion value="colaboradores">
+      <!-- COLABORADORES — somente admin -->
+      <ion-accordion value="colaboradores" *ngIf="permissao.perfil === 'admin'">
         <ion-item slot="header" lines="none" class="accordion-header">
           <div class="acc-icon-wrap color-success" slot="start">
             <ion-icon name="people-outline"></ion-icon>
           </div>
           <ion-label>
             <h3>Colaboradores</h3>
-            <p>Usuários com acesso ao sistema</p>
+            <p>Usuários e níveis de acesso</p>
           </ion-label>
           <ion-badge slot="end" color="success">{{ colaboradores.length }}</ion-badge>
         </ion-item>
@@ -197,11 +199,14 @@
             <div class="mini-info">
               <span>{{ c.nome || c.email }}</span>
               <p *ngIf="c.nome" class="mini-desc">{{ c.email }}</p>
+              <p *ngIf="c.cargo" class="mini-desc">{{ c.cargo }}</p>
               <div class="mini-badges">
                 <ion-badge [color]="c.ativo ? 'success' : 'medium'" class="mini-status">
                   {{ c.ativo ? 'Ativo' : 'Inativo' }}
                 </ion-badge>
-                <ion-badge *ngIf="c.cargo" color="light" class="mini-status">{{ c.cargo }}</ion-badge>
+                <ion-badge [color]="perfilColor(c.perfil)" class="mini-status">
+                  {{ perfilLabel(c.perfil) }}
+                </ion-badge>
               </div>
             </div>
             <div class="mini-actions">
@@ -224,6 +229,8 @@
       </ion-accordion>
 
     </ion-accordion-group>
+
+    </ng-container><!-- /ng-container tosador -->
 
     <!-- ── Logout ────────────────────────────────────────── -->
     <div class="logout-section">

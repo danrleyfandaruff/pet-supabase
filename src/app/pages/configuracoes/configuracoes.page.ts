@@ -1,6 +1,6 @@
 import { errorMsg } from '../../core/utils/error.utils';
 import { Component, OnInit } from '@angular/core';
-import { ActionSheetController, AlertController, LoadingController, ToastController } from '@ionic/angular';
+import { AlertController, LoadingController, ToastController } from '@ionic/angular';
 import { PerfilUsuario } from '../../core/models/user.model';
 import { Router } from '@angular/router';
 import { RacaService } from '../../core/services/raca.service';
@@ -14,6 +14,7 @@ import { Status } from '../../core/models/status.model';
 import { TipoServico } from '../../core/models/tipo-servico.model';
 import { Colaborador } from '../../core/models/colaborador.model';
 import { AuthService } from '../../core/services/auth.service';
+import { PermissaoService } from '../../core/services/permissao.service';
 
 @Component({ selector: 'app-configuracoes', templateUrl: './configuracoes.page.html', styleUrls: ['./configuracoes.page.scss'] })
 export class ConfiguracoesPage implements OnInit {
@@ -31,8 +32,8 @@ export class ConfiguracoesPage implements OnInit {
     private tipoServicoService: TipoServicoService,
     private colaboradorService: ColaboradorService,
     private authService: AuthService,
+    public permissao: PermissaoService,
     private alertCtrl: AlertController,
-    private actionSheetCtrl: ActionSheetController,
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
     private router: Router
@@ -203,35 +204,38 @@ export class ConfiguracoesPage implements OnInit {
   }
 
   // ── COLABORADORES ────────────────────────
-  /** Abre ActionSheet para escolher o perfil de acesso. */
-  private selecionarPerfil(atual?: PerfilUsuario): Promise<PerfilUsuario | null> {
+
+  /** Alert com radio buttons para seleção de perfil — funciona como um select nativo */
+  private selecionarPerfilAlert(atual: PerfilUsuario = 'atendente'): Promise<PerfilUsuario | null> {
     return new Promise(async (resolve) => {
-      const sheet = await this.actionSheetCtrl.create({
+      const alert = await this.alertCtrl.create({
         header: 'Nível de acesso',
-        buttons: [
+        inputs: [
           {
-            text: `Administrador${atual === 'admin' ? ' ✓' : ''}`,
-            icon: 'shield-checkmark-outline',
-            handler: () => { resolve('admin'); },
+            type: 'radio',
+            label: 'Administrador — acesso total',
+            value: 'admin',
+            checked: atual === 'admin',
           },
           {
-            text: `Atendente${atual === 'atendente' ? ' ✓' : ''}`,
-            icon: 'person-outline',
-            handler: () => { resolve('atendente'); },
+            type: 'radio',
+            label: 'Atendente — sem caixa e relatórios',
+            value: 'atendente',
+            checked: atual === 'atendente',
           },
           {
-            text: `Tosador / Banista${atual === 'tosador' ? ' ✓' : ''}`,
-            icon: 'cut-outline',
-            handler: () => { resolve('tosador'); },
-          },
-          {
-            text: 'Cancelar',
-            role: 'cancel',
-            handler: () => { resolve(null); },
+            type: 'radio',
+            label: 'Tosador / Banista — somente agenda',
+            value: 'tosador',
+            checked: atual === 'tosador',
           },
         ],
+        buttons: [
+          { text: 'Cancelar', role: 'cancel', handler: () => resolve(null) },
+          { text: 'Confirmar', handler: (v) => resolve(v as PerfilUsuario) },
+        ],
       });
-      await sheet.present();
+      await alert.present();
     });
   }
 
@@ -242,27 +246,25 @@ export class ConfiguracoesPage implements OnInit {
         { name: 'email', type: 'email', placeholder: 'E-mail' },
         { name: 'password', type: 'password', placeholder: 'Senha temporária' },
         { name: 'nome', placeholder: 'Nome (opcional)' },
-        { name: 'cargo', placeholder: 'Cargo (opcional, ex: Tosadora)' },
       ],
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         {
-          text: 'Próximo →',
+          text: 'Selecionar perfil →',
           handler: async (d) => {
             if (!d.email || !d.password) {
               await this.showToast('E-mail e senha são obrigatórios', 'warning');
               return false;
             }
 
-            const perfil = await this.selecionarPerfil('atendente');
-            if (!perfil) return true; // cancelou
+            const perfil = await this.selecionarPerfilAlert('atendente');
+            if (!perfil) return true; // cancelou seleção de perfil
 
             try {
               await this.colaboradorService.convidar({
                 email: d.email,
                 password: d.password,
                 nome: d.nome || undefined,
-                cargo: d.cargo || undefined,
                 perfil,
               });
               await this.showToast('Colaborador adicionado!', 'success');
@@ -288,10 +290,10 @@ export class ConfiguracoesPage implements OnInit {
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         {
-          text: 'Salvar',
+          text: 'Selecionar perfil →',
           handler: async (d) => {
-            const perfil = await this.selecionarPerfil(c.perfil);
-            if (!perfil) return true; // cancelou
+            const perfil = await this.selecionarPerfilAlert(c.perfil ?? 'atendente');
+            if (!perfil) return true; // cancelou seleção de perfil
 
             try {
               await this.colaboradorService.update(c.id, {
@@ -348,6 +350,24 @@ export class ConfiguracoesPage implements OnInit {
       ],
     });
     await alert.present();
+  }
+
+  perfilLabel(perfil?: string): string {
+    switch (perfil) {
+      case 'admin':    return 'Administrador';
+      case 'atendente': return 'Atendente';
+      case 'tosador':  return 'Tosador / Banista';
+      default:         return 'Sem perfil';
+    }
+  }
+
+  perfilColor(perfil?: string): string {
+    switch (perfil) {
+      case 'admin':    return 'primary';
+      case 'atendente': return 'secondary';
+      case 'tosador':  return 'tertiary';
+      default:         return 'medium';
+    }
   }
 
   verManual() {

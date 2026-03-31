@@ -333,6 +333,28 @@ export class ApiService {
     return this._patch(`atendimento/${id}/desmarcar-pago`);
   }
 
+  /**
+   * Dá baixa no atendimento de forma atômica:
+   * valida existência, valor > 0 e não-duplicidade antes de marcar pago + criar caixa.
+   */
+  darBaixaAtendimento(id: number, dto: { forma_pagamento: string; descricao?: string }): Observable<{ mensagem: string; id_caixa: number }> {
+    return this._post(`atendimento/${id}/dar-baixa`, dto);
+  }
+
+  /**
+   * Desfaz a baixa de forma atômica: remove lançamento do caixa e desmarca pago.
+   */
+  desfazerBaixaAtendimento(id: number): Observable<string> {
+    return this._del(`atendimento/${id}/dar-baixa`);
+  }
+
+  /**
+   * Dá baixa em múltiplos atendimentos de uma vez.
+   */
+  darBaixaAtendimentoLote(itens: { id: number; forma_pagamento: string; descricao?: string }[]): Observable<{ sucesso: number; erros: { id: number; motivo: string }[] }> {
+    return this._post('atendimento/dar-baixa-lote', { itens });
+  }
+
   deletarAtendimento(id: number): Observable<any> {
     return this._del(`atendimento/${id}`);
   }

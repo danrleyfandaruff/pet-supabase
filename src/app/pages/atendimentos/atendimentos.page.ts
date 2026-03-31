@@ -4,7 +4,6 @@ import { ActionSheetController, AlertController, LoadingController, ModalControl
 import { AtendimentoService } from '../../core/services/atendimento.service';
 import { Atendimento } from '../../core/models/atendimento.model';
 import { AtendimentoFormComponent } from './atendimento-form.component';
-import { CaixaService } from '../../core/services/caixa.service';
 import { StatusService } from '../../core/services/status.service';
 import { Status } from '../../core/models/status.model';
 import { FORMAS_PAGAMENTO, FormaPagamento } from '../../core/models/caixa.model';
@@ -321,24 +320,26 @@ export class AtendimentosPage implements OnInit, OnDestroy {
     const loading = await this.loadingCtrl.create({ message: 'Registrando pagamentos...', spinner: 'crescent' });
     await loading.present();
     try {
-      await Promise.all(itens.map(a => {
-        const valor = Number(a.servico?.valor ?? 0) + Number(a.valor_adicional ?? 0) || 1;
-        const pet = a.animal?.nome || a.cliente?.nome || '';
+      const payload = itens.map(a => {
+        const pet     = a.animal?.nome || a.cliente?.nome || '';
         const servico = a.servico?.nome || 'Atendimento';
-        return Promise.all([
-          this.atendimentoService.marcarPago(a.id!),
-          this.caixaService.create({
-            tipo: 'entrada',
-            descricao: pet ? `${servico} — ${pet}` : servico,
-            valor,
-            data: a.data?.split('T')[0] ?? new Date().toISOString().split('T')[0],
-            categoria: 'Banho/Tosa',
-            forma_pagamento: forma,
-            id_atendimento: a.id,
-          }),
-        ]);
-      }));
-      await this.showToast(`${itens.length} pagamento${itens.length > 1 ? 's' : ''} registrado${itens.length > 1 ? 's' : ''}! ✓`, 'success');
+        return {
+          id: a.id!,
+          forma_pagamento: forma,
+          descricao: pet ? `${servico} — ${pet}` : servico,
+        };
+      });
+
+      const resultado = await this.atendimentoService.darBaixaLote(payload);
+
+      const total = resultado.sucesso;
+      const falhas = resultado.erros.length;
+      if (falhas > 0) {
+        const motivos = resultado.erros.map(e => e.motivo).join('; ');
+        await this.showToast(`${total} pago(s). ${falhas} falha(s): ${motivos}`, 'warning');
+      } else {
+        await this.showToast(`${total} pagamento${total > 1 ? 's' : ''} registrado${total > 1 ? 's' : ''}! ✓`, 'success');
+      }
       this.cancelarSelecao();
       await this.loadData();
     } catch (e: any) {
@@ -406,7 +407,6 @@ export class AtendimentosPage implements OnInit, OnDestroy {
 
   constructor(
     private atendimentoService: AtendimentoService,
-    private caixaService: CaixaService,
     private statusService: StatusService,
     private modalCtrl: ModalController,
     private alertCtrl: AlertController,
@@ -682,20 +682,10 @@ export class AtendimentosPage implements OnInit, OnDestroy {
     if (!this.atendimentoPagamento) return;
     this.salvandoPagamento = true;
     try {
-      // 1. Marca o atendimento como pago
-      await this.atendimentoService.marcarPago(this.atendimentoPagamento.id!);
-
-      // 2. Lança entrada no caixa vinculada ao atendimento
-      await this.caixaService.create({
-        tipo: 'entrada',
-        descricao: this.descricaoPagamento,
-        valor: this.valorPagamento,
-        data: this.atendimentoPagamento.data?.split('T')[0] ?? new Date().toISOString().split('T')[0],
-        categoria: 'Banho/Tosa',
+      await this.atendimentoService.darBaixa(this.atendimentoPagamento.id!, {
         forma_pagamento: this.formaPagamento,
-        id_atendimento: this.atendimentoPagamento.id,
+        descricao: this.descricaoPagamento,
       });
-
       await this.showToast('Pagamento registrado no caixa! ✓', 'success');
       this.fecharPagamento();
       await this.loadData();
@@ -723,11 +713,7 @@ export class AtendimentosPage implements OnInit, OnDestroy {
     const loading = await this.loadingCtrl.create({ message: 'Atualizando...', spinner: 'crescent' });
     await loading.present();
     try {
-      // Remove o lançamento do caixa vinculado e desmarca o pagamento
-      await Promise.all([
-        this.caixaService.deleteByAtendimento(a.id!),
-        this.atendimentoService.desmarcarPago(a.id!),
-      ]);
+      await this.atendimentoService.desfazerBaixa(a.id!);
       await this.showToast('Pagamento desfeito e removido do caixa.', 'warning');
       await this.loadData();
     } catch (e: any) {

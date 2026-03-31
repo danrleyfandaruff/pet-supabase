@@ -52,6 +52,21 @@ export class AtendimentoService {
     return lastValueFrom(this.api.desmarcarAtendimentoPago(id));
   }
 
+  /** Operação atômica: valida, marca como pago e cria entrada no caixa. */
+  async darBaixa(id: number, dto: { forma_pagamento: string; descricao?: string }): Promise<{ mensagem: string; id_caixa: number }> {
+    return lastValueFrom(this.api.darBaixaAtendimento(id, dto));
+  }
+
+  /** Operação atômica: remove lançamento do caixa e desmarca pagamento. */
+  async desfazerBaixa(id: number): Promise<string> {
+    return lastValueFrom(this.api.desfazerBaixaAtendimento(id));
+  }
+
+  /** Dá baixa em vários atendimentos de uma vez. */
+  async darBaixaLote(itens: { id: number; forma_pagamento: string; descricao?: string }[]): Promise<{ sucesso: number; erros: { id: number; motivo: string }[] }> {
+    return lastValueFrom(this.api.darBaixaAtendimentoLote(itens));
+  }
+
   async delete(id: number): Promise<any> {
     return lastValueFrom(this.api.deletarAtendimento(id));
   }

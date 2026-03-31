@@ -1,5 +1,5 @@
 import { errorMsg } from '../../core/utils/error.utils';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActionSheetController, AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { AtendimentoService } from '../../core/services/atendimento.service';
 import { Atendimento } from '../../core/models/atendimento.model';
@@ -14,7 +14,7 @@ import { FORMAS_PAGAMENTO, FormaPagamento } from '../../core/models/caixa.model'
   templateUrl: './atendimentos.page.html',
   styleUrls: ['./atendimentos.page.scss'],
 })
-export class AtendimentosPage implements OnInit {
+export class AtendimentosPage implements OnInit, OnDestroy {
   atendimentos: Atendimento[] = [];
   atendimentosFiltrados: Atendimento[] = [];
   isLoading = false;
@@ -28,6 +28,171 @@ export class AtendimentosPage implements OnInit {
   filtroRapido: 'todos' | 'hoje' | 'pendentes' = 'todos';
   countNaoPagos = 0;
   private termoBusca = '';
+
+  // ── Google Calendar day timeline ────────────────────
+  readonly horasGrid: string[] = Array.from({ length: 15 }, (_, i) => {
+    const h = i + 7;
+    return `${String(h).padStart(2, '0')}:00`;
+  });
+  readonly GRID_START_HOUR = 7;
+  readonly SLOT_HEIGHT = 64; // px por hora
+
+  nowTop = 0;
+  private nowTimer: any;
+  diasStrip: { iso: string; num: number; dow: string; isHoje: boolean }[] = [];
+
+  get atendimentosDoDia(): Atendimento[] {
+    if (!this.diaSelecionado) return [];
+    const dataStr = this.buildDataStr(this.diaSelecionado);
+    return this.atendimentos
+      .filter(a => a.data?.startsWith(dataStr))
+      .sort((a, b) => (a.horario || '99:99').localeCompare(b.horario || '99:99'));
+  }
+
+  get atendimentosComHorario(): Atendimento[] {
+    return this.atendimentosDoDia.filter(a => !!a.horario);
+  }
+
+  get atendimentosSemHorario(): Atendimento[] {
+    return this.atendimentosDoDia.filter(a => !a.horario);
+  }
+
+  get isDiaSelecionadoHoje(): boolean {
+    const hoje = new Date();
+    return this.diaSelecionado === hoje.getDate() &&
+      this.mesAtual.getMonth() === hoje.getMonth() &&
+      this.mesAtual.getFullYear() === hoje.getFullYear();
+  }
+
+  get diaSelecionadoLabel(): string {
+    if (!this.diaSelecionado) return '';
+    const d = new Date(this.mesAtual.getFullYear(), this.mesAtual.getMonth(), this.diaSelecionado);
+    const dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+    const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+    return `${dias[d.getDay()]}, ${this.diaSelecionado} ${meses[d.getMonth()]}`;
+  }
+
+  getEventTop(horario: string): number {
+    const [h, m] = horario.split(':').map(Number);
+    return Math.max(0, (h * 60 + m - this.GRID_START_HOUR * 60) / 60 * this.SLOT_HEIGHT);
+  }
+
+  /**
+   * Calcula posição (left + width) de cada evento para evitar sobreposição.
+   * Eventos no mesmo horário (±52min) ficam lado a lado, dividindo a largura.
+   */
+  get eventLayoutMap(): Map<number, { left: string; width: string }> {
+    const events = this.atendimentosComHorario;
+    const map = new Map<number, { left: string; width: string }>();
+    const DURATION = 52; // minutos assumidos por evento
+    const L = 58;        // px da margem esquerda (labels de hora)
+    const R = 8;         // px da margem direita
+
+    events.forEach(ev => {
+      const [h, m] = ev.horario!.split(':').map(Number);
+      const start = h * 60 + m;
+      const end   = start + DURATION;
+
+      // Todos os eventos que se sobrepõem a este
+      const group = events.filter(other => {
+        const [oh, om] = other.horario!.split(':').map(Number);
+        const os = oh * 60 + om;
+        return os < end && (os + DURATION) > start;
+      });
+
+      const total = group.length;
+      const col   = group.indexOf(ev);
+
+      const left  = total === 1
+        ? `${L}px`
+        : `calc(${L}px + (100% - ${L}px - ${R}px) * ${col} / ${total})`;
+      const width = total === 1
+        ? `calc(100% - ${L}px - ${R}px)`
+        : `calc((100% - ${L}px - ${R}px) / ${total} - 3px)`;
+
+      map.set(ev.id!, { left, width });
+    });
+
+    return map;
+  }
+
+  private updateNowTop() {
+    const now = new Date();
+    this.nowTop = Math.max(0, (now.getHours() * 60 + now.getMinutes() - this.GRID_START_HOUR * 60) / 60 * this.SLOT_HEIGHT);
+  }
+
+  private gerarDiasStrip() {
+    const hoje = new Date();
+    const current = this.diaSelecionado
+      ? new Date(this.mesAtual.getFullYear(), this.mesAtual.getMonth(), this.diaSelecionado)
+      : new Date();
+    const dow = current.getDay();
+    const monday = new Date(current);
+    monday.setDate(current.getDate() - (dow === 0 ? 6 : dow - 1));
+    const hojeIso = hoje.toISOString().split('T')[0];
+    const nomes = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    this.diasStrip = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      return {
+        iso: d.toISOString().split('T')[0],
+        num: d.getDate(),
+        dow: nomes[d.getDay()],
+        isHoje: d.toISOString().split('T')[0] === hojeIso,
+      };
+    });
+  }
+
+  selecionarDiaFromStrip(iso: string) {
+    const [y, m, d] = iso.split('-').map(Number);
+    this.mesAtual = new Date(y, m - 1, 1);
+    this.diaSelecionado = d;
+    this.gerarCalendario();
+    this.gerarDiasStrip();
+    this.aplicarFiltros();
+  }
+
+  temAtendimentoIso(iso: string): boolean {
+    return this.atendimentos.some(a => a.data?.startsWith(iso));
+  }
+
+  prevDay() {
+    const dia = this.diaSelecionado ?? new Date().getDate();
+    const d = new Date(this.mesAtual.getFullYear(), this.mesAtual.getMonth(), dia);
+    d.setDate(d.getDate() - 1);
+    this.mesAtual = new Date(d.getFullYear(), d.getMonth(), 1);
+    this.diaSelecionado = d.getDate();
+    this.gerarCalendario();
+    this.gerarDiasStrip();
+    this.aplicarFiltros();
+  }
+
+  nextDay() {
+    const dia = this.diaSelecionado ?? new Date().getDate();
+    const d = new Date(this.mesAtual.getFullYear(), this.mesAtual.getMonth(), dia);
+    d.setDate(d.getDate() + 1);
+    this.mesAtual = new Date(d.getFullYear(), d.getMonth(), 1);
+    this.diaSelecionado = d.getDate();
+    this.gerarCalendario();
+    this.gerarDiasStrip();
+    this.aplicarFiltros();
+  }
+
+  goToHoje() {
+    const hoje = new Date();
+    this.mesAtual = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+    this.diaSelecionado = hoje.getDate();
+    this.gerarCalendario();
+    this.gerarDiasStrip();
+    this.aplicarFiltros();
+  }
+
+  async openFormAtTime(horario: string) {
+    const dataStr = this.diaSelecionado
+      ? this.buildDataStr(this.diaSelecionado)
+      : new Date().toISOString().split('T')[0];
+    await this.openForm({ data: dataStr, horario } as Atendimento);
+  }
 
   // ── Vista (lista / semana) ──────────────────────────
   vistaAtual: 'lista' | 'semana' = 'lista';
@@ -251,10 +416,21 @@ export class AtendimentosPage implements OnInit {
   ) {}
 
   ngOnInit() {
+    const hoje = new Date();
+    this.mesAtual = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+    this.diaSelecionado = hoje.getDate();
     this.gerarCalendario();
+    this.gerarDiasStrip();
     this.loadData();
     this.carregarStatusConcluido();
+    this.updateNowTop();
+    this.nowTimer = setInterval(() => this.updateNowTop(), 60000);
   }
+
+  ngOnDestroy() {
+    if (this.nowTimer) clearInterval(this.nowTimer);
+  }
+
   ionViewWillEnter() { this.loadData(); }
 
   private async carregarStatusConcluido() {
@@ -315,6 +491,7 @@ export class AtendimentosPage implements OnInit {
     this.mesAtual = new Date(this.mesAtual.getFullYear(), this.mesAtual.getMonth() - 1, 1);
     this.diaSelecionado = null;
     this.gerarCalendario();
+    this.gerarDiasStrip();
     this.aplicarFiltros();
   }
 
@@ -322,11 +499,13 @@ export class AtendimentosPage implements OnInit {
     this.mesAtual = new Date(this.mesAtual.getFullYear(), this.mesAtual.getMonth() + 1, 1);
     this.diaSelecionado = null;
     this.gerarCalendario();
+    this.gerarDiasStrip();
     this.aplicarFiltros();
   }
 
   selecionarDia(dia: number) {
-    this.diaSelecionado = this.diaSelecionado === dia ? null : dia;
+    this.diaSelecionado = dia;
+    this.gerarDiasStrip();
     this.aplicarFiltros();
   }
 
@@ -392,11 +571,17 @@ export class AtendimentosPage implements OnInit {
         a.cliente?.nome?.toLowerCase().includes(q) ||
         a.responsavel?.nome?.toLowerCase().includes(q) ||
         a.servico?.nome?.toLowerCase().includes(q) ||
-        a.data?.includes(q)
+        a.data?.includes(q) ||
+        a.horario?.includes(q)
       );
     }
 
-    this.atendimentosFiltrados = lista;
+    // Ordena por data + horário (sem horário vai para o final do dia)
+    this.atendimentosFiltrados = lista.sort((a, b) => {
+      const ka = a.data + (a.horario ? 'T' + a.horario : 'T99:99');
+      const kb = b.data + (b.horario ? 'T' + b.horario : 'T99:99');
+      return ka.localeCompare(kb);
+    });
   }
 
   async loadData() {
@@ -417,6 +602,18 @@ export class AtendimentosPage implements OnInit {
     if (!d) return '';
     const [y, m, day] = d.split('-');
     return `${day}/${m}/${y}`;
+  }
+
+  getDayOfWeek(d: string): string {
+    if (!d) return '';
+    const date = new Date(d + 'T12:00:00');
+    return ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][date.getDay()];
+  }
+
+  getDayNum(d: string): string {
+    if (!d) return '';
+    const [, , day] = d.split('-');
+    return day;
   }
 
   getBadgeClass(status?: string): string {

@@ -63,6 +63,7 @@ export class AtendimentoFormComponent implements OnInit {
       id_cliente:      [this.atendimento?.id_cliente || null],
       id_animal:       [this.atendimento?.id_animal || null],
       data:            [this.atendimento?.data || new Date().toISOString().split('T')[0], Validators.required],
+      horario:         [this.atendimento?.horario || null],
       id_responsavel:  [this.atendimento?.id_responsavel || null],
       status:          [this.atendimento?.status || null],
       id_servico:      [this.atendimento?.id_servico || null],

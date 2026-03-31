@@ -72,13 +72,20 @@
         <ion-icon name="calendar-outline"></ion-icon> Agendamento
       </p>
 
-      <ion-item lines="none" class="form-item">
-        <ion-label position="stacked">
-          Data *
-          <span class="filter-hint" *ngIf="isPacoteMultisessao"> — 1ª sessão</span>
-        </ion-label>
-        <ion-input formControlName="data" type="date"></ion-input>
-      </ion-item>
+      <!-- Data + Horário lado a lado -->
+      <div class="form-row-2col">
+        <ion-item lines="none" class="form-item form-item-grow">
+          <ion-label position="stacked">
+            Data *
+            <span class="filter-hint" *ngIf="isPacoteMultisessao"> — 1ª sessão</span>
+          </ion-label>
+          <ion-input formControlName="data" type="date"></ion-input>
+        </ion-item>
+        <ion-item lines="none" class="form-item form-item-time">
+          <ion-label position="stacked">Horário <span class="optional">(opc.)</span></ion-label>
+          <ion-input formControlName="horario" type="time"></ion-input>
+        </ion-item>
+      </div>
       <ion-note *ngIf="form.get('data')?.invalid && form.get('data')?.touched" color="danger" class="field-error">
         Data obrigatória
       </ion-note>

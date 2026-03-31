@@ -136,7 +136,7 @@
 
 // ── List wrapper ───────────────────────────────────────────
 .list-wrapper {
-  padding: 16px 16px 100px;
+  padding: 12px 12px 100px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -145,48 +145,133 @@
 // ── Card item ──────────────────────────────────────────────
 .card-item {
   background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.07);
+  border-radius: 18px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
   overflow: hidden;
+  transition: box-shadow 0.2s, transform 0.1s;
+
+  &:active { transform: scale(0.99); }
 }
 
 .card-main {
   display: flex;
   align-items: center;
-  padding: 14px 14px 10px;
+  padding: 13px 13px 9px;
   gap: 12px;
   cursor: pointer;
-  min-height: 64px;
 }
 
-.card-text {
+// ── Time badge ─────────────────────────────────────────────
+.time-badge {
+  width: 50px;
+  height: 54px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(150deg, #3880ff 0%, #5260ff 100%);
+  border-radius: 14px;
+  padding: 6px 4px;
+  gap: 1px;
+
+  &.time-no-hora {
+    background: linear-gradient(150deg, #8aa8d8 0%, #97aed6 100%);
+  }
+
+  &.time-badge-pago {
+    background: linear-gradient(150deg, #1cc674 0%, #0fa960 100%);
+  }
+}
+
+.time-dow {
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.85);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.time-hour {
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+  letter-spacing: -0.3px;
+}
+
+// ── Card body ──────────────────────────────────────────────
+.card-body {
   flex: 1;
   min-width: 0;
+}
 
-  h2 {
-    margin: 0 0 3px;
-    font-size: 15px;
-    font-weight: 600;
-    color: #1a1a1a;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+.card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
 
-  p {
-    margin: 0;
-    font-size: 13px;
-    color: var(--ion-color-medium);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+.card-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a1a;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.card-meta {
+  font-size: 12px;
+  color: #9aa5b8;
+  margin: 2px 0 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.tag-servico {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-weight: 600;
+  background: #e8f0ff;
+  color: #2c5dcc;
+  white-space: nowrap;
+  ion-icon { font-size: 11px; }
+}
+
+.tag-pacote {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-weight: 600;
+  background: #f3e8ff;
+  color: #6d28d9;
+  white-space: nowrap;
+  ion-icon { font-size: 11px; }
 }
 
 .card-actions {
   display: flex;
   justify-content: flex-end;
-  border-top: 1px solid #f0f2f5;
+  border-top: 1px solid #f5f6f8;
   padding: 2px 6px;
 
   ion-button {
@@ -196,30 +281,7 @@
   }
 }
 
-// ── Icon wrap ──────────────────────────────────────────────
-.item-icon-wrap {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-
-  ion-icon {
-    font-size: 22px;
-    color: #fff;
-  }
-
-  &.color-primary   { background: var(--ion-color-primary); }
-  &.color-secondary { background: var(--ion-color-secondary); }
-  &.color-success   { background: var(--ion-color-success); }
-  &.color-tertiary  { background: var(--ion-color-tertiary); }
-  &.color-warning   { background: var(--ion-color-warning); }
-  &.color-medium    { background: var(--ion-color-medium); }
-}
-
-// ── Status label ───────────────────────────────────────────
+// ── Status label (legado, mantido por compatibilidade) ─────
 .status-label {
   font-size: 11px !important;
   font-weight: 600;
@@ -609,6 +671,14 @@
   padding: 8px 0;
 }
 
+.chip-time {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--ion-color-primary);
+  line-height: 1;
+  margin-bottom: 1px;
+}
+
 .chip-badge {
   display: inline-flex;
   align-items: center;
@@ -680,3 +750,450 @@
     transform: scale(0.94);
   }
 }
+
+
+// ── Layout responsivo — web (coluna única igual ao mobile) ──
+@media (min-width: 768px) {
+  .card-item:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    transform: translateY(-1px);
+  }
+}
+
+
+// ════════════════════════════════════════════════════════
+// GOOGLE CALENDAR DAY VIEW
+// ════════════════════════════════════════════════════════
+
+.gcal-wrapper {
+  background: #fff;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 80px;
+}
+
+// ── Top bar: mês + navegar + hoje ─────────────────────────
+.gcal-top-bar {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px 6px;
+  gap: 4px;
+  background: #fff;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.gcal-month-label {
+  flex: 1;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a1a;
+  text-transform: capitalize;
+}
+
+.gcal-nav-btn {
+  all: unset;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  color: #666;
+  transition: background 0.15s;
+
+  ion-icon { font-size: 18px; }
+  &:active { background: #f0f2f5; }
+}
+
+.gcal-hoje-btn {
+  all: unset;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  background: #f0f2f5;
+  color: #555;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+
+  &:active, &.hoje-active {
+    background: var(--ion-color-primary);
+    color: #fff;
+  }
+}
+
+// ── Week strip: Seg Ter Qua... ─────────────────────────────
+.gcal-week-strip {
+  display: flex;
+  background: #fff;
+  border-bottom: 1px solid #f0f2f5;
+  padding: 8px 4px 10px;
+}
+
+.gcal-day-pill {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 2px;
+  border-radius: 12px;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.15s;
+
+  &:active { background: #f0f2f5; }
+
+  &.pill-hoje .pill-num {
+    color: var(--ion-color-primary);
+    font-weight: 800;
+  }
+
+  &.pill-selected {
+    .pill-num {
+      background: var(--ion-color-primary);
+      color: #fff;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .pill-dow { color: var(--ion-color-primary); }
+  }
+
+  &.pill-hoje.pill-selected .pill-num {
+    background: var(--ion-color-primary);
+  }
+}
+
+.pill-dow {
+  font-size: 10px;
+  font-weight: 600;
+  color: #9aa5b8;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.pill-num {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  line-height: 1;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pill-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ion-color-primary);
+  position: absolute;
+  bottom: 2px;
+}
+
+// ── Day header ─────────────────────────────────────────────
+.gcal-day-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px 8px;
+  background: #fff;
+}
+
+.gcal-day-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #444;
+  flex: 1;
+}
+
+.gcal-count-badge {
+  background: var(--ion-color-primary);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  min-width: 20px;
+  text-align: center;
+}
+
+// ── All-day events ─────────────────────────────────────────
+.allday-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 16px 8px;
+  background: #fafbff;
+  border-bottom: 1px solid #e8eaed;
+}
+
+.allday-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #9aa5b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: 50px;
+  flex-shrink: 0;
+  padding-top: 5px;
+}
+
+.allday-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  flex: 1;
+}
+
+.allday-chip {
+  display: flex;
+  flex-direction: column;
+  background: #e8f0ff;
+  border-left: 3px solid var(--ion-color-primary);
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+
+  &:active { opacity: 0.75; }
+
+  &.allday-pago {
+    background: #e6f9f0;
+    border-color: var(--ion-color-success);
+  }
+}
+
+.allday-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.allday-serv {
+  font-size: 11px;
+  color: var(--ion-color-primary);
+  font-weight: 500;
+}
+
+// ── Time grid ──────────────────────────────────────────────
+.time-grid-scroll {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.time-grid {
+  position: relative;
+  background: #fff;
+}
+
+.hour-row {
+  display: flex;
+  align-items: flex-start;
+  height: 64px;
+  cursor: pointer;
+  transition: background 0.1s;
+
+  &:hover .hour-line { background: rgba(56, 128, 255, 0.08); }
+  &:active .hour-line { background: rgba(56, 128, 255, 0.12); }
+}
+
+.hour-label {
+  width: 52px;
+  flex-shrink: 0;
+  font-size: 11px;
+  color: #b0b8c8;
+  font-weight: 500;
+  text-align: right;
+  padding: 0 8px 0 0;
+  margin-top: -8px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.hour-line {
+  flex: 1;
+  border-top: 1px solid #f0f2f5;
+  height: 100%;
+  border-radius: 0;
+}
+
+// ── "Agora" indicator ──────────────────────────────────────
+.now-indicator {
+  position: absolute;
+  left: 44px;
+  right: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.now-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ea4335;
+  flex-shrink: 0;
+  margin-left: -5px;
+}
+
+.now-line {
+  flex: 1;
+  height: 2px;
+  background: #ea4335;
+}
+
+// ── Event blocks ───────────────────────────────────────────
+.event-block {
+  position: absolute;
+  /* left e width calculados dinamicamente pelo eventLayoutMap */
+  min-height: 52px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #3880ff 0%, #5260ff 100%);
+  cursor: pointer;
+  z-index: 2;
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(56, 128, 255, 0.25);
+  transition: transform 0.1s, box-shadow 0.1s;
+
+  &:active {
+    transform: scale(0.98);
+    box-shadow: 0 1px 4px rgba(56, 128, 255, 0.2);
+  }
+
+  &.event-pago {
+    background: linear-gradient(135deg, #1cc674 0%, #0fa960 100%);
+    box-shadow: 0 2px 8px rgba(28, 198, 116, 0.25);
+  }
+}
+
+.event-color-bar {
+  width: 4px;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.35);
+}
+
+.event-content {
+  flex: 1;
+  padding: 6px 8px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.event-time-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.75);
+  line-height: 1;
+}
+
+.event-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.event-sub {
+  font-size: 11px;
+  color: rgba(255,255,255,0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.event-status-pill {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.25);
+  color: #fff;
+  margin-top: 2px;
+  width: fit-content;
+}
+
+.event-actions {
+  display: flex;
+  align-items: center;
+  padding-right: 2px;
+  flex-shrink: 0;
+
+  ion-button {
+    --color: rgba(255,255,255,0.8);
+    --padding-start: 6px;
+    --padding-end: 6px;
+    height: 30px;
+  }
+}
+
+// ── Empty state ────────────────────────────────────────────
+.gcal-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 20px 24px;
+  color: #bcc4d0;
+
+  p {
+    margin: 4px 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: #9aa5b8;
+  }
+}
+
+.gcal-empty-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: #f0f4ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+
+  ion-icon {
+    font-size: 32px;
+    color: var(--ion-color-primary);
+    opacity: 0.5;
+  }
+}
+
+.gcal-empty-hint {
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  color: #bcc4d0 !important;
+}
+
+// ── Chips filtro (modo seleção) ────────────────────────────
+.chips-filtro-sel {
+  display: flex;
+  gap: 8px;
+  padding: 10px 16px 6px;
+  flex-wrap: wrap;
+  background: #fff;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+/// ── Web: coluna única igual ao mobile, sem sidebar ──────────
+// Nenhuma alteração de layout no web — mesma experiência do mobile

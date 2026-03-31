@@ -7,6 +7,7 @@ export interface Atendimento {
   id_pacote?: number;
   id_aquisicao_pacote?: number;
   data: string;
+  horario?: string;        // HH:MM — ex: "09:30"
   status?: number;
   valor_adicional?: number;
   pago?: boolean;

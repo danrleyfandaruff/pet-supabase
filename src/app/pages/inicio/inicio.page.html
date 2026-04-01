@@ -11,6 +11,16 @@
 
 <ion-content class="inicio-content" [fullscreen]="true">
 
+  <!-- ── Banner de Trial ──────────────────────────────── -->
+  <div *ngIf="mostrarBannerTrial" class="trial-banner" (click)="irParaAssinatura()">
+    <ion-icon name="time-outline"></ion-icon>
+    <span>
+      Trial gratuito: <strong>{{ diasRestantesTrial }} dia(s) restante(s)</strong>
+      — Assine e continue usando!
+    </span>
+    <ion-icon name="chevron-forward-outline"></ion-icon>
+  </div>
+
   <!-- ── Hero ──────────────────────────────────────────── -->
   <div class="hero" *ngIf="currentUser$ | async as user">
     <div class="hero-text">

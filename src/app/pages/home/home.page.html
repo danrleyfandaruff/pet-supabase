@@ -17,6 +17,16 @@
     </ion-toolbar>
   </ion-header>
 
+  <!-- Banner de Trial -->
+  <div *ngIf="mostrarBannerTrial" class="trial-banner" (click)="irParaAssinatura()">
+    <ion-icon name="time-outline"></ion-icon>
+    <span>
+      Trial gratuito: <strong>{{ diasRestantesTrial }} dia(s) restante(s)</strong>
+      — Assine agora e continue usando!
+    </span>
+    <ion-icon name="chevron-forward-outline"></ion-icon>
+  </div>
+
   <ng-container *ngIf="currentUser$ | async as user">
 
     <!-- Card Resumo IA -->

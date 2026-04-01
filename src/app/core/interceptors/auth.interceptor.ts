@@ -72,6 +72,9 @@ export class AuthInterceptor implements HttpInterceptor {
           // (o token pode já estar inválido, evitando loop de logout)
           this.authService.clearLocalState();
           this.router.navigate(['/login'], { replaceUrl: true });
+        } else if (error.status === 402) {
+          // Assinatura expirada ou trial vencido → paywall
+          this.router.navigate(['/assinatura'], { replaceUrl: true });
         }
         // Converte o erro HTTP em um Error JS com mensagem amigável,
         // para que qualquer catch nos componentes receba sempre texto legível.

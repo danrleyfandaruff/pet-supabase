@@ -5,7 +5,7 @@ import { PermissaoService, Permissao } from '../../core/services/permissao.servi
 import {lastValueFrom, Observable, Subscription} from 'rxjs';
 import { User } from '../../core/models/user.model';
 import { addIcons } from 'ionicons';
-import { calendar, people, paw, cut, gift, settings, cash, barChartOutline, peopleOutline, layersOutline, checkmarkCircle, timeOutline, alertCircleOutline, chevronForwardOutline, chevronDownOutline, chevronUpOutline, calendarOutline } from 'ionicons/icons';
+import { calendar, people, paw, cut, gift, settings, cash, barChartOutline, peopleOutline, layersOutline, checkmarkCircle, timeOutline, alertCircleOutline, chevronForwardOutline, chevronDownOutline, chevronUpOutline, calendarOutline, sparkles } from 'ionicons/icons';
 import { AtendimentoService } from '../../core/services/atendimento.service';
 import { CaixaService } from '../../core/services/caixa.service';
 import { Atendimento } from '../../core/models/atendimento.model';
@@ -60,6 +60,10 @@ export class InicioPage implements OnInit, OnDestroy {
   resumoCarregando = true; // inicia carregando para mostrar spinner imediatamente
   resumoErro = false;
 
+  // Assinatura / trial
+  mostrarBannerTrial = false;
+  diasRestantesTrial = 0;
+
   constructor(
     private router: Router,
     private authService: AuthService,
@@ -69,7 +73,7 @@ export class InicioPage implements OnInit, OnDestroy {
     private apiService: ApiService,
   ) {
     this.currentUser$ = this.authService.currentUser$;
-    addIcons({ calendar, people, paw, cut, gift, settings, cash, barChartOutline, peopleOutline, layersOutline, checkmarkCircle, timeOutline, alertCircleOutline, chevronForwardOutline, chevronDownOutline, chevronUpOutline, calendarOutline });
+    addIcons({ calendar, people, paw, cut, gift, settings, cash, barChartOutline, peopleOutline, layersOutline, checkmarkCircle, timeOutline, alertCircleOutline, chevronForwardOutline, chevronDownOutline, chevronUpOutline, calendarOutline, sparkles });
     this.hoje = this.formatarHoje();
   }
 
@@ -82,6 +86,7 @@ export class InicioPage implements OnInit, OnDestroy {
     });
     this.carregarStats();
     this.carregarResumo();
+    this.carregarAssinaturaStatus();
   }
 
   ionViewWillEnter() { this.carregarStats(); }
@@ -90,6 +95,22 @@ export class InicioPage implements OnInit, OnDestroy {
     this.userSub?.unsubscribe();
   }
 
+
+  async carregarAssinaturaStatus() {
+    try {
+      const status = await lastValueFrom(this.apiService.getAssinaturaStatus());
+      if (status.status === 'trial' && status.diasRestantes !== null) {
+        this.diasRestantesTrial = status.diasRestantes;
+        this.mostrarBannerTrial = true;
+      }
+    } catch {
+      // ignora — não bloqueia a tela
+    }
+  }
+
+  irParaAssinatura() {
+    this.router.navigate(['/assinatura']);
+  }
 
   async carregarResumo() {
     this.resumoCarregando = true;

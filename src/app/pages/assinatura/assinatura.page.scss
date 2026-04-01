@@ -1,0 +1,261 @@
+.assinatura-content {
+  --background: #f4f5f8;
+}
+
+// ── Hero ──────────────────────────────────────────────────────────────────────
+.hero-section {
+  text-align: center;
+  padding: 32px 24px 16px;
+  background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-secondary, #7c3aed));
+
+  .hero-icon {
+    font-size: 48px;
+    color: rgba(255, 255, 255, 0.85);
+    margin-bottom: 12px;
+  }
+
+  h1 {
+    font-size: 26px;
+    font-weight: 800;
+    color: #fff;
+    margin: 0 0 8px;
+  }
+
+  p {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0;
+  }
+
+  .status-badge {
+    margin-top: 16px;
+
+    ion-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 16px;
+      font-size: 13px;
+      border-radius: 20px;
+
+      ion-icon {
+        font-size: 16px;
+      }
+    }
+  }
+}
+
+// ── Toggle período ────────────────────────────────────────────────────────────
+.periodo-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px 16px 8px;
+  background: #fff;
+
+  span {
+    font-size: 15px;
+    font-weight: 500;
+    color: #92949c;
+    cursor: pointer;
+    transition: color 0.2s;
+
+    &.active {
+      color: var(--ion-color-primary);
+      font-weight: 700;
+    }
+  }
+
+  .desconto-badge {
+    display: inline-block;
+    background: #2dd36f;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 12px;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+}
+
+// ── Cards de planos ───────────────────────────────────────────────────────────
+.planos-container {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
+
+.plano-card {
+  position: relative;
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 20px 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: 2px solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  flex: 1;
+
+  &.destaque {
+    border-color: var(--ion-color-primary);
+    box-shadow: 0 4px 24px rgba(var(--ion-color-primary-rgb), 0.2);
+  }
+
+  &.selecionado {
+    border-color: var(--ion-color-primary);
+  }
+}
+
+.plano-badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #92949c;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 14px;
+  border-radius: 20px;
+  white-space: nowrap;
+
+  &.popular {
+    background: var(--ion-color-primary);
+  }
+}
+
+.plano-header {
+  text-align: center;
+  margin-bottom: 20px;
+
+  h2 {
+    font-size: 22px;
+    font-weight: 800;
+    margin: 0 0 4px;
+    color: #1a1a2e;
+  }
+
+  .plano-descricao {
+    font-size: 13px;
+    color: #666;
+    margin: 0 0 16px;
+  }
+
+  .preco-container {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 2px;
+
+    .moeda {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      padding-top: 6px;
+    }
+
+    .preco {
+      font-size: 48px;
+      font-weight: 900;
+      color: var(--ion-color-primary);
+      line-height: 1;
+    }
+
+    .periodo-label {
+      font-size: 14px;
+      color: #888;
+      padding-top: 30px;
+    }
+  }
+
+  .economia {
+    font-size: 12px;
+    color: #2dd36f;
+    font-weight: 600;
+    margin-top: 6px;
+  }
+
+  .total-anual {
+    font-size: 12px;
+    color: #888;
+    margin-top: 2px;
+  }
+}
+
+// ── Lista de recursos ─────────────────────────────────────────────────────────
+.recursos-lista {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #333;
+    padding: 6px 0;
+    border-bottom: 1px solid #f0f0f0;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    ion-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+  }
+}
+
+.btn-assinar {
+  --border-radius: 10px;
+  font-weight: 700;
+}
+
+// ── Gerenciar assinatura ──────────────────────────────────────────────────────
+.gerenciar-section {
+  padding: 0 16px 16px;
+
+  .gerenciar-info {
+    font-size: 12px;
+    color: #666;
+    text-align: center;
+    margin-top: 8px;
+  }
+}
+
+// ── Garantia ──────────────────────────────────────────────────────────────────
+.garantia-section {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 8px 16px 32px;
+  padding: 16px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+
+  ion-icon {
+    font-size: 36px;
+    flex-shrink: 0;
+  }
+
+  strong {
+    font-size: 14px;
+    color: #1a1a2e;
+  }
+
+  p {
+    font-size: 12px;
+    color: #666;
+    margin: 2px 0 0;
+  }
+}

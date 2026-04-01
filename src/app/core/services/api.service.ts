@@ -540,7 +540,37 @@ export class ApiService {
   // ─────────────────────────────────────────────
 
   getResumoDia(): Observable<{ resumo: string; geradoEm: string }> {
-    console.log(`AAAAAAAAA`)
+    return this.http.get<{ resumo: string; geradoEm: string }>(this.url('resumo/dia'));
+  }
+
+  getResumoSemana(): Observable<{ resumo: string; geradoEm: string }> {
     return this.http.get<{ resumo: string; geradoEm: string }>(this.url('resumo/semana'));
+  }
+
+  // ─────────────────────────────────────────────
+  // ASSINATURA / PAGAMENTO
+  // ─────────────────────────────────────────────
+
+  getAssinaturaStatus(): Observable<{
+    status: string;
+    diasRestantes: number | null;
+    plano: string | null;
+    periodo: string | null;
+  }> {
+    return this.http.get<any>(this.url('assinatura/status'));
+  }
+
+  criarCheckoutAssinatura(
+    plano: string,
+    periodo: 'mensal' | 'anual',
+  ): Observable<{ url: string }> {
+    return this.http.post<{ url: string }>(this.url('assinatura/checkout'), {
+      plano,
+      periodo,
+    });
+  }
+
+  criarPortalAssinatura(): Observable<{ url: string }> {
+    return this.http.post<{ url: string }>(this.url('assinatura/portal'), {});
   }
 }

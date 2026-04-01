@@ -41,6 +41,14 @@ const routes: Routes = [
     canActivate: [AuthGuard],
   },
 
+  // Página de assinatura/paywall (acessível mesmo com assinatura expirada)
+  {
+    path: 'assinatura',
+    loadChildren: () =>
+      import('./pages/assinatura/assinatura.module').then((m) => m.AssinaturaPageModule),
+    canActivate: [AuthGuard],
+  },
+
   // Fallback
   {
     path: '**',

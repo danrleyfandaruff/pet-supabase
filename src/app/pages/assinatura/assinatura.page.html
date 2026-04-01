@@ -1,0 +1,133 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/inicio" text="Voltar"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Planos e Assinatura</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="assinatura-content">
+
+  <!-- Cabeçalho -->
+  <div class="hero-section">
+    <ion-icon name="sparkles" class="hero-icon"></ion-icon>
+    <h1>Escolha seu plano</h1>
+    <p>Gerencie seu petshop com inteligência. Cancele quando quiser.</p>
+
+    <!-- Status atual -->
+    <div *ngIf="status" class="status-badge">
+      <ng-container [ngSwitch]="status.status">
+        <ion-badge *ngSwitchCase="'trial'" color="warning">
+          <ion-icon name="time-outline"></ion-icon>
+          Trial: {{ status.diasRestantes }} dia(s) restante(s)
+        </ion-badge>
+        <ion-badge *ngSwitchCase="'active'" color="success">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          Plano {{ status.plano | titlecase }} ativo
+        </ion-badge>
+        <ion-badge *ngSwitchCase="'past_due'" color="danger">
+          <ion-icon name="warning-outline"></ion-icon>
+          Pagamento pendente
+        </ion-badge>
+        <ion-badge *ngSwitchCase="'expired'" color="medium">
+          Trial expirado
+        </ion-badge>
+      </ng-container>
+    </div>
+  </div>
+
+  <!-- Toggle Mensal / Anual -->
+  <div class="periodo-toggle">
+    <span [class.active]="!isAnual" (click)="isAnual = false">Mensal</span>
+    <ion-toggle
+      [(ngModel)]="isAnual"
+      color="primary">
+    </ion-toggle>
+    <span [class.active]="isAnual" (click)="isAnual = true">
+      Anual <span class="desconto-badge">-20%</span>
+    </span>
+  </div>
+
+  <!-- Cards de planos -->
+  <div class="planos-container">
+    <div
+      *ngFor="let plano of planos"
+      class="plano-card"
+      [class.destaque]="plano.destaque"
+      [class.selecionado]="planoSelecionado === plano.id">
+
+      <!-- Badge do plano -->
+      <div *ngIf="plano.badge" class="plano-badge" [class.popular]="plano.badge === 'Mais popular'">
+        {{ plano.badge }}
+      </div>
+
+      <div class="plano-header">
+        <h2>{{ plano.nome }}</h2>
+        <p class="plano-descricao">{{ plano.descricao }}</p>
+
+        <div class="preco-container">
+          <span class="moeda">R$</span>
+          <span class="preco">
+            {{ periodo === 'mensal' ? plano.precoMensal : plano.precoAnual }}
+          </span>
+          <span class="periodo-label">/mês</span>
+        </div>
+
+        <div *ngIf="periodo === 'anual'" class="economia">
+          Economize {{ economiaAnual(plano) }}% vs mensal
+        </div>
+        <div *ngIf="periodo === 'anual'" class="total-anual">
+          R$ {{ plano.precoAnual * 12 }}/ano cobrado anualmente
+        </div>
+      </div>
+
+      <!-- Recursos -->
+      <ul class="recursos-lista">
+        <li *ngFor="let recurso of plano.recursos">
+          <ion-icon name="checkmark-circle" color="success"></ion-icon>
+          {{ recurso }}
+        </li>
+      </ul>
+
+      <!-- Botão de assinar -->
+      <ion-button
+        expand="block"
+        [fill]="plano.destaque ? 'solid' : 'outline'"
+        [color]="plano.destaque ? 'primary' : 'medium'"
+        class="btn-assinar"
+        (click)="assinar(plano.id)">
+        <ng-container *ngIf="plano.id === 'premium'; else btnAssinar">
+          Em breve
+        </ng-container>
+        <ng-template #btnAssinar>
+          <ng-container *ngIf="status?.status === 'active' && status?.plano === plano.id; else btnNovo">
+            Plano atual
+          </ng-container>
+          <ng-template #btnNovo>
+            Assinar {{ plano.nome }}
+          </ng-template>
+        </ng-template>
+      </ion-button>
+    </div>
+  </div>
+
+  <!-- Gerenciar assinatura ativa -->
+  <div *ngIf="status?.status === 'active'" class="gerenciar-section">
+    <ion-button fill="outline" color="medium" expand="block" (click)="gerenciarAssinatura()">
+      <ion-icon name="settings-outline" slot="start"></ion-icon>
+      Gerenciar / Cancelar assinatura
+    </ion-button>
+    <p class="gerenciar-info">Gerencie sua assinatura, troque de plano ou cancele pelo portal seguro do Stripe.</p>
+  </div>
+
+  <!-- Garantia -->
+  <div class="garantia-section">
+    <ion-icon name="shield-checkmark-outline" color="success"></ion-icon>
+    <div>
+      <strong>Pagamento seguro via Stripe</strong>
+      <p>Cancele a qualquer momento. Sem multa.</p>
+    </div>
+  </div>
+
+</ion-content>

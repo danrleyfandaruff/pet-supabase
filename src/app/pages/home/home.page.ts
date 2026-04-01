@@ -18,6 +18,11 @@ export class HomePage implements OnInit {
   resumoCarregando = true; // inicia carregando para mostrar spinner imediatamente
   resumoErro = false;
 
+  // Assinatura / trial
+  assinaturaStatus: any = null;
+  mostrarBannerTrial = false;
+  diasRestantesTrial = 0;
+
   constructor(
     private authService: AuthService,
     private apiService: ApiService,
@@ -29,6 +34,24 @@ export class HomePage implements OnInit {
   ngOnInit(): void {
     this.currentUser$ = this.authService.currentUser$;
     this.carregarResumo();
+    this.carregarAssinaturaStatus();
+  }
+
+  async carregarAssinaturaStatus() {
+    try {
+      const status = await lastValueFrom(this.apiService.getAssinaturaStatus());
+      this.assinaturaStatus = status;
+      if (status.status === 'trial' && status.diasRestantes !== null) {
+        this.diasRestantesTrial = status.diasRestantes;
+        this.mostrarBannerTrial = true;
+      }
+    } catch {
+      // ignora — não bloqueia a home
+    }
+  }
+
+  irParaAssinatura() {
+    this.router.navigate(['/assinatura']);
   }
 
   async carregarResumo() {

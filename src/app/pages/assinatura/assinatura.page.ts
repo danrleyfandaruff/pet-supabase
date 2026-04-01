@@ -133,7 +133,7 @@ export class AssinaturaPage implements OnInit {
       await loading.dismiss();
 
       if (res?.url) {
-        window.open(res.url, '_blank');
+        window.location.href = res.url;
       }
     } catch (err: any) {
       await loading.dismiss();

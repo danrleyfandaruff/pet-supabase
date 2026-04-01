@@ -541,6 +541,6 @@ export class ApiService {
 
   getResumoDia(): Observable<{ resumo: string; geradoEm: string }> {
     console.log(`AAAAAAAAA`)
-    return this.http.get<{ resumo: string; geradoEm: string }>(this.url('resumo/dia'));
+    return this.http.get<{ resumo: string; geradoEm: string }>(this.url('resumo/semana'));
   }
 }

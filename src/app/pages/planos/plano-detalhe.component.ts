@@ -4,7 +4,6 @@ import { errorMsg } from '../../core/utils/error.utils';
 import { AtendimentoService } from '../../core/services/atendimento.service';
 import { StatusService } from '../../core/services/status.service';
 import { AquisicaoPacoteService } from '../../core/services/aquisicao-pacote.service';
-import { CaixaService } from '../../core/services/caixa.service';
 import { Status } from '../../core/models/status.model';
 import { FORMAS_PAGAMENTO, FormaPagamento } from '../../core/models/caixa.model';
 
@@ -49,7 +48,6 @@ export class PlanoDetalheComponent implements OnInit {
     private atendimentoService: AtendimentoService,
     private aquisicaoService: AquisicaoPacoteService,
     private statusService: StatusService,
-    private caixaService: CaixaService,
     private cdr: ChangeDetectorRef,
   ) {}
 
@@ -109,13 +107,10 @@ export class PlanoDetalheComponent implements OnInit {
     if (sessao.atualizando) return;
 
     if (sessao.pago) {
-      // Desmarcar: remove caixa + desmarca pago
+      // Desmarcar: operação atômica — remove caixa + desmarca pago no backend
       sessao.atualizando = true;
       try {
-        await Promise.all([
-          this.caixaService.deleteByAtendimento(sessao.id),
-          this.atendimentoService.desmarcarPago(sessao.id),
-        ]);
+        await this.atendimentoService.desfazerBaixa(sessao.id);
         sessao.pago = false;
         this.alterado = true;
         this.cdr.detectChanges();
@@ -173,23 +168,16 @@ export class PlanoDetalheComponent implements OnInit {
   private async processarPagamento(sessao: SessaoVm, forma: FormaPagamento, data: string) {
     sessao.atualizando = true;
     try {
-      const valor = sessao.valor || 1;
       const descricao = sessao.servicoNome
         ? `${sessao.servicoNome} — ${this.petNome}`
         : `Sessão ${sessao.sessaoNum} — ${this.petNome}`;
 
-      await Promise.all([
-        this.atendimentoService.marcarPago(sessao.id),
-        this.caixaService.create({
-          tipo: 'entrada',
-          descricao,
-          valor,
-          data,
-          categoria: 'Banho/Tosa',
-          forma_pagamento: forma,
-          id_atendimento: sessao.id,
-        }),
-      ]);
+      // Operação atômica: valida, marca como pago e cria caixa em uma única chamada
+      await this.atendimentoService.darBaixa(sessao.id, {
+        forma_pagamento: forma,
+        descricao,
+        data, // data de pagamento escolhida pelo usuário
+      });
 
       sessao.pago = true;
       this.alterado = true;

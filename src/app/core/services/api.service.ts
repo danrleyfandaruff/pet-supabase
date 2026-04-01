@@ -337,7 +337,7 @@ export class ApiService {
    * Dá baixa no atendimento de forma atômica:
    * valida existência, valor > 0 e não-duplicidade antes de marcar pago + criar caixa.
    */
-  darBaixaAtendimento(id: number, dto: { forma_pagamento: string; descricao?: string }): Observable<{ mensagem: string; id_caixa: number }> {
+  darBaixaAtendimento(id: number, dto: { forma_pagamento: string; descricao?: string; data?: string }): Observable<{ mensagem: string; id_caixa: number }> {
     return this._post(`atendimento/${id}/dar-baixa`, dto);
   }
 
@@ -351,7 +351,7 @@ export class ApiService {
   /**
    * Dá baixa em múltiplos atendimentos de uma vez.
    */
-  darBaixaAtendimentoLote(itens: { id: number; forma_pagamento: string; descricao?: string }[]): Observable<{ sucesso: number; erros: { id: number; motivo: string }[] }> {
+  darBaixaAtendimentoLote(itens: { id: number; forma_pagamento: string; descricao?: string; data?: string }[]): Observable<{ sucesso: number; erros: { id: number; motivo: string }[] }> {
     return this._post('atendimento/dar-baixa-lote', { itens });
   }
 
@@ -533,5 +533,14 @@ export class ApiService {
 
   removerColaborador(id: string): Observable<any> {
     return this._del(`colaboradores/${id}`);
+  }
+
+  // ─────────────────────────────────────────────
+  // RESUMO IA
+  // ─────────────────────────────────────────────
+
+  getResumoDia(): Observable<{ resumo: string; geradoEm: string }> {
+    console.log(`AAAAAAAAA`)
+    return this.http.get<{ resumo: string; geradoEm: string }>(this.url('resumo/dia'));
   }
 }

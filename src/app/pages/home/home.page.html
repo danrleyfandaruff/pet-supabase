@@ -19,6 +19,44 @@
 
   <ng-container *ngIf="currentUser$ | async as user">
 
+    <!-- Card Resumo IA -->
+      <div class="ion-padding-horizontal ion-padding-top">
+          <ion-card class="resumo-card">
+              <ion-card-header>
+                  <ion-card-subtitle>
+                      <ion-icon name="sparkles" class="icon-glow"></ion-icon>
+                      Resumo inteligente do dia
+                  </ion-card-subtitle>
+              </ion-card-header>
+
+              <ion-card-content>
+                  <!-- Loading -->
+                  <div *ngIf="resumoCarregando" class="resumo-loading">
+                      <ion-spinner name="dots"></ion-spinner>
+                      <span>Gerando insights do dia...</span>
+                  </div>
+
+                  <!-- Conteúdo -->
+                  <div *ngIf="!resumoCarregando && !resumoErro" class="resumo-container">
+                      <p class="resumo-texto">{{ resumoIA }}</p>
+                      <span class="resumo-badge">IA</span>
+                  </div>
+
+                  <!-- Erro -->
+                  <div *ngIf="resumoErro" class="resumo-erro-container">
+                      <p class="resumo-erro">
+                          Não foi possível gerar o resumo agora.
+                      </p>
+
+                      <ion-button fill="solid" size="small" (click)="carregarResumo()">
+                          <ion-icon name="refresh-outline" slot="start"></ion-icon>
+                          Tentar novamente
+                      </ion-button>
+                  </div>
+              </ion-card-content>
+          </ion-card>
+      </div>
+
     <!-- Card de perfil -->
     <div class="profile-section ion-padding">
       <ion-card class="profile-card">

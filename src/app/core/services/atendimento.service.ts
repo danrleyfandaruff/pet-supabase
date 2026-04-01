@@ -53,7 +53,7 @@ export class AtendimentoService {
   }
 
   /** Operação atômica: valida, marca como pago e cria entrada no caixa. */
-  async darBaixa(id: number, dto: { forma_pagamento: string; descricao?: string }): Promise<{ mensagem: string; id_caixa: number }> {
+  async darBaixa(id: number, dto: { forma_pagamento: string; descricao?: string; data?: string }): Promise<{ mensagem: string; id_caixa: number }> {
     return lastValueFrom(this.api.darBaixaAtendimento(id, dto));
   }
 

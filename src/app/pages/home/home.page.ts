@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertController, LoadingController } from '@ionic/angular';
-import { Observable } from 'rxjs';
+import { Observable, lastValueFrom } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
+import { ApiService } from '../../core/services/api.service';
 import { User } from '../../core/models/user.model';
 
 @Component({
@@ -13,8 +14,13 @@ import { User } from '../../core/models/user.model';
 export class HomePage implements OnInit {
   currentUser$!: Observable<User | null>;
 
+  resumoIA = '';
+  resumoCarregando = true; // inicia carregando para mostrar spinner imediatamente
+  resumoErro = false;
+
   constructor(
     private authService: AuthService,
+    private apiService: ApiService,
     private router: Router,
     private alertCtrl: AlertController,
     private loadingCtrl: LoadingController
@@ -22,6 +28,20 @@ export class HomePage implements OnInit {
 
   ngOnInit(): void {
     this.currentUser$ = this.authService.currentUser$;
+    this.carregarResumo();
+  }
+
+  async carregarResumo() {
+    this.resumoCarregando = true;
+    this.resumoErro = false;
+    try {
+      const res = await lastValueFrom(this.apiService.getResumoDia());
+      this.resumoIA = res.resumo;
+    } catch {
+      this.resumoErro = true;
+    } finally {
+      this.resumoCarregando = false;
+    }
   }
 
   async onLogout(): Promise<void> {

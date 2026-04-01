@@ -2,13 +2,14 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { PermissaoService, Permissao } from '../../core/services/permissao.service';
-import { Observable, Subscription } from 'rxjs';
+import {lastValueFrom, Observable, Subscription} from 'rxjs';
 import { User } from '../../core/models/user.model';
 import { addIcons } from 'ionicons';
 import { calendar, people, paw, cut, gift, settings, cash, barChartOutline, peopleOutline, layersOutline, checkmarkCircle, timeOutline, alertCircleOutline, chevronForwardOutline, chevronDownOutline, chevronUpOutline, calendarOutline } from 'ionicons/icons';
 import { AtendimentoService } from '../../core/services/atendimento.service';
 import { CaixaService } from '../../core/services/caixa.service';
 import { Atendimento } from '../../core/models/atendimento.model';
+import {ApiService} from "@core/services/api.service";
 
 interface SmallCard {
   label: string;
@@ -55,6 +56,9 @@ export class InicioPage implements OnInit, OnDestroy {
   smallCards: SmallCard[] = [];
 
   private userSub?: Subscription;
+  resumoIA = '';
+  resumoCarregando = true; // inicia carregando para mostrar spinner imediatamente
+  resumoErro = false;
 
   constructor(
     private router: Router,
@@ -62,6 +66,7 @@ export class InicioPage implements OnInit, OnDestroy {
     public permissao: PermissaoService,
     private atendimentoService: AtendimentoService,
     private caixaService: CaixaService,
+    private apiService: ApiService,
   ) {
     this.currentUser$ = this.authService.currentUser$;
     addIcons({ calendar, people, paw, cut, gift, settings, cash, barChartOutline, peopleOutline, layersOutline, checkmarkCircle, timeOutline, alertCircleOutline, chevronForwardOutline, chevronDownOutline, chevronUpOutline, calendarOutline });
@@ -76,12 +81,28 @@ export class InicioPage implements OnInit, OnDestroy {
       );
     });
     this.carregarStats();
+    this.carregarResumo();
   }
 
   ionViewWillEnter() { this.carregarStats(); }
 
   ngOnDestroy() {
     this.userSub?.unsubscribe();
+  }
+
+
+  async carregarResumo() {
+    this.resumoCarregando = true;
+    this.resumoErro = false;
+    try {
+      const res = await lastValueFrom(this.apiService.getResumoDia());
+      console.log(`AAAAAAAAA`, res)
+      this.resumoIA = res.resumo;
+    } catch {
+      this.resumoErro = true;
+    } finally {
+      this.resumoCarregando = false;
+    }
   }
 
   toggleMostrarTodos() {

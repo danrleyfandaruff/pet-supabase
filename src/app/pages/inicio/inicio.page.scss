@@ -476,3 +476,98 @@
     &:active { background: rgba(56, 128, 255, 0.16); }
   }
 }
+
+.resumo-card {
+  border-radius: 16px;
+  padding: 4px;
+  background: linear-gradient(
+                  135deg,
+                  rgba(var(--ion-color-tertiary-rgb), 0.12),
+                  rgba(var(--ion-color-tertiary-rgb), 0.02)
+  );
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(var(--ion-color-tertiary-rgb), 0.15);
+
+  ion-card-header {
+    padding-bottom: 0;
+  }
+
+  ion-card-subtitle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ion-color-tertiary);
+    letter-spacing: 0.3px;
+  }
+}
+
+/* Glow no ícone */
+.icon-glow {
+  color: var(--ion-color-tertiary);
+  filter: drop-shadow(0 0 6px rgba(var(--ion-color-tertiary-rgb), 0.6));
+}
+
+/* Conteúdo principal */
+.resumo-container {
+  position: relative;
+  padding-top: 6px;
+}
+
+.resumo-texto {
+  font-size: 14px;
+  line-height: 1.7;
+  //color: var(--ion-color-dark);
+  margin: 0;
+  white-space: pre-line;
+  font-weight: 500;
+}
+
+/* Badge IA */
+.resumo-badge {
+  position: absolute;
+  top: -10px;   // sobe um pouco mais
+  right: -6px;  // encosta melhor na borda
+  font-size: 10px;
+  padding: 3px 7px;
+  border-radius: 999px;
+
+  background: linear-gradient(
+                  135deg,
+                  rgba(var(--ion-color-tertiary-rgb), 0.9),
+                  rgba(var(--ion-color-tertiary-rgb), 0.6)
+  );
+
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+
+  box-shadow: 0 2px 8px rgba(var(--ion-color-tertiary-rgb), 0.4);
+}
+
+/* Loading melhorado */
+.resumo-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ion-color-medium);
+  font-size: 13px;
+
+  ion-spinner {
+    transform: scale(0.9);
+  }
+}
+
+/* Erro */
+.resumo-erro-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.resumo-erro {
+  font-size: 13px;
+  color: var(--ion-color-medium);
+  margin: 0;
+}

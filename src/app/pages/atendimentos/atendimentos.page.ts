@@ -407,46 +407,76 @@ export class AtendimentosPage implements OnInit, OnDestroy {
 
   // ── Drag & Drop na time-grid ─────────────────────────
   dragState: {
-    active: boolean;
+    active: boolean;       // long press disparou — modo drag ativo
+    ready: boolean;        // timer está rodando (antes do long press)
     id: number | null;
+    pointerId: number;
     startPointerY: number;
     originalTop: number;
     ghostTop: number;
     wasDragged: boolean;
-  } = { active: false, id: null, startPointerY: 0, originalTop: 0, ghostTop: 0, wasDragged: false };
+    timer: any;
+  } = { active: false, ready: false, id: null, pointerId: 0,
+        startPointerY: 0, originalTop: 0, ghostTop: 0,
+        wasDragged: false, timer: null };
 
   getEventTopDynamic(a: Atendimento): number {
-    if (this.dragState.active && this.dragState.id === a.id) return this.dragState.ghostTop;
+    if ((this.dragState.active || this.dragState.ready) && this.dragState.id === a.id)
+      return this.dragState.ghostTop;
     return this.getEventTop(a.horario!);
   }
 
   onDragStart(e: PointerEvent, a: Atendimento) {
     e.stopPropagation();
-    (e.currentTarget as Element).setPointerCapture(e.pointerId);
+
+    const originalTop = this.getEventTop(a.horario!);
+
+    // Inicia timer de long press (350ms)
+    const timer = setTimeout(() => {
+      // Captura o ponteiro só ao entrar no modo drag
+      (e.target as Element).setPointerCapture(this.dragState.pointerId);
+      this.dragState = { ...this.dragState, active: true, ready: false };
+      // Vibração háptica no mobile
+      if ((navigator as any).vibrate) (navigator as any).vibrate(40);
+    }, 350);
+
     this.dragState = {
-      active: true,
-      id: a.id!,
+      active: false, ready: true,
+      id: a.id!, pointerId: e.pointerId,
       startPointerY: e.clientY,
-      originalTop: this.getEventTop(a.horario!),
-      ghostTop: this.getEventTop(a.horario!),
-      wasDragged: false,
+      originalTop, ghostTop: originalTop,
+      wasDragged: false, timer,
     };
   }
 
   onDragMove(e: PointerEvent) {
+    const delta = e.clientY - this.dragState.startPointerY;
+
+    // Se mexeu antes do long press disparar → cancela o drag (era scroll)
+    if (this.dragState.ready && !this.dragState.active && Math.abs(delta) > 6) {
+      clearTimeout(this.dragState.timer);
+      this.dragState = { ...this.dragState, ready: false, id: null };
+      return;
+    }
+
     if (!this.dragState.active) return;
     e.preventDefault();
-    const delta = e.clientY - this.dragState.startPointerY;
+
     const ghostTop = Math.max(0, this.dragState.originalTop + delta);
-    this.dragState = { ...this.dragState, ghostTop, wasDragged: Math.abs(delta) > 8 };
+    this.dragState = { ...this.dragState, ghostTop, wasDragged: Math.abs(delta) > 4 };
   }
 
   async onDragEnd(e: PointerEvent, a: Atendimento) {
-    if (!this.dragState.active) return;
-    const { ghostTop, wasDragged, id } = this.dragState;
-    this.dragState = { active: false, id: null, startPointerY: 0, originalTop: 0, ghostTop: 0, wasDragged: false };
+    clearTimeout(this.dragState.timer);
 
-    if (!wasDragged) { this.openForm(a); return; } // foi um click normal
+    const { active, wasDragged, ghostTop, id } = this.dragState;
+    this.dragState = { ...this.dragState, active: false, ready: false, id: null, timer: null };
+
+    // Não estava em modo drag → tap normal → abre form
+    if (!active || !wasDragged) {
+      this.openForm(a);
+      return;
+    }
 
     // Snap para slots de 15 minutos
     const slotPx = this.SLOT_HEIGHT / 4;

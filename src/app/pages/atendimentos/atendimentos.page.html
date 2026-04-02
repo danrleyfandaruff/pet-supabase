@@ -170,6 +170,7 @@
              [style.left]="eventLayoutMap.get(a.id!)?.left"
              [style.width]="eventLayoutMap.get(a.id!)?.width"
              [class.event-pago]="a.pago"
+             [class.event-drag-ready]="dragState.ready && dragState.id === a.id"
              [class.event-dragging]="dragState.active && dragState.id === a.id"
              (pointerdown)="onDragStart($event, a)"
              (pointermove)="onDragMove($event)"

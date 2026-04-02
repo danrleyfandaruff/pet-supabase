@@ -49,9 +49,9 @@
     <!-- Cards por tosador -->
     <div class="tosador-card" *ngFor="let item of comissoes">
       <div class="tosador-header">
-        <div class="tosador-avatar">{{ item.responsavel.nome[0].toUpperCase() }}</div>
+        <div class="tosador-avatar">{{ item.colaborador.nome?.[0]?.toUpperCase() }}</div>
         <div class="tosador-info">
-          <h3>{{ item.responsavel.nome }}</h3>
+          <h3>{{ item.colaborador.nome }}</h3>
           <span class="qtd-label">{{ item.atendimentos.length }} atendimentos pagos</span>
         </div>
         <button class="pct-btn" (click)="editarPercentual(item)">
@@ -82,8 +82,8 @@
       <div class="empty-icon">
         <ion-icon name="people-outline"></ion-icon>
       </div>
-      <h3>Nenhum responsável</h3>
-      <p>Cadastre tosadores na tela de configurações para ver as comissões.</p>
+      <h3>Nenhum colaborador</h3>
+      <p>Cadastre colaboradores para ver as comissões.</p>
     </div>
 
   </div>

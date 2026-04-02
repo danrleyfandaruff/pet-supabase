@@ -1253,3 +1253,515 @@
 
 /// ── Web: coluna única igual ao mobile, sem sidebar ──────────
 // Nenhuma alteração de layout no web — mesma experiência do mobile
+
+// ══ TIMELINE MULTI-COLUNAS ══════════════════════════════════
+
+$col-width: 148px;
+$gutter-width: 48px;
+$slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
+
+.tl-outer {
+  display: flex;
+  flex-direction: column;
+  background: #f0f2f5;
+}
+
+// ── Cabeçalho fixo das colunas ────────────────────────────────
+.tl-header-row {
+  display: flex;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: #fff;
+  border-bottom: 2px solid #e8eaf0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  min-width: max-content;
+}
+
+.tl-gutter-head {
+  width: $gutter-width;
+  flex-shrink: 0;
+}
+
+.tl-col-head {
+  width: $col-width;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 10px 10px 8px;
+  border-left: 1px solid #f0f2f5;
+}
+
+.tl-avatar {
+  width: 34px !important;
+  height: 34px !important;
+  font-size: 12px !important;
+  flex-shrink: 0;
+}
+
+.tl-col-head-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.tl-col-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1a1a2e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tl-col-count {
+  font-size: 10px;
+  color: var(--ion-color-primary);
+  font-weight: 600;
+}
+
+// ── Sem horário (all-day row) ─────────────────────────────────
+.tl-allday-row {
+  display: flex;
+  background: #fff7ed;
+  border-bottom: 1px solid #fed7aa;
+  min-width: max-content;
+  padding: 6px 0;
+}
+
+.tl-allday-label {
+  width: $gutter-width;
+  flex-shrink: 0;
+  font-size: 9px;
+  font-weight: 700;
+  color: #f97316;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+.tl-allday-cols {
+  display: flex;
+  flex: 1;
+}
+
+.tl-allday-col {
+  width: $col-width;
+  flex-shrink: 0;
+  padding: 2px 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  border-left: 1px solid #f0f2f5;
+}
+
+.tl-allday-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: #fff;
+  border: 1px solid #fed7aa;
+  border-radius: 20px;
+  padding: 3px 8px 3px 8px;
+  font-size: 11px;
+  color: #92400e;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &.tl-allday-pago {
+    border-color: #bbf7d0;
+    color: #166534;
+    background: #f0fdf4;
+  }
+
+  ion-button { height: 20px; --padding-start: 2px; --padding-end: 2px; }
+}
+
+.tl-allday-serv { opacity: 0.7; }
+
+// ── Grid de horários ─────────────────────────────────────────
+.tl-scroll {
+  overflow-x: auto;
+  overflow-y: auto;
+  flex: 1;
+  -webkit-overflow-scrolling: touch;
+  max-height: calc(100vh - 260px);
+
+  &::-webkit-scrollbar { height: 4px; width: 4px; }
+  &::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
+}
+
+.tl-body-row {
+  display: flex;
+  min-width: max-content;
+  position: relative;
+}
+
+.tl-time-col {
+  width: $gutter-width;
+  flex-shrink: 0;
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  background: #fff;
+  border-right: 1px solid #e8eaf0;
+}
+
+.tl-time-cell {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 3px 6px 0 0;
+  font-size: 10px;
+  font-weight: 500;
+  color: #9aa5b8;
+  border-top: 1px solid #e8eaf0;
+  box-sizing: border-box;
+}
+
+.tl-cols-area {
+  display: flex;
+  position: relative; // para o ghost
+  flex: 1;
+}
+
+.tl-col {
+  width: $col-width;
+  flex-shrink: 0;
+  position: relative;
+  border-left: 1px solid #e8eaf0;
+}
+
+.tl-hour-row {
+  border-top: 1px solid #e8eaf0;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: background 0.12s;
+
+  &:hover { background: rgba(99, 102, 241, 0.05); }
+
+  // Meia hora (30min dashed)
+  &::after {
+    content: '';
+    display: block;
+    height: calc(50%);
+    border-bottom: 1px dashed #f0f2f5;
+  }
+}
+
+// ── Linha "agora" ─────────────────────────────────────────────
+.tl-now-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #ef4444;
+  z-index: 4;
+  pointer-events: none;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: -4px;
+    width: 10px;
+    height: 10px;
+    background: #ef4444;
+    border-radius: 50%;
+  }
+}
+
+// ── Bloco de evento ─────────────────────────────────────────────
+.tl-event {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  height: 52px;
+  min-height: 32px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-radius: 7px;
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+  z-index: 3;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(99,102,241,0.28);
+  touch-action: none;
+  transition: opacity 0.15s, transform 0.15s;
+  user-select: none;
+
+  &.tl-ev-pago {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    box-shadow: 0 2px 8px rgba(34,197,94,0.28);
+  }
+
+  &.tl-ev-dragging {
+    opacity: 0.35;
+    transform: scale(0.96);
+    transition: none;
+  }
+}
+
+.tl-ev-stripe {
+  width: 4px;
+  background: rgba(255,255,255,0.28);
+  flex-shrink: 0;
+}
+
+.tl-ev-info {
+  flex: 1;
+  padding: 4px 4px 4px 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.tl-ev-time {
+  font-size: 9px;
+  color: rgba(255,255,255,0.75);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.tl-ev-name {
+  font-size: 12px;
+  color: #fff;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tl-ev-serv {
+  font-size: 10px;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tl-ev-status {
+  display: inline-block;
+  font-size: 8px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.22);
+  color: #fff;
+  width: fit-content;
+  margin-top: 1px;
+}
+
+.tl-ev-btns {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2px 1px;
+  flex-shrink: 0;
+
+  ion-button {
+    --color: rgba(255,255,255,0.8);
+    --padding-start: 3px;
+    --padding-end: 3px;
+    height: 26px;
+  }
+}
+
+// ── Ghost de drag ────────────────────────────────────────────
+.tl-ghost {
+  position: absolute;
+  height: 52px;
+  background: rgba(99,102,241,0.15);
+  border: 2px dashed #6366f1;
+  border-radius: 7px;
+  z-index: 30;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  color: #6366f1;
+  font-size: 13px;
+  font-weight: 700;
+
+  ion-icon { font-size: 15px; }
+}
+
+// ── Vista colunas por colaborador ─────────────────────────────
+.agenda-cols-scroll {
+  display: flex;
+  flex-direction: row;
+  overflow-x: auto;
+  gap: 12px;
+  padding: 12px 12px 80px; // padding-bottom para o FAB
+  min-height: 60vh;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar { display: none; }
+}
+
+.agenda-col {
+  min-width: min(76vw, 260px);
+  flex-shrink: 0;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 14px rgba(0,0,0,0.07);
+  overflow: hidden;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+
+  // Em telas maiores, colunas ficam lado a lado sem snap
+  @media (min-width: 600px) {
+    min-width: 220px;
+    flex: 1;
+  }
+}
+
+.agenda-col-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 14px 12px;
+  border-bottom: 1px solid #f0f2f5;
+  background: #fafbff;
+  position: sticky;
+  top: 0;
+}
+
+.agenda-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+
+.agenda-col-nome {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1a2e;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.agenda-col-count {
+  background: var(--ion-color-primary);
+  color: #fff;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.agenda-col-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 10px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.agenda-col-vazio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+  gap: 10px;
+  color: #c5cdd8;
+
+  ion-icon { font-size: 32px; }
+
+  span {
+    font-size: 12px;
+    text-align: center;
+    line-height: 1.5;
+    color: #bcc4d0;
+  }
+}
+
+.agenda-card {
+  background: #f4f6ff;
+  border-radius: 14px;
+  padding: 11px 13px 9px;
+  border-left: 3px solid var(--ion-color-primary);
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s;
+
+  &:active { transform: scale(0.975); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+
+  &.card-pago {
+    border-left-color: #22c55e;
+    background: #f0fdf4;
+  }
+}
+
+.card-time-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--ion-color-primary);
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 5px;
+
+  ion-icon { font-size: 13px; flex-shrink: 0; }
+  .card-pago & { color: #16a34a; }
+}
+
+.card-pet-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 2px;
+}
+
+.card-service {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 7px;
+}
+
+.card-footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.card-btns {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  gap: 0;
+
+  ion-button {
+    --padding-start: 4px;
+    --padding-end: 4px;
+    height: 30px;
+  }
+}

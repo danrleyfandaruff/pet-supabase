@@ -5,7 +5,6 @@ import { AlertController, LoadingController, ModalController, ToastController } 
 import { AtendimentoService } from '../../core/services/atendimento.service';
 import { AnimalService } from '../../core/services/animal.service';
 import { ClienteService } from '../../core/services/cliente.service';
-import { ResponsavelService } from '../../core/services/responsavel.service';
 import { StatusService } from '../../core/services/status.service';
 import { ServicoService } from '../../core/services/servico.service';
 import { PacoteService } from '../../core/services/pacote.service';
@@ -13,10 +12,11 @@ import { AquisicaoPacoteService } from '../../core/services/aquisicao-pacote.ser
 import { Atendimento } from '../../core/models/atendimento.model';
 import { Animal } from '../../core/models/animal.model';
 import { Cliente } from '../../core/models/cliente.model';
-import { Responsavel } from '../../core/models/responsavel.model';
 import { Status } from '../../core/models/status.model';
 import { Servico } from '../../core/models/servico.model';
 import { Pacote } from '../../core/models/pacote.model';
+import { ColaboradorService } from '../../core/services/colaborador.service';
+import { Colaborador } from '../../core/models/colaborador.model';
 
 @Component({
   selector: 'app-atendimento-form',
@@ -31,7 +31,7 @@ export class AtendimentoFormComponent implements OnInit {
   clientes: Cliente[] = [];
   todosAnimais: Animal[] = [];
   animaisFiltrados: Animal[] = [];
-  responsaveis: Responsavel[] = [];
+  colaboradores: Colaborador[] = [];
   statusList: Status[] = [];
   servicos: Servico[] = [];
   pacotes: Pacote[] = [];
@@ -47,7 +47,7 @@ export class AtendimentoFormComponent implements OnInit {
     private atendimentoService: AtendimentoService,
     private animalService: AnimalService,
     private clienteService: ClienteService,
-    private responsavelService: ResponsavelService,
+    private colaboradorService: ColaboradorService,
     private statusService: StatusService,
     private servicoService: ServicoService,
     private pacoteService: PacoteService,
@@ -64,17 +64,17 @@ export class AtendimentoFormComponent implements OnInit {
       id_animal:       [this.atendimento?.id_animal || null],
       data:            [this.atendimento?.data || new Date().toISOString().split('T')[0], Validators.required],
       horario:         [this.atendimento?.horario || null],
-      id_responsavel:  [this.atendimento?.id_responsavel || null],
+      id_colaborador:  [this.atendimento?.id_colaborador || null],
       status:          [this.atendimento?.status || null],
       id_servico:      [this.atendimento?.id_servico || null],
       id_pacote:       [this.atendimento?.id_pacote || null],
       valor_adicional: [this.atendimento?.valor_adicional || null],
     });
 
-    const [clientes, animais, responsaveis, statusList, servicos, pacotes] = await Promise.all([
+    const [clientes, animais, colaboradores, statusList, servicos, pacotes] = await Promise.all([
       this.clienteService.getAll(),
       this.animalService.getAll(),
-      this.responsavelService.getAll(),
+      this.colaboradorService.getAll(),
       this.statusService.getAll(),
       this.servicoService.getAll(),
       this.pacoteService.getAll(),
@@ -83,7 +83,7 @@ export class AtendimentoFormComponent implements OnInit {
     this.clientes = clientes;
     this.todosAnimais = animais;
     this.animaisFiltrados = animais;
-    this.responsaveis = responsaveis;
+    this.colaboradores = colaboradores.filter(c => c.ativo !== false);
     this.statusList = statusList;
     this.servicos = servicos.filter(s => s.ativo !== false);
     this.pacotes = pacotes.filter(p => p.ativo !== false);
@@ -186,7 +186,7 @@ export class AtendimentoFormComponent implements OnInit {
         ...fv,
         id_cliente:          fv.id_cliente      || null,
         id_animal:           fv.id_animal       || null,
-        id_responsavel:      fv.id_responsavel  || null,
+        id_colaborador:      fv.id_colaborador  || null,
         id_servico:          fv.id_servico      || null,
         id_pacote:           fv.id_pacote       || null,
         status:              fv.status          || null,
@@ -253,7 +253,7 @@ export class AtendimentoFormComponent implements OnInit {
       const base = {
         id_cliente:          fv.id_cliente      || null,
         id_animal:           fv.id_animal       || null,
-        id_responsavel:      fv.id_responsavel  || null,
+        id_colaborador:      fv.id_colaborador  || null,
         status:              fv.status          || null,
         id_servico:          fv.id_servico      || null,
         id_pacote:           fv.id_pacote,

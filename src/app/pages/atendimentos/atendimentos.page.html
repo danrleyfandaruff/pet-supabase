@@ -107,121 +107,140 @@
       <ion-spinner name="crescent" color="primary"></ion-spinner>
     </div>
 
-    <!-- ── Eventos sem horário (all-day) ── -->
-    <div class="allday-row" *ngIf="!isLoading && atendimentosSemHorario.length > 0">
-      <span class="allday-label">Sem horário</span>
-      <div class="allday-chips">
-        <div class="allday-chip"
-             *ngFor="let a of atendimentosSemHorario"
-             [class.allday-pago]="a.pago">
-          <div class="allday-info" (click)="openForm(a)">
-            <span class="allday-name">{{ a.animal?.nome || a.cliente?.nome || '?' }}</span>
-            <span class="allday-serv" *ngIf="a.servico?.nome">{{ a.servico?.nome }}</span>
-            <ion-badge class="allday-status-badge"
-              *ngIf="a.status_info?.nome"
-              [ngClass]="getBadgeClass(a.status_info?.nome)"
-              (click)="mudarStatus(a, $event); $event.stopPropagation()">
-              {{ a.status_info?.nome }}
-            </ion-badge>
-          </div>
-          <div class="allday-actions">
-            <ion-button fill="clear" size="small"
-              *ngIf="a.pago || temValor(a)"
-              [color]="a.pago ? 'medium' : 'success'"
-              (click)="a.pago ? confirmarDesfazerPagamento(a) : abrirPagamento(a); $event.stopPropagation()">
-              <ion-icon slot="icon-only" [name]="a.pago ? 'arrow-undo-outline' : 'cash-outline'"></ion-icon>
-            </ion-button>
-            <ion-button fill="clear" size="small" color="medium"
-              *ngIf="!a.pago && !temValor(a)"
-              (click)="$event.stopPropagation()">
-              <ion-icon slot="icon-only" name="cash-outline" style="opacity:0.3"></ion-icon>
-            </ion-button>
-            <ion-button fill="clear" size="small" color="primary"
-              (click)="openForm(a); $event.stopPropagation()">
-              <ion-icon slot="icon-only" name="create-outline"></ion-icon>
-            </ion-button>
-          </div>
-        </div>
+    <!-- ══ TIMELINE MULTI-COLUNAS ══════════════════════════ -->
+    <ng-container *ngIf="!isLoading">
+
+      <!-- Empty state -->
+      <div class="gcal-empty" *ngIf="atendimentosDoDia.length === 0">
+        <div class="gcal-empty-icon"><ion-icon name="calendar-outline"></ion-icon></div>
+        <p>Nenhum atendimento</p>
+        <p class="gcal-empty-hint">Toque no + para agendar</p>
       </div>
-    </div>
 
-    <!-- ── Time grid ── -->
-    <div class="time-grid-scroll" *ngIf="!isLoading">
-      <div class="time-grid">
+      <div class="tl-outer" *ngIf="colunasAgenda.length > 0">
 
-        <!-- Linhas de hora (background) -->
-        <div class="hour-row"
-             *ngFor="let h of horasGrid"
-             (click)="openFormAtTime(h)">
-          <span class="hour-label">{{ h }}</span>
-          <div class="hour-line"></div>
-        </div>
-
-        <!-- Linha "agora" -->
-        <div class="now-indicator" *ngIf="isDiaSelecionadoHoje" [style.top.px]="nowTop">
-          <div class="now-dot"></div>
-          <div class="now-line"></div>
-        </div>
-
-        <!-- Blocos de eventos posicionados por horário (sem sobreposição) -->
-        <div class="event-block"
-             *ngFor="let a of atendimentosComHorario"
-             [style.top.px]="getEventTopDynamic(a)"
-             [style.left]="eventLayoutMap.get(a.id!)?.left"
-             [style.width]="eventLayoutMap.get(a.id!)?.width"
-             [class.event-pago]="a.pago"
-             [class.event-dragging]="dragState.active && dragState.id === a.id"
-             (pointermove)="onDragMove($event)"
-             (pointerup)="onDragEnd($event)"
-             (pointercancel)="dragState.active = false"
-             (click)="onEventClick(a); $event.stopPropagation()">
-          <div class="event-color-bar"></div>
-
-          <!-- Handle de drag — área grande na lateral esquerda -->
-          <div class="event-drag-handle"
-               (pointerdown)="onDragStart($event, a)"
-               (click)="$event.stopPropagation()">
-            <ion-icon name="reorder-three-outline"></ion-icon>
-            <ion-icon name="reorder-three-outline"></ion-icon>
-          </div>
-
-          <div class="event-content">
-            <span class="event-time-label">{{ a.horario }}</span>
-            <span class="event-title">{{ a.animal?.nome || a.cliente?.nome || 'Sem pet' }}</span>
-            <span class="event-sub" *ngIf="a.servico?.nome || a.responsavel?.nome">
-              {{ a.servico?.nome }}{{ a.servico?.nome && a.responsavel?.nome ? ' · ' : '' }}{{ a.responsavel?.nome }}
-            </span>
-            <span class="event-status-pill"
-                  *ngIf="a.status_info?.nome"
-                  [ngClass]="getBadgeClass(a.status_info?.nome)">
-              {{ a.status_info?.nome }}
-            </span>
-          </div>
-          <div class="event-actions" (pointerdown)="$event.stopPropagation()">
-            <ion-button fill="clear" size="small" [color]="a.pago ? 'medium' : 'success'"
-              *ngIf="a.pago || temValor(a)"
-              (click)="a.pago ? confirmarDesfazerPagamento(a) : abrirPagamento(a); $event.stopPropagation()">
-              <ion-icon slot="icon-only" [name]="a.pago ? 'arrow-undo-outline' : 'cash-outline'"></ion-icon>
-            </ion-button>
-            <ion-button fill="clear" size="small" color="medium"
-              *ngIf="!a.pago && !temValor(a)"
-              (click)="$event.stopPropagation()">
-              <ion-icon slot="icon-only" name="cash-outline" style="opacity:0.3"></ion-icon>
-            </ion-button>
+        <!-- ── Cabeçalhos das colunas (sticky top) ── -->
+        <div class="tl-header-row">
+          <div class="tl-gutter-head"></div>
+          <div class="tl-col-head" *ngFor="let col of colunasAgenda">
+            <div class="agenda-avatar tl-avatar" [style.background]="getAvatarColor(col.nome)">
+              {{ getInitials(col.nome) }}
+            </div>
+            <div class="tl-col-head-info">
+              <span class="tl-col-name">{{ col.nome }}</span>
+              <span class="tl-col-count" *ngIf="col.comHorario.length + col.semHorario.length > 0">
+                {{ col.comHorario.length + col.semHorario.length }}
+              </span>
+            </div>
           </div>
         </div>
 
-      </div>
-    </div>
+        <!-- ── Sem horário (all-day row) ── -->
+        <div class="tl-allday-row" *ngIf="hasSemHorario">
+          <div class="tl-allday-label">Sem horário</div>
+          <div class="tl-allday-cols">
+            <div class="tl-allday-col" *ngFor="let col of colunasAgenda">
+              <div class="tl-allday-chip"
+                   *ngFor="let a of col.semHorario"
+                   [class.tl-allday-pago]="a.pago"
+                   (click)="openForm(a)">
+                <span>{{ a.animal?.nome || a.cliente?.nome || '?' }}</span>
+                <span class="tl-allday-serv" *ngIf="a.servico?.nome"> · {{ a.servico?.nome }}</span>
+                <ion-button fill="clear" size="small" [color]="a.pago ? 'medium' : 'success'"
+                  *ngIf="a.pago || temValor(a)"
+                  (click)="a.pago ? confirmarDesfazerPagamento(a) : abrirPagamento(a); $event.stopPropagation()">
+                  <ion-icon slot="icon-only" [name]="a.pago ? 'arrow-undo-outline' : 'cash-outline'"></ion-icon>
+                </ion-button>
+              </div>
+            </div>
+          </div>
+        </div>
 
-    <!-- ── Empty state ── -->
-    <div class="gcal-empty" *ngIf="!isLoading && atendimentosDoDia.length === 0">
-      <div class="gcal-empty-icon">
-        <ion-icon name="calendar-outline"></ion-icon>
-      </div>
-      <p>Nenhum atendimento</p>
-      <p class="gcal-empty-hint">Toque em um horário ou no + para agendar</p>
-    </div>
+        <!-- ── Grid de horários + blocos ── -->
+        <div class="tl-scroll">
+          <div class="tl-body-row">
+
+            <!-- Labels de hora (sticky left) -->
+            <div class="tl-time-col">
+              <div class="tl-time-cell"
+                   *ngFor="let h of horasGrid"
+                   [style.height.px]="SLOT_HEIGHT">
+                {{ h }}
+              </div>
+            </div>
+
+            <!-- Colunas de eventos -->
+            <div class="tl-cols-area"
+                 #timelineBody
+                 [style.height.px]="horasGrid.length * SLOT_HEIGHT"
+                 (pointermove)="onDragMove($event)"
+                 (pointerup)="onDragEnd($event)"
+                 (pointercancel)="onDragCancel()">
+
+              <div class="tl-col" #timelineCol
+                   *ngFor="let col of colunasAgenda; let ci = index">
+
+                <!-- Linhas de hora (clicáveis para novo atendimento) -->
+                <div class="tl-hour-row"
+                     *ngFor="let h of horasGrid"
+                     [style.height.px]="SLOT_HEIGHT"
+                     (click)="openFormAtTimeAndCol(h, col)">
+                </div>
+
+                <!-- Linha "agora" -->
+                <div class="tl-now-line" *ngIf="isDiaSelecionadoHoje" [style.top.px]="nowTop"></div>
+
+                <!-- Blocos de evento com horário -->
+                <div class="tl-event"
+                     *ngFor="let a of col.comHorario"
+                     [class.tl-ev-pago]="a.pago"
+                     [class.tl-ev-dragging]="dragState.active && dragState.id === a.id"
+                     [style.top.px]="getEventTop(a.horario!)"
+                     (pointerdown)="onDragStart($event, a, ci)"
+                     (click)="onEventClick(a, $event)">
+                  <div class="tl-ev-stripe"></div>
+                  <div class="tl-ev-info">
+                    <span class="tl-ev-time">{{ a.horario }}</span>
+                    <span class="tl-ev-name">{{ a.animal?.nome || a.cliente?.nome || '?' }}</span>
+                    <span class="tl-ev-serv" *ngIf="a.servico?.nome">{{ a.servico?.nome }}</span>
+                    <span class="tl-ev-status" *ngIf="a.status_info?.nome"
+                          [ngClass]="getBadgeClass(a.status_info?.nome)"
+                          (click)="mudarStatus(a, $event); $event.stopPropagation()">
+                      {{ a.status_info?.nome }}
+                    </span>
+                  </div>
+                  <div class="tl-ev-btns" (pointerdown)="$event.stopPropagation()">
+                    <ion-button fill="clear" size="small" [color]="a.pago ? 'medium' : 'success'"
+                      *ngIf="a.pago || temValor(a)"
+                      (click)="a.pago ? confirmarDesfazerPagamento(a) : abrirPagamento(a); $event.stopPropagation()">
+                      <ion-icon slot="icon-only" [name]="a.pago ? 'arrow-undo-outline' : 'cash-outline'"></ion-icon>
+                    </ion-button>
+                    <ion-button fill="clear" size="small" color="medium"
+                      *ngIf="!a.pago && !temValor(a)" (click)="$event.stopPropagation()">
+                      <ion-icon slot="icon-only" name="cash-outline" style="opacity:0.3"></ion-icon>
+                    </ion-button>
+                  </div>
+                </div>
+
+              </div><!-- /tl-col -->
+
+              <!-- Ghost de drag (preview da posição alvo) -->
+              <div class="tl-ghost"
+                   *ngIf="dragState.active && dragState.movedEnough"
+                   [style.top.px]="dragState.ghostTop"
+                   [style.left.px]="ghostLeft"
+                   [style.width.px]="ghostWidth">
+                <ion-icon name="time-outline"></ion-icon>
+                <span>{{ snappedGhostHorario }}</span>
+              </div>
+
+            </div><!-- /tl-cols-area -->
+          </div><!-- /tl-body-row -->
+        </div><!-- /tl-scroll -->
+
+      </div><!-- /tl-outer -->
+
+    </ng-container>
 
   </div>
 
@@ -283,7 +302,7 @@
           <p class="card-meta">
             {{ formatDate(a.data) }}
             <span *ngIf="a.horario"> · {{ a.horario }}</span>
-            <span *ngIf="a.responsavel?.nome"> · {{ a.responsavel?.nome }}</span>
+            <span *ngIf="a.colaborador?.nome || a.responsavel?.nome"> · {{ a.colaborador?.nome || a.responsavel?.nome }}</span>
           </p>
 
           <div class="card-tags">

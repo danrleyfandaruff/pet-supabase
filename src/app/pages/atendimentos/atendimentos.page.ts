@@ -1,5 +1,5 @@
 import { errorMsg } from '../../core/utils/error.utils';
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild, ViewChildren, QueryList, ElementRef } from '@angular/core';
 import { ActionSheetController, AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { AtendimentoService } from '../../core/services/atendimento.service';
 import { Atendimento } from '../../core/models/atendimento.model';
@@ -7,11 +7,22 @@ import { AtendimentoFormComponent } from './atendimento-form.component';
 import { StatusService } from '../../core/services/status.service';
 import { Status } from '../../core/models/status.model';
 import { FORMAS_PAGAMENTO, FormaPagamento } from '../../core/models/caixa.model';
+import { AuthService } from '../../core/services/auth.service';
+import { ColaboradorService } from '../../core/services/colaborador.service';
+import { Colaborador } from '../../core/models/colaborador.model';
+
+type ColunaAgenda = {
+  id: string | null;
+  nome: string;
+  comHorario: Atendimento[];
+  semHorario: Atendimento[];
+};
 
 @Component({
   selector: 'app-atendimentos',
   templateUrl: './atendimentos.page.html',
   styleUrls: ['./atendimentos.page.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AtendimentosPage implements OnInit, OnDestroy {
   atendimentos: Atendimento[] = [];
@@ -34,90 +45,126 @@ export class AtendimentosPage implements OnInit, OnDestroy {
     return `${String(h).padStart(2, '0')}:00`;
   });
   readonly GRID_START_HOUR = 7;
-  readonly SLOT_HEIGHT = 64; // px por hora
+  readonly SLOT_HEIGHT = 60; // px por hora (deve bater com $slot-h no SCSS)
 
   nowTop = 0;
   private nowTimer: any;
   diasStrip: { iso: string; num: number; dow: string; isHoje: boolean }[] = [];
 
-  get atendimentosDoDia(): Atendimento[] {
-    if (!this.diaSelecionado) return [];
-    const dataStr = this.buildDataStr(this.diaSelecionado);
-    return this.atendimentos
-      .filter(a => a.data?.startsWith(dataStr))
-      .sort((a, b) => (a.horario || '99:99').localeCompare(b.horario || '99:99'));
-  }
+  // ── Propriedades computadas (atualizadas só quando os dados mudam) ──────
+  // Não são getters para evitar recálculo a cada ciclo de change detection
+  atendimentosDoDia: Atendimento[] = [];
+  isDiaSelecionadoHoje = false;
+  diaSelecionadoLabel = '';
+  private datasComAtendimento = new Set<string>();
+  private atendimentosPorData = new Map<string, Atendimento[]>();
 
-  get atendimentosComHorario(): Atendimento[] {
-    return this.atendimentosDoDia.filter(a => !!a.horario);
-  }
-
-  get atendimentosSemHorario(): Atendimento[] {
-    return this.atendimentosDoDia.filter(a => !a.horario);
-  }
-
-  get isDiaSelecionadoHoje(): boolean {
+  private recalcularDia() {
+    // isDiaSelecionadoHoje
     const hoje = new Date();
-    return this.diaSelecionado === hoje.getDate() &&
+    this.isDiaSelecionadoHoje = !!this.diaSelecionado &&
+      this.diaSelecionado === hoje.getDate() &&
       this.mesAtual.getMonth() === hoje.getMonth() &&
       this.mesAtual.getFullYear() === hoje.getFullYear();
-  }
 
-  get diaSelecionadoLabel(): string {
-    if (!this.diaSelecionado) return '';
+    if (!this.diaSelecionado) {
+      this.atendimentosDoDia = [];
+      this.diaSelecionadoLabel = '';
+      this.colunasAgenda = [];
+      return;
+    }
+
+    // diaSelecionadoLabel
     const d = new Date(this.mesAtual.getFullYear(), this.mesAtual.getMonth(), this.diaSelecionado);
-    const dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
-    const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-    return `${dias[d.getDay()]}, ${this.diaSelecionado} ${meses[d.getMonth()]}`;
+    const DIAS  = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+    const MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    this.diaSelecionadoLabel = `${DIAS[d.getDay()]}, ${this.diaSelecionado} ${MESES[d.getMonth()]}`;
+
+    // atendimentosDoDia
+    const dataStr = this.buildDataStr(this.diaSelecionado);
+    this.atendimentosDoDia = this.atendimentos
+      .filter(a => a.data?.startsWith(dataStr))
+      .sort((a, b) => (a.horario || '99:99').localeCompare(b.horario || '99:99'));
+
+    // colunasAgenda
+    this.recalcularColunas();
   }
 
-  getEventTop(horario: string): number {
-    const [h, m] = horario.split(':').map(Number);
-    return Math.max(0, (h * 60 + m - this.GRID_START_HOUR * 60) / 60 * this.SLOT_HEIGHT);
+  private normalizarNome(nome?: string | null): string {
+    return (nome ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
   }
 
-  /**
-   * Calcula posição (left + width) de cada evento para evitar sobreposição.
-   * Eventos no mesmo horário (±52min) ficam lado a lado, dividindo a largura.
-   */
-  get eventLayoutMap(): Map<number, { left: string; width: string }> {
-    const events = this.atendimentosComHorario;
-    const map = new Map<number, { left: string; width: string }>();
-    const DURATION = 52; // minutos assumidos por evento
-    const L = 58;        // px da margem esquerda (labels de hora)
-    const R = 8;         // px da margem direita
+  private recalcularColunas() {
+    const atds = this.atendimentosDoDia;
 
-    events.forEach(ev => {
-      const [h, m] = ev.horario!.split(':').map(Number);
-      const start = h * 60 + m;
-      const end   = start + DURATION;
-
-      // Todos os eventos que se sobrepõem a este
-      const group = events.filter(other => {
-        const [oh, om] = other.horario!.split(':').map(Number);
-        const os = oh * 60 + om;
-        return os < end && (os + DURATION) > start;
-      });
-
-      const total = group.length;
-      const col   = group.indexOf(ev);
-
-      const left  = total === 1
-        ? `${L}px`
-        : `calc(${L}px + (100% - ${L}px - ${R}px) * ${col} / ${total})`;
-      const width = total === 1
-        ? `calc(100% - ${L}px - ${R}px)`
-        : `calc((100% - ${L}px - ${R}px) / ${total} - 3px)`;
-
-      map.set(ev.id!, { left, width });
+    const splitCol = (lista: Atendimento[]) => ({
+      comHorario: lista.filter(a => !!a.horario).sort((a, b) =>
+        a.horario!.localeCompare(b.horario!)),
+      semHorario: lista.filter(a => !a.horario),
     });
 
-    return map;
+    // Atendimentos não vinculados a nenhum colaborador ativo
+    const semColuna = (ids: Set<string>, lista: Atendimento[]) =>
+      lista.filter(a => {
+        const rNome = this.normalizarNome(a.colaborador?.nome ?? a.responsavel?.nome);
+        return !rNome || !Array.from(ids).some(nome => nome === rNome);
+      });
+
+    if (!this.isAdmin) {
+      // Colaborador: encontra a si mesmo pelo e-mail
+      const userEmail = this.authService.currentUser?.email ?? '';
+      const eu = this.colaboradores.find(c => c.email?.toLowerCase() === userEmail.toLowerCase());
+      const meuNome = eu?.nome || this.authService.currentUser?.name || '';
+      const meuNomeKey = this.normalizarNome(meuNome);
+      const meus = atds.filter(a =>
+        this.normalizarNome(a.colaborador?.nome ?? a.responsavel?.nome) === meuNomeKey
+      );
+      this.colunasAgenda = [{
+        id: eu?.id ?? null,
+        nome: meuNome,
+        ...splitCol(meus),
+      }];
+      this.hasSemHorario = this.colunasAgenda.some(c => c.semHorario.length > 0);
+      return;
+    }
+
+    // Admin: uma coluna por colaborador ativo + "Sem responsável" se necessário
+    const colaboradoresAtivos = this.colaboradores.filter(c => c.ativo !== false);
+    const nomesAtivos = new Set(colaboradoresAtivos.map(c => this.normalizarNome(c.nome)));
+
+    const colunas: ColunaAgenda[] = colaboradoresAtivos
+      .sort((a, b) => (a.nome ?? '').localeCompare(b.nome ?? ''))
+      .map(col => {
+        const nomeKey = this.normalizarNome(col.nome);
+        const lista = atds.filter(a =>
+          this.normalizarNome(a.colaborador?.nome ?? a.responsavel?.nome) === nomeKey
+        );
+        return {
+          id: col.id,
+          nome: col.nome ?? '',
+          ...splitCol(lista),
+        };
+      });
+
+    // Coluna extra para atendimentos sem responsável ou com responsável fora dos colaboradores
+    const semResp = semColuna(nomesAtivos, atds);
+    if (semResp.length > 0) {
+      colunas.push({ id: null, nome: 'Sem colaborador', ...splitCol(semResp) });
+    }
+
+    this.colunasAgenda = colunas;
+    this.hasSemHorario = this.colunasAgenda.some(c => c.semHorario.length > 0);
   }
 
   private updateNowTop() {
     const now = new Date();
     this.nowTop = Math.max(0, (now.getHours() * 60 + now.getMinutes() - this.GRID_START_HOUR * 60) / 60 * this.SLOT_HEIGHT);
+    this.cdr.markForCheck();
   }
 
   private gerarDiasStrip() {
@@ -152,7 +199,7 @@ export class AtendimentosPage implements OnInit, OnDestroy {
   }
 
   temAtendimentoIso(iso: string): boolean {
-    return this.atendimentos.some(a => a.data?.startsWith(iso));
+    return this.datasComAtendimento.has(iso);
   }
 
   prevDay() {
@@ -229,7 +276,7 @@ export class AtendimentosPage implements OnInit, OnDestroy {
   }
 
   getAtendimentosDoDia(data: string): Atendimento[] {
-    return this.atendimentos.filter(a => a.data?.startsWith(data));
+    return this.atendimentosPorData.get(data) ?? [];
   }
 
   // ── Seleção múltipla ────────────────────────────────
@@ -405,111 +452,216 @@ export class AtendimentosPage implements OnInit, OnDestroy {
     return (Number(a.servico?.valor ?? 0) + Number(a.valor_adicional ?? 0)) > 0;
   }
 
-  // ── Drag & Drop na time-grid ─────────────────────────
-  private _suppressNextClick = false; // evita abrir form logo após arrastar
+  // ── Timeline: grid de horários ──────────────────────────
+  @ViewChild('timelineBody') timelineBodyRef!: ElementRef<HTMLElement>;
+  @ViewChildren('timelineCol') timelineCols!: QueryList<ElementRef<HTMLElement>>;
+
+  getEventTop(horario: string): number {
+    const [h, m] = horario.split(':').map(Number);
+    return Math.max(0, (h * 60 + m - this.GRID_START_HOUR * 60) / 60 * this.SLOT_HEIGHT);
+  }
+
+  async openFormAtTimeAndCol(horario: string, col: ColunaAgenda) {
+    const dataStr = this.diaSelecionado
+      ? this.buildDataStr(this.diaSelecionado)
+      : new Date().toISOString().split('T')[0];
+    await this.openForm({ data: dataStr, horario, id_colaborador: col.id ?? undefined } as Atendimento);
+  }
+
+  // ── Drag & Drop (tempo + coluna/profissional) ────────────
+  private _suppressNextClick = false;
 
   dragState: {
     active: boolean;
     id: number | null;
+    sourceColIndex: number;
+    startPointerX: number;
     startPointerY: number;
-    originalTop: number;
+    startEventTop: number;
     ghostTop: number;
-    totalDelta: number;
-  } = { active: false, id: null, startPointerY: 0, originalTop: 0, ghostTop: 0, totalDelta: 0 };
+    ghostColIndex: number;
+    movedEnough: boolean;
+  } = { active: false, id: null, sourceColIndex: 0, startPointerX: 0, startPointerY: 0, startEventTop: 0, ghostTop: 0, ghostColIndex: 0, movedEnough: false };
 
-  getEventTopDynamic(a: Atendimento): number {
-    if (this.dragState.active && this.dragState.id === a.id) return this.dragState.ghostTop;
-    return this.getEventTop(a.horario!);
+  get ghostLeft(): number {
+    const cols = this.timelineCols?.toArray();
+    const col = cols?.[this.dragState.ghostColIndex];
+    if (!col || !this.timelineBodyRef) return 0;
+    const bodyRect = this.timelineBodyRef.nativeElement.getBoundingClientRect();
+    return col.nativeElement.getBoundingClientRect().left - bodyRect.left;
   }
 
-  onDragStart(e: PointerEvent, a: Atendimento) {
+  get ghostWidth(): number {
+    const cols = this.timelineCols?.toArray();
+    return cols?.[this.dragState.ghostColIndex]?.nativeElement.getBoundingClientRect().width ?? 0;
+  }
+
+  get snappedGhostHorario(): string {
+    const totalMinutes = this.GRID_START_HOUR * 60 + (this.dragState.ghostTop / this.SLOT_HEIGHT) * 60;
+    const snapped = Math.round(totalMinutes / 15) * 15;
+    const h = Math.floor(snapped / 60);
+    const m = snapped % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  }
+
+  onDragStart(e: PointerEvent, a: Atendimento, colIndex: number) {
+    if (!a.horario) return;
     e.preventDefault();
     e.stopPropagation();
-    (e.currentTarget as Element).setPointerCapture(e.pointerId);
+    // Captura no body para receber move/up mesmo fora do bloco
+    this.timelineBodyRef?.nativeElement.setPointerCapture(e.pointerId);
+    const top = this.getEventTop(a.horario);
     this.dragState = {
-      active: true,
-      id: a.id!,
-      startPointerY: e.clientY,
-      originalTop: this.getEventTop(a.horario!),
-      ghostTop: this.getEventTop(a.horario!),
-      totalDelta: 0,
+      active: true, id: a.id!,
+      sourceColIndex: colIndex,
+      startPointerX: e.clientX, startPointerY: e.clientY,
+      startEventTop: top, ghostTop: top,
+      ghostColIndex: colIndex, movedEnough: false,
     };
   }
 
   onDragMove(e: PointerEvent) {
     if (!this.dragState.active) return;
     e.preventDefault();
-    const delta = e.clientY - this.dragState.startPointerY;
+    const deltaY = e.clientY - this.dragState.startPointerY;
+    const deltaX = Math.abs(e.clientX - this.dragState.startPointerX);
+    const newTop = Math.max(0, this.dragState.startEventTop + deltaY);
+
+    // Detecta qual coluna o ponteiro está sobre
+    let targetCol = this.dragState.ghostColIndex;
+    const cols = this.timelineCols?.toArray();
+    if (cols?.length) {
+      for (let i = 0; i < cols.length; i++) {
+        const rect = cols[i].nativeElement.getBoundingClientRect();
+        if (e.clientX >= rect.left && e.clientX < rect.right) { targetCol = i; break; }
+      }
+    }
+
     this.dragState = {
       ...this.dragState,
-      ghostTop: Math.max(0, this.dragState.originalTop + delta),
-      totalDelta: Math.abs(delta),
+      ghostTop: newTop,
+      ghostColIndex: targetCol,
+      movedEnough: Math.abs(deltaY) > 8 || deltaX > 12,
     };
+    this.cdr.markForCheck();
   }
 
   async onDragEnd(e: PointerEvent) {
     if (!this.dragState.active) return;
-    const { ghostTop, id, totalDelta } = this.dragState;
-    this.dragState = { active: false, id: null, startPointerY: 0, originalTop: 0, ghostTop: 0, totalDelta: 0 };
+    const { ghostTop, id, ghostColIndex, sourceColIndex, movedEnough } = this.dragState;
+    this.dragState = { active: false, id: null, sourceColIndex: 0, startPointerX: 0, startPointerY: 0, startEventTop: 0, ghostTop: 0, ghostColIndex: 0, movedEnough: false };
 
-    // Suprime o click que o browser dispara logo após o pointerup
-    if (totalDelta > 8) {
+    if (movedEnough) {
       this._suppressNextClick = true;
       setTimeout(() => { this._suppressNextClick = false; }, 300);
     }
+    if (!id || !movedEnough) { this.cdr.markForCheck(); return; }
 
+    // Snap para grade de 15 min
     const slotPx = this.SLOT_HEIGHT / 4;
     const snappedTop = Math.round(ghostTop / slotPx) * slotPx;
     const totalMinutes = this.GRID_START_HOUR * 60 + (snappedTop / this.SLOT_HEIGHT) * 60;
     const h = Math.floor(totalMinutes / 60);
     const m = Math.round(totalMinutes % 60);
-
-    if (h < 7 || h > 21 || !id || totalDelta < 8) return;
+    if (h < 7 || h > 22) { this.cdr.markForCheck(); return; }
 
     const newHorario = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    const newColuna = this.colunasAgenda[ghostColIndex];
     const atend = this.atendimentos.find(x => x.id === id);
-    if (atend && newHorario !== atend.horario) {
-      await this.atualizarHorario(atend, newHorario);
+    if (!atend) return;
+
+    const horarioChanged = newHorario !== atend.horario;
+    const colunaChanged = ghostColIndex !== sourceColIndex;
+    if (!horarioChanged && !colunaChanged) { this.cdr.markForCheck(); return; }
+
+    // Atualização otimista
+    const oldHorario = atend.horario;
+    const oldColaboradorId = atend.id_colaborador;
+    const oldColaboradorNome = atend.colaborador?.nome ?? atend.responsavel?.nome;
+
+    atend.horario = newHorario;
+    if (colunaChanged && newColuna) {
+      atend.id_colaborador = newColuna.id ?? undefined;
+      if (atend.colaborador) atend.colaborador.nome = newColuna.nome;
+      else (atend as any).colaborador = { nome: newColuna.nome };
+      if (atend.responsavel) atend.responsavel.nome = newColuna.nome;
     }
-  }
-
-  onEventClick(a: Atendimento) {
-    if (this._suppressNextClick) return;
-    this.openForm(a);
-  }
-
-  private async atualizarHorario(a: Atendimento, horario: string) {
-    const horarioAnterior = a.horario; // guarda para reverter se falhar
-
-    // Atualização otimista — muda local imediatamente, sem loader
-    a.horario = horario;
-    this.atendimentos = [...this.atendimentos]; // força re-render
+    this.atendimentos = [...this.atendimentos];
     this.aplicarFiltros();
 
     try {
-      await this.atendimentoService.update(a.id!, { horario } as any);
-      await this.showToast(`Horário movido para ${horario} ✓`, 'success');
-    } catch (e: any) {
-      // Reverte em caso de erro
-      a.horario = horarioAnterior;
+      const updates: any = {};
+      if (horarioChanged) updates.horario = newHorario;
+      if (colunaChanged) {
+        updates.id_colaborador = newColuna?.id ?? null;
+      }
+      await this.atendimentoService.update(id, updates);
+      const partes = [
+        horarioChanged ? `Horário → ${newHorario}` : '',
+        colunaChanged ? `Profissional → ${newColuna?.nome}` : '',
+      ].filter(Boolean).join(' · ');
+      await this.showToast(`${partes} ✓`, 'success');
+    } catch (err: any) {
+      atend.horario = oldHorario;
+      atend.id_colaborador = oldColaboradorId;
+      if (atend.colaborador) atend.colaborador.nome = oldColaboradorNome ?? '';
+      if (atend.responsavel) atend.responsavel.nome = oldColaboradorNome ?? '';
       this.atendimentos = [...this.atendimentos];
       this.aplicarFiltros();
-      await this.showToast(errorMsg(e), 'danger');
+      await this.showToast(errorMsg(err), 'danger');
     }
+  }
+
+  onDragCancel() {
+    this.dragState.active = false;
+    this.cdr.markForCheck();
+  }
+
+  onEventClick(a: Atendimento, e?: Event) {
+    if (this._suppressNextClick) return;
+    this.openForm(a);
   }
 
   // Lista e ID de status (carregados no init)
   private statusConcluidoId: number | null = null;
   statusList: Status[] = [];
 
+  // ── Vista colunas por colaborador ───────────────────────
+  colaboradores: Colaborador[] = [];
+
+  colunasAgenda: ColunaAgenda[] = [];
+  hasSemHorario = false;
+
+  private readonly AVATAR_COLORS = [
+    '#6366f1','#8b5cf6','#ec4899','#ef4444','#f97316',
+    '#eab308','#22c55e','#14b8a6','#3b82f6','#06b6d4'
+  ];
+
+  get isAdmin(): boolean {
+    return this.authService.currentUser?.perfil === 'admin';
+  }
+
+  getAvatarColor(nome: string): string {
+    let hash = 0;
+    for (let i = 0; i < nome.length; i++) hash = nome.charCodeAt(i) + ((hash << 5) - hash);
+    return this.AVATAR_COLORS[Math.abs(hash) % this.AVATAR_COLORS.length];
+  }
+
+  getInitials(nome: string): string {
+    return nome.split(' ').slice(0, 2).map(p => p[0]?.toUpperCase() || '').join('');
+  }
+
   constructor(
     private atendimentoService: AtendimentoService,
     private statusService: StatusService,
+    private authService: AuthService,
+    private colaboradorService: ColaboradorService,
     private modalCtrl: ModalController,
     private alertCtrl: AlertController,
     private actionSheetCtrl: ActionSheetController,
     private loadingCtrl: LoadingController,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -518,10 +670,20 @@ export class AtendimentosPage implements OnInit, OnDestroy {
     this.diaSelecionado = hoje.getDate();
     this.gerarCalendario();
     this.gerarDiasStrip();
+    this.carregarColaboradores();
     this.loadData();
     this.carregarStatusConcluido();
     this.updateNowTop();
     this.nowTimer = setInterval(() => this.updateNowTop(), 60000);
+  }
+
+  private async carregarColaboradores() {
+    try {
+      const cols = await this.colaboradorService.getAll();
+      this.colaboradores = cols;
+      this.recalcularColunas();
+      this.cdr.markForCheck();
+    } catch (_) {}
   }
 
   ngOnDestroy() {
@@ -536,6 +698,7 @@ export class AtendimentosPage implements OnInit, OnDestroy {
       this.statusList = lista;
       const s = lista.find(x => x.nome?.toLowerCase().includes('conclu'));
       this.statusConcluidoId = s?.id ?? null;
+      this.cdr.markForCheck();
     } catch (_) {}
   }
 
@@ -625,8 +788,7 @@ export class AtendimentosPage implements OnInit, OnDestroy {
   }
 
   temAtendimento(dia: number): boolean {
-    const dataStr = this.buildDataStr(dia);
-    return this.atendimentos.some(a => a.data?.startsWith(dataStr));
+    return this.datasComAtendimento.has(this.buildDataStr(dia));
   }
 
   private buildDataStr(dia: number): string {
@@ -637,6 +799,22 @@ export class AtendimentosPage implements OnInit, OnDestroy {
   }
 
   private aplicarFiltros() {
+    // ── Índice por data para lookups O(1) ──────────────────
+    this.datasComAtendimento = new Set(
+      this.atendimentos.map(a => a.data?.slice(0, 10) ?? '')
+    );
+
+    // ── Cache de atendimentos por data (view semana) ────────
+    this.atendimentosPorData = new Map();
+    for (const a of this.atendimentos) {
+      const chave = a.data?.slice(0, 10) ?? '';
+      if (!this.atendimentosPorData.has(chave)) this.atendimentosPorData.set(chave, []);
+      this.atendimentosPorData.get(chave)!.push(a);
+    }
+
+    // ── Recomputa propriedades do dia selecionado ───────────
+    this.recalcularDia();
+
     // Contagem global de não pagos (ignora outros filtros)
     this.countNaoPagos = this.atendimentos.filter(a => !a.pago).length;
 
@@ -666,6 +844,7 @@ export class AtendimentosPage implements OnInit, OnDestroy {
       lista = lista.filter(a =>
         a.animal?.nome?.toLowerCase().includes(q) ||
         a.cliente?.nome?.toLowerCase().includes(q) ||
+        a.colaborador?.nome?.toLowerCase().includes(q) ||
         a.responsavel?.nome?.toLowerCase().includes(q) ||
         a.servico?.nome?.toLowerCase().includes(q) ||
         a.data?.includes(q) ||
@@ -679,15 +858,21 @@ export class AtendimentosPage implements OnInit, OnDestroy {
       const kb = b.data + (b.horario ? 'T' + b.horario : 'T99:99');
       return ka.localeCompare(kb);
     });
+
+    this.cdr.markForCheck();
   }
 
   async loadData() {
     this.isLoading = true;
+    this.cdr.markForCheck();
     try {
       this.atendimentos = await this.atendimentoService.getAll();
       this.aplicarFiltros();
     } catch (e: any) { await this.showToast(errorMsg(e), 'danger'); }
-    finally { this.isLoading = false; }
+    finally {
+      this.isLoading = false;
+      this.cdr.markForCheck();
+    }
   }
 
   onSearch(event: any) {

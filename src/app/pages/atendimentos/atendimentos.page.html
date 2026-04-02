@@ -119,6 +119,16 @@
 
       <div class="tl-outer" *ngIf="colunasAgenda.length > 0">
 
+        <div class="tl-col-nav" *ngIf="colunasAgenda.length > 1">
+          <button
+            class="tl-col-chip"
+            *ngFor="let col of colunasAgenda; let ci = index"
+            (click)="scrollToColuna(ci)">
+            <span class="tl-col-chip-name">{{ col.nome }}</span>
+            <span class="tl-col-chip-count">{{ col.comHorario.length + col.semHorario.length }}</span>
+          </button>
+        </div>
+
         <!-- ── Cabeçalhos das colunas (sticky top) ── -->
         <div class="tl-header-row">
           <div class="tl-gutter-head"></div>
@@ -146,6 +156,10 @@
                    (click)="openForm(a)">
                 <span>{{ a.animal?.nome || a.cliente?.nome || '?' }}</span>
                 <span class="tl-allday-serv" *ngIf="a.servico?.nome"> · {{ a.servico?.nome }}</span>
+                <ion-button fill="clear" size="small" color="primary"
+                  (click)="openForm(a); $event.stopPropagation()">
+                  <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+                </ion-button>
                 <ion-button fill="clear" size="small" [color]="a.pago ? 'medium' : 'success'"
                   *ngIf="a.pago || temValor(a)"
                   (click)="a.pago ? confirmarDesfazerPagamento(a) : abrirPagamento(a); $event.stopPropagation()">
@@ -157,7 +171,7 @@
         </div>
 
         <!-- ── Grid de horários + blocos ── -->
-        <div class="tl-scroll">
+        <div class="tl-scroll" #timelineScroll>
           <div class="tl-body-row">
 
             <!-- Labels de hora (sticky left) -->
@@ -200,16 +214,22 @@
                      (click)="onEventClick(a, $event)">
                   <div class="tl-ev-stripe"></div>
                   <div class="tl-ev-info">
-                    <span class="tl-ev-time">{{ a.horario }}</span>
+                    <div class="tl-ev-top">
+                      <span class="tl-ev-time">{{ a.horario }}</span>
+                      <span class="tl-ev-status" *ngIf="a.status_info?.nome"
+                            [ngClass]="getBadgeClass(a.status_info?.nome)"
+                            (click)="mudarStatus(a, $event); $event.stopPropagation()">
+                        {{ a.status_info?.nome }}
+                      </span>
+                    </div>
                     <span class="tl-ev-name">{{ a.animal?.nome || a.cliente?.nome || '?' }}</span>
                     <span class="tl-ev-serv" *ngIf="a.servico?.nome">{{ a.servico?.nome }}</span>
-                    <span class="tl-ev-status" *ngIf="a.status_info?.nome"
-                          [ngClass]="getBadgeClass(a.status_info?.nome)"
-                          (click)="mudarStatus(a, $event); $event.stopPropagation()">
-                      {{ a.status_info?.nome }}
-                    </span>
                   </div>
                   <div class="tl-ev-btns" (pointerdown)="$event.stopPropagation()">
+                    <ion-button fill="clear" size="small" color="light"
+                      (click)="openForm(a); $event.stopPropagation()">
+                      <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+                    </ion-button>
                     <ion-button fill="clear" size="small" [color]="a.pago ? 'medium' : 'success'"
                       *ngIf="a.pago || temValor(a)"
                       (click)="a.pago ? confirmarDesfazerPagamento(a) : abrirPagamento(a); $event.stopPropagation()">

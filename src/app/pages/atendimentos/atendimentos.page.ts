@@ -28,6 +28,7 @@ export class AtendimentosPage implements OnInit, OnDestroy {
   atendimentos: Atendimento[] = [];
   atendimentosFiltrados: Atendimento[] = [];
   isLoading = false;
+  private ordemColunasAgenda: (string | null)[] | null = null;
 
   // ── Calendário ─────────────────────────────────────
   diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
@@ -137,8 +138,7 @@ export class AtendimentosPage implements OnInit, OnDestroy {
     const colaboradoresAtivos = this.colaboradores.filter(c => c.ativo !== false);
     const nomesAtivos = new Set(colaboradoresAtivos.map(c => this.normalizarNome(c.nome)));
 
-    const colunas: ColunaAgenda[] = colaboradoresAtivos
-      .sort((a, b) => (a.nome ?? '').localeCompare(b.nome ?? ''))
+    let colunas: ColunaAgenda[] = colaboradoresAtivos
       .map(col => {
         const nomeKey = this.normalizarNome(col.nome);
         const lista = atds.filter(a =>
@@ -149,12 +149,30 @@ export class AtendimentosPage implements OnInit, OnDestroy {
           nome: col.nome ?? '',
           ...splitCol(lista),
         };
+      })
+      .sort((a, b) => {
+        const totalA = a.comHorario.length + a.semHorario.length;
+        const totalB = b.comHorario.length + b.semHorario.length;
+        if (totalB !== totalA) return totalB - totalA;
+        return a.nome.localeCompare(b.nome);
       });
 
     // Coluna extra para atendimentos sem responsável ou com responsável fora dos colaboradores
     const semResp = semColuna(nomesAtivos, atds);
     if (semResp.length > 0) {
       colunas.push({ id: null, nome: 'Sem colaborador', ...splitCol(semResp) });
+    }
+
+    if (!this.ordemColunasAgenda) {
+      this.ordemColunasAgenda = colunas.map(col => col.id);
+    } else {
+      const posicao = new Map(this.ordemColunasAgenda.map((id, index) => [id, index]));
+      colunas = colunas.sort((a, b) => {
+        const posA = posicao.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+        const posB = posicao.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+        if (posA !== posB) return posA - posB;
+        return a.nome.localeCompare(b.nome);
+      });
     }
 
     this.colunasAgenda = colunas;
@@ -453,6 +471,7 @@ export class AtendimentosPage implements OnInit, OnDestroy {
   }
 
   // ── Timeline: grid de horários ──────────────────────────
+  @ViewChild('timelineScroll') timelineScrollRef!: ElementRef<HTMLElement>;
   @ViewChild('timelineBody') timelineBodyRef!: ElementRef<HTMLElement>;
   @ViewChildren('timelineCol') timelineCols!: QueryList<ElementRef<HTMLElement>>;
 
@@ -466,6 +485,15 @@ export class AtendimentosPage implements OnInit, OnDestroy {
       ? this.buildDataStr(this.diaSelecionado)
       : new Date().toISOString().split('T')[0];
     await this.openForm({ data: dataStr, horario, id_colaborador: col.id ?? undefined } as Atendimento);
+  }
+
+  scrollToColuna(colIndex: number) {
+    const scrollEl = this.timelineScrollRef?.nativeElement;
+    const colEl = this.timelineCols?.toArray()?.[colIndex]?.nativeElement;
+    if (!scrollEl || !colEl) return;
+
+    const targetLeft = Math.max(0, colEl.offsetLeft - 12);
+    scrollEl.scrollTo({ left: targetLeft, behavior: 'smooth' });
   }
 
   // ── Drag & Drop (tempo + coluna/profissional) ────────────
@@ -864,6 +892,7 @@ export class AtendimentosPage implements OnInit, OnDestroy {
 
   async loadData() {
     this.isLoading = true;
+    this.ordemColunasAgenda = null;
     this.cdr.markForCheck();
     try {
       this.atendimentos = await this.atendimentoService.getAll();

@@ -1258,12 +1258,66 @@
 
 $col-width: 148px;
 $gutter-width: 48px;
+$col-width: 260px;
 $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
 
 .tl-outer {
   display: flex;
   flex-direction: column;
   background: #f0f2f5;
+}
+
+.tl-col-nav {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 8px 12px 10px;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+  border-bottom: 1px solid #dde4ee;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
+  }
+}
+
+.tl-col-chip {
+  border: 0;
+  background: #fff;
+  color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+  flex-shrink: 0;
+}
+
+.tl-col-chip-name {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tl-col-chip-count {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
 }
 
 // ── Cabeçalho fixo das colunas ────────────────────────────────
@@ -1289,7 +1343,7 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 10px 10px 8px;
+  padding: 12px 12px 12px 10px;
   border-left: 1px solid #f0f2f5;
 }
 
@@ -1307,7 +1361,7 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
 }
 
 .tl-col-name {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   color: #1a1a2e;
   white-space: nowrap;
@@ -1316,7 +1370,7 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
 }
 
 .tl-col-count {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--ion-color-primary);
   font-weight: 600;
 }
@@ -1367,8 +1421,8 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
   background: #fff;
   border: 1px solid #fed7aa;
   border-radius: 20px;
-  padding: 3px 8px 3px 8px;
-  font-size: 11px;
+  padding: 5px 9px;
+  font-size: 12px;
   color: #92400e;
   cursor: pointer;
   white-space: nowrap;
@@ -1379,7 +1433,7 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
     background: #f0fdf4;
   }
 
-  ion-button { height: 20px; --padding-start: 2px; --padding-end: 2px; }
+  ion-button { height: 24px; --padding-start: 3px; --padding-end: 3px; }
 }
 
 .tl-allday-serv { opacity: 0.7; }
@@ -1391,9 +1445,11 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
   flex: 1;
   -webkit-overflow-scrolling: touch;
   max-height: calc(100vh - 260px);
+  scroll-snap-type: x proximity;
 
-  &::-webkit-scrollbar { height: 4px; width: 4px; }
-  &::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
+  &::-webkit-scrollbar { height: 8px; width: 8px; }
+  &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
+  &::-webkit-scrollbar-track { background: rgba(226, 232, 240, 0.7); }
 }
 
 .tl-body-row {
@@ -1432,9 +1488,11 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
 
 .tl-col {
   width: $col-width;
+  min-width: $col-width;
   flex-shrink: 0;
   position: relative;
   border-left: 1px solid #e8eaf0;
+  scroll-snap-align: start;
 }
 
 .tl-hour-row {
@@ -1481,8 +1539,8 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
   position: absolute;
   left: 3px;
   right: 3px;
-  height: 52px;
-  min-height: 32px;
+  height: 82px;
+  min-height: 60px;
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   border-radius: 7px;
   display: flex;
@@ -1515,71 +1573,87 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
 
 .tl-ev-info {
   flex: 1;
-  padding: 4px 4px 4px 5px;
+  padding: 7px 6px 7px 8px;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 4px;
   min-width: 0;
   overflow: hidden;
 }
 
+.tl-ev-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
 .tl-ev-time {
-  font-size: 9px;
+  font-size: 10px;
   color: rgba(255,255,255,0.75);
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.2;
+  flex-shrink: 0;
 }
 
 .tl-ev-name {
-  font-size: 12px;
+  font-size: 13px;
   color: #fff;
   font-weight: 700;
   line-height: 1.2;
-  white-space: nowrap;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .tl-ev-serv {
-  font-size: 10px;
+  font-size: 11px;
   color: rgba(255,255,255,0.7);
   line-height: 1.2;
-  white-space: nowrap;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .tl-ev-status {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   font-size: 8px;
   font-weight: 700;
-  padding: 1px 5px;
+  padding: 2px 6px;
   border-radius: 8px;
   background: rgba(255,255,255,0.22);
   color: #fff;
   width: fit-content;
-  margin-top: 1px;
+  max-width: 88px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tl-ev-btns {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 2px 1px;
+  padding: 4px 2px;
   flex-shrink: 0;
 
   ion-button {
     --color: rgba(255,255,255,0.8);
-    --padding-start: 3px;
-    --padding-end: 3px;
-    height: 26px;
+    --padding-start: 4px;
+    --padding-end: 4px;
+    height: 28px;
   }
 }
 
 // ── Ghost de drag ────────────────────────────────────────────
 .tl-ghost {
   position: absolute;
-  height: 52px;
+  height: 82px;
   background: rgba(99,102,241,0.15);
   border: 2px dashed #6366f1;
   border-radius: 7px;
@@ -1594,6 +1668,33 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
   font-weight: 700;
 
   ion-icon { font-size: 15px; }
+}
+
+@media (max-width: 767px) {
+  $col-width: 82vw;
+
+  .tl-col-head,
+  .tl-allday-col,
+  .tl-col {
+    width: $col-width;
+    min-width: $col-width;
+  }
+
+  .tl-scroll {
+    max-height: calc(100vh - 300px);
+  }
+
+  .tl-col-name {
+    font-size: 11px;
+  }
+
+  .tl-event {
+    height: 88px;
+  }
+
+  .tl-ghost {
+    height: 88px;
+  }
 }
 
 // ── Vista colunas por colaborador ─────────────────────────────

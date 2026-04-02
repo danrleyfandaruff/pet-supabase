@@ -170,13 +170,20 @@
              [style.left]="eventLayoutMap.get(a.id!)?.left"
              [style.width]="eventLayoutMap.get(a.id!)?.width"
              [class.event-pago]="a.pago"
-             [class.event-drag-ready]="dragState.ready && dragState.id === a.id"
              [class.event-dragging]="dragState.active && dragState.id === a.id"
-             (pointerdown)="onDragStart($event, a)"
              (pointermove)="onDragMove($event)"
-             (pointerup)="onDragEnd($event, a)"
-             (pointercancel)="dragState.active = false">
+             (pointerup)="onDragEnd($event)"
+             (pointercancel)="dragState.active = false"
+             (click)="openForm(a); $event.stopPropagation()">
           <div class="event-color-bar"></div>
+
+          <!-- Handle de drag — única área que inicia o drag -->
+          <div class="event-drag-handle"
+               (pointerdown)="onDragStart($event, a)"
+               (click)="$event.stopPropagation()">
+            <ion-icon name="reorder-three-outline"></ion-icon>
+          </div>
+
           <div class="event-content">
             <span class="event-time-label">{{ a.horario }}</span>
             <span class="event-title">{{ a.animal?.nome || a.cliente?.nome || 'Sem pet' }}</span>
@@ -197,7 +204,6 @@
             </ion-button>
             <ion-button fill="clear" size="small" color="medium"
               *ngIf="!a.pago && !temValor(a)"
-              [title]="'Serviço sem valor — defina o valor para dar baixa'"
               (click)="$event.stopPropagation()">
               <ion-icon slot="icon-only" name="cash-outline" style="opacity:0.3"></ion-icon>
             </ion-button>

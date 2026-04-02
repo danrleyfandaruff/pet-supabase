@@ -1095,13 +1095,6 @@
   transition: box-shadow 0.15s;
   touch-action: none; // necessário para pointer capture funcionar no touch
 
-  &.event-drag-ready {
-    // Feedback visual enquanto aguarda o long press disparar (350ms)
-    transform: scale(1.04);
-    box-shadow: 0 6px 18px rgba(56, 128, 255, 0.35);
-    transition: transform 0.35s ease, box-shadow 0.35s ease;
-  }
-
   &.event-dragging {
     cursor: grabbing;
     z-index: 10;
@@ -1115,6 +1108,25 @@
     background: linear-gradient(135deg, #1cc674 0%, #0fa960 100%);
     box-shadow: 0 2px 8px rgba(28, 198, 116, 0.25);
   }
+}
+
+.event-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  flex-shrink: 0;
+  cursor: grab;
+  opacity: 0.5;
+  touch-action: none;
+
+  ion-icon {
+    font-size: 18px;
+    color: #fff;
+    pointer-events: none;
+  }
+
+  &:active { opacity: 0.9; }
 }
 
 .event-color-bar {

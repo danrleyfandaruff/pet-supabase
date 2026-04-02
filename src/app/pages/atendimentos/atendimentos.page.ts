@@ -406,13 +406,16 @@ export class AtendimentosPage implements OnInit, OnDestroy {
   }
 
   // ── Drag & Drop na time-grid ─────────────────────────
+  private _suppressNextClick = false; // evita abrir form logo após arrastar
+
   dragState: {
     active: boolean;
     id: number | null;
     startPointerY: number;
     originalTop: number;
     ghostTop: number;
-  } = { active: false, id: null, startPointerY: 0, originalTop: 0, ghostTop: 0 };
+    totalDelta: number;
+  } = { active: false, id: null, startPointerY: 0, originalTop: 0, ghostTop: 0, totalDelta: 0 };
 
   getEventTopDynamic(a: Atendimento): number {
     if (this.dragState.active && this.dragState.id === a.id) return this.dragState.ghostTop;
@@ -429,6 +432,7 @@ export class AtendimentosPage implements OnInit, OnDestroy {
       startPointerY: e.clientY,
       originalTop: this.getEventTop(a.horario!),
       ghostTop: this.getEventTop(a.horario!),
+      totalDelta: 0,
     };
   }
 
@@ -436,13 +440,23 @@ export class AtendimentosPage implements OnInit, OnDestroy {
     if (!this.dragState.active) return;
     e.preventDefault();
     const delta = e.clientY - this.dragState.startPointerY;
-    this.dragState = { ...this.dragState, ghostTop: Math.max(0, this.dragState.originalTop + delta) };
+    this.dragState = {
+      ...this.dragState,
+      ghostTop: Math.max(0, this.dragState.originalTop + delta),
+      totalDelta: Math.abs(delta),
+    };
   }
 
   async onDragEnd(e: PointerEvent) {
     if (!this.dragState.active) return;
-    const { ghostTop, id } = this.dragState;
-    this.dragState = { active: false, id: null, startPointerY: 0, originalTop: 0, ghostTop: 0 };
+    const { ghostTop, id, totalDelta } = this.dragState;
+    this.dragState = { active: false, id: null, startPointerY: 0, originalTop: 0, ghostTop: 0, totalDelta: 0 };
+
+    // Suprime o click que o browser dispara logo após o pointerup
+    if (totalDelta > 8) {
+      this._suppressNextClick = true;
+      setTimeout(() => { this._suppressNextClick = false; }, 300);
+    }
 
     const slotPx = this.SLOT_HEIGHT / 4;
     const snappedTop = Math.round(ghostTop / slotPx) * slotPx;
@@ -450,13 +464,18 @@ export class AtendimentosPage implements OnInit, OnDestroy {
     const h = Math.floor(totalMinutes / 60);
     const m = Math.round(totalMinutes % 60);
 
-    if (h < 7 || h > 21 || !id) return;
+    if (h < 7 || h > 21 || !id || totalDelta < 8) return;
 
     const newHorario = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
     const atend = this.atendimentos.find(x => x.id === id);
     if (atend && newHorario !== atend.horario) {
       await this.atualizarHorario(atend, newHorario);
     }
+  }
+
+  onEventClick(a: Atendimento) {
+    if (this._suppressNextClick) return;
+    this.openForm(a);
   }
 
   private async atualizarHorario(a: Atendimento, horario: string) {

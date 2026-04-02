@@ -1112,21 +1112,28 @@
 
 .event-drag-handle {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 22px;
+  width: 32px;       // área de toque mais larga
+  min-height: 100%;
   flex-shrink: 0;
   cursor: grab;
-  opacity: 0.5;
   touch-action: none;
+  padding: 0 4px;
+  gap: 0;
 
   ion-icon {
-    font-size: 18px;
-    color: #fff;
+    font-size: 20px;
+    color: rgba(255,255,255,0.6);
     pointer-events: none;
+    margin: -4px 0; // empilha os dois ícones bem próximos
   }
 
-  &:active { opacity: 0.9; }
+  &:active {
+    cursor: grabbing;
+    ion-icon { color: rgba(255,255,255,0.95); }
+  }
 }
 
 .event-color-bar {

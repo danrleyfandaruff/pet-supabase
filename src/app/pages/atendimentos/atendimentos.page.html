@@ -174,13 +174,14 @@
              (pointermove)="onDragMove($event)"
              (pointerup)="onDragEnd($event)"
              (pointercancel)="dragState.active = false"
-             (click)="openForm(a); $event.stopPropagation()">
+             (click)="onEventClick(a); $event.stopPropagation()">
           <div class="event-color-bar"></div>
 
-          <!-- Handle de drag — única área que inicia o drag -->
+          <!-- Handle de drag — área grande na lateral esquerda -->
           <div class="event-drag-handle"
                (pointerdown)="onDragStart($event, a)"
                (click)="$event.stopPropagation()">
+            <ion-icon name="reorder-three-outline"></ion-icon>
             <ion-icon name="reorder-three-outline"></ion-icon>
           </div>
 

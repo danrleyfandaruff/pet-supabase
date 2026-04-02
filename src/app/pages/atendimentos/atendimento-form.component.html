@@ -99,14 +99,14 @@
       </div>
 
       <ion-item lines="none" class="form-item">
-        <ion-label position="stacked">Responsável <span class="optional">(opcional)</span></ion-label>
+        <ion-label position="stacked">Colaborador <span class="optional">(opcional)</span></ion-label>
         <ion-select
-          formControlName="id_responsavel"
+          formControlName="id_colaborador"
           placeholder="Quem vai atender"
           interface="action-sheet"
           cancelText="Cancelar">
           <ion-select-option [value]="null">— Não definido —</ion-select-option>
-          <ion-select-option *ngFor="let r of responsaveis" [value]="r.id">{{ r.nome }}</ion-select-option>
+          <ion-select-option *ngFor="let c of colaboradores" [value]="c.id">{{ c.nome }}</ion-select-option>
         </ion-select>
       </ion-item>
 

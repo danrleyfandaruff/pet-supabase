@@ -174,7 +174,7 @@ export class ApiService {
   // ─────────────────────────────────────────────
 
   getResponsaveis(): Observable<any[]> {
-    return this.http.get<any[]>(this.url('responsavel/obter'));
+    return this.http.get<any[]>(this.url('colaboradores/obter'));
   }
 
   getResponsaveisAtivos(): Observable<any[]> {

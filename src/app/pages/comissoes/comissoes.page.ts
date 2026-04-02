@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { AlertController, ToastController } from '@ionic/angular';
 import { AtendimentoService } from '../../core/services/atendimento.service';
-import { ResponsavelService } from '../../core/services/responsavel.service';
+import { ColaboradorService } from '../../core/services/colaborador.service';
 import { Atendimento } from '../../core/models/atendimento.model';
-import { Responsavel } from '../../core/models/responsavel.model';
+import { Colaborador } from '../../core/models/colaborador.model';
 
-interface ComissaoResponsavel {
-  responsavel: Responsavel;
+interface ComissaoColaborador {
+  colaborador: Colaborador;
   atendimentos: Atendimento[];
   totalBruto: number;
   percentual: number;
@@ -25,18 +25,18 @@ export class ComissoesPage implements OnInit {
   mesAtual: string;
   mesesDisponiveis: { label: string; value: string }[] = [];
 
-  responsaveis: Responsavel[] = [];
-  comissoes: ComissaoResponsavel[] = [];
+  colaboradores: Colaborador[] = [];
+  comissoes: ComissaoColaborador[] = [];
 
   // Percentuais configuráveis (armazenados localmente)
-  percentuais: { [id: number]: number } = {};
+  percentuais: { [id: string]: number } = {};
 
   totalGeralBruto = 0;
   totalGeralComissao = 0;
 
   constructor(
     private atendimentoService: AtendimentoService,
-    private responsavelService: ResponsavelService,
+    private colaboradorService: ColaboradorService,
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
   ) {
@@ -76,21 +76,21 @@ export class ComissoesPage implements OnInit {
     this.isLoading = true;
     try {
       const { inicio, fim } = this.getPeriodoDatas();
-      const [responsaveis, atendimentos] = await Promise.all([
-        this.responsavelService.getAllAtivos(),
+      const [colaboradores, atendimentos] = await Promise.all([
+        this.colaboradorService.getAll(),
         this.atendimentoService.getByPeriodo(inicio, fim),
       ]);
 
-      this.responsaveis = responsaveis;
+      this.colaboradores = colaboradores.filter(c => c.ativo !== false);
 
       // Inicializa percentuais padrão 30%
-      for (const r of this.responsaveis) {
-        if (r.id && !this.percentuais[r.id]) {
-          this.percentuais[r.id] = 30;
+      for (const c of this.colaboradores) {
+        if (c.id && !this.percentuais[c.id]) {
+          this.percentuais[c.id] = 30;
         }
       }
 
-      this.calcularComissoes(responsaveis, atendimentos);
+      this.calcularComissoes(this.colaboradores, atendimentos);
     } catch (e) {
       console.error(e);
     } finally {
@@ -98,16 +98,16 @@ export class ComissoesPage implements OnInit {
     }
   }
 
-  private calcularComissoes(responsaveis: Responsavel[], atendimentos: Atendimento[]) {
-    this.comissoes = responsaveis
-      .map(r => {
-        const ats = atendimentos.filter(a => a.id_responsavel === r.id && a.pago);
+  private calcularComissoes(colaboradores: Colaborador[], atendimentos: Atendimento[]) {
+    this.comissoes = colaboradores
+      .map(c => {
+        const ats = atendimentos.filter(a => a.id_colaborador === c.id && a.pago);
         const totalBruto = ats.reduce(
           (s, a) => s + Number(a.servico?.valor ?? 0) + Number(a.valor_adicional ?? 0), 0
         );
-        const percentual = r.id ? (this.percentuais[r.id] ?? 30) : 30;
+        const percentual = c.id ? (this.percentuais[c.id] ?? 30) : 30;
         const comissao = totalBruto * (percentual / 100);
-        return { responsavel: r, atendimentos: ats, totalBruto, percentual, comissao };
+        return { colaborador: c, atendimentos: ats, totalBruto, percentual, comissao };
       })
       .filter(c => c.atendimentos.length > 0 || true); // mostra todos
 
@@ -115,9 +115,9 @@ export class ComissoesPage implements OnInit {
     this.totalGeralComissao = this.comissoes.reduce((s, c) => s + c.comissao, 0);
   }
 
-  async editarPercentual(item: ComissaoResponsavel) {
+  async editarPercentual(item: ComissaoColaborador) {
     const alert = await this.alertCtrl.create({
-      header: `Comissão — ${item.responsavel.nome}`,
+      header: `Comissão — ${item.colaborador.nome}`,
       inputs: [{
         name: 'percentual',
         type: 'number',
@@ -132,8 +132,8 @@ export class ComissoesPage implements OnInit {
           text: 'Salvar',
           handler: (d) => {
             const pct = Math.min(100, Math.max(0, Number(d.percentual) || 0));
-            if (item.responsavel.id) {
-              this.percentuais[item.responsavel.id] = pct;
+            if (item.colaborador.id) {
+              this.percentuais[item.colaborador.id] = pct;
               item.percentual = pct;
               item.comissao = item.totalBruto * (pct / 100);
               this.totalGeralComissao = this.comissoes.reduce((s, c) => s + c.comissao, 0);

@@ -401,6 +401,89 @@ export class AtendimentosPage implements OnInit, OnDestroy {
     return Number(a?.servico?.valor ?? 0) + Number(a?.valor_adicional ?? 0);
   }
 
+  temValor(a: Atendimento): boolean {
+    return (Number(a.servico?.valor ?? 0) + Number(a.valor_adicional ?? 0)) > 0;
+  }
+
+  // ── Drag & Drop na time-grid ─────────────────────────
+  dragState: {
+    active: boolean;
+    id: number | null;
+    startPointerY: number;
+    originalTop: number;
+    ghostTop: number;
+    wasDragged: boolean;
+  } = { active: false, id: null, startPointerY: 0, originalTop: 0, ghostTop: 0, wasDragged: false };
+
+  getEventTopDynamic(a: Atendimento): number {
+    if (this.dragState.active && this.dragState.id === a.id) return this.dragState.ghostTop;
+    return this.getEventTop(a.horario!);
+  }
+
+  onDragStart(e: PointerEvent, a: Atendimento) {
+    e.stopPropagation();
+    (e.currentTarget as Element).setPointerCapture(e.pointerId);
+    this.dragState = {
+      active: true,
+      id: a.id!,
+      startPointerY: e.clientY,
+      originalTop: this.getEventTop(a.horario!),
+      ghostTop: this.getEventTop(a.horario!),
+      wasDragged: false,
+    };
+  }
+
+  onDragMove(e: PointerEvent) {
+    if (!this.dragState.active) return;
+    e.preventDefault();
+    const delta = e.clientY - this.dragState.startPointerY;
+    const ghostTop = Math.max(0, this.dragState.originalTop + delta);
+    this.dragState = { ...this.dragState, ghostTop, wasDragged: Math.abs(delta) > 8 };
+  }
+
+  async onDragEnd(e: PointerEvent, a: Atendimento) {
+    if (!this.dragState.active) return;
+    const { ghostTop, wasDragged, id } = this.dragState;
+    this.dragState = { active: false, id: null, startPointerY: 0, originalTop: 0, ghostTop: 0, wasDragged: false };
+
+    if (!wasDragged) { this.openForm(a); return; } // foi um click normal
+
+    // Snap para slots de 15 minutos
+    const slotPx = this.SLOT_HEIGHT / 4;
+    const snappedTop = Math.round(ghostTop / slotPx) * slotPx;
+    const totalMinutes = this.GRID_START_HOUR * 60 + (snappedTop / this.SLOT_HEIGHT) * 60;
+    const h = Math.floor(totalMinutes / 60);
+    const m = Math.round(totalMinutes % 60);
+
+    if (h < 7 || h > 21 || !id) return;
+
+    const newHorario = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    const atend = this.atendimentos.find(x => x.id === id);
+    if (atend && newHorario !== atend.horario) {
+      await this.atualizarHorario(atend, newHorario);
+    }
+  }
+
+  private async atualizarHorario(a: Atendimento, horario: string) {
+    const horarioAnterior = a.horario; // guarda para reverter se falhar
+
+    // Atualização otimista — muda local imediatamente, sem loader
+    a.horario = horario;
+    this.atendimentos = [...this.atendimentos]; // força re-render
+    this.aplicarFiltros();
+
+    try {
+      await this.atendimentoService.update(a.id!, { horario } as any);
+      await this.showToast(`Horário movido para ${horario} ✓`, 'success');
+    } catch (e: any) {
+      // Reverte em caso de erro
+      a.horario = horarioAnterior;
+      this.atendimentos = [...this.atendimentos];
+      this.aplicarFiltros();
+      await this.showToast(errorMsg(e), 'danger');
+    }
+  }
+
   // Lista e ID de status (carregados no init)
   private statusConcluidoId: number | null = null;
   statusList: Status[] = [];

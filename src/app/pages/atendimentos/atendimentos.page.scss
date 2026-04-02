@@ -951,26 +951,44 @@
 
 .allday-chips {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 5px;
   flex: 1;
 }
 
 .allday-chip {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 6px;
   background: #e8f0ff;
   border-left: 3px solid var(--ion-color-primary);
   border-radius: 6px;
-  padding: 5px 10px;
-  cursor: pointer;
+  padding: 4px 4px 4px 10px;
   transition: opacity 0.15s;
-
-  &:active { opacity: 0.75; }
 
   &.allday-pago {
     background: #e6f9f0;
     border-color: var(--ion-color-success);
+  }
+}
+
+.allday-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  cursor: pointer;
+  gap: 2px;
+}
+
+.allday-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+
+  ion-button {
+    --padding-start: 6px;
+    --padding-end: 6px;
+    margin: 0;
   }
 }
 
@@ -984,6 +1002,13 @@
   font-size: 11px;
   color: var(--ion-color-primary);
   font-weight: 500;
+}
+
+.allday-status-badge {
+  font-size: 10px;
+  margin-top: 2px;
+  align-self: flex-start;
+  cursor: pointer;
 }
 
 // ── Time grid ──────────────────────────────────────────────
@@ -1061,17 +1086,22 @@
   min-height: 52px;
   border-radius: 10px;
   background: linear-gradient(135deg, #3880ff 0%, #5260ff 100%);
-  cursor: pointer;
+  cursor: grab;
   z-index: 2;
   display: flex;
   align-items: stretch;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(56, 128, 255, 0.25);
-  transition: transform 0.1s, box-shadow 0.1s;
+  transition: box-shadow 0.15s;
+  touch-action: none; // necessário para pointer capture funcionar no touch
 
-  &:active {
-    transform: scale(0.98);
-    box-shadow: 0 1px 4px rgba(56, 128, 255, 0.2);
+  &.event-dragging {
+    cursor: grabbing;
+    z-index: 10;
+    opacity: 0.9;
+    box-shadow: 0 12px 32px rgba(56, 128, 255, 0.45);
+    transform: scale(1.03);
+    transition: none; // sem transition enquanto arrasta
   }
 
   &.event-pago {

@@ -72,23 +72,31 @@
         <ion-icon name="calendar-outline"></ion-icon> Agendamento
       </p>
 
-      <!-- Data + Horário lado a lado -->
-      <div class="form-row-2col">
-        <ion-item lines="none" class="form-item form-item-grow">
-          <ion-label position="stacked">
-            Data *
-            <span class="filter-hint" *ngIf="isPacoteMultisessao"> — 1ª sessão</span>
-          </ion-label>
-          <ion-input formControlName="data" type="date"></ion-input>
-        </ion-item>
-        <ion-item lines="none" class="form-item form-item-time">
-          <ion-label position="stacked">Horário <span class="optional">(opc.)</span></ion-label>
-          <ion-input formControlName="horario" type="time"></ion-input>
-        </ion-item>
-      </div>
+      <!-- Data -->
+      <ion-item lines="none" class="form-item">
+        <ion-label position="stacked">
+          Data *
+          <span class="filter-hint" *ngIf="isPacoteMultisessao"> — 1ª sessão</span>
+        </ion-label>
+        <ion-input formControlName="data" type="date"></ion-input>
+      </ion-item>
       <ion-note *ngIf="form.get('data')?.invalid && form.get('data')?.touched" color="danger" class="field-error">
         Data obrigatória
       </ion-note>
+
+      <!-- Horário — destacado -->
+      <div class="horario-destaque" [class.horario-definido]="form.get('horario')?.value">
+        <div class="horario-icone">
+          <ion-icon name="time-outline"></ion-icon>
+        </div>
+        <div class="horario-conteudo">
+          <span class="horario-label">Horário</span>
+          <span class="horario-hint" *ngIf="!form.get('horario')?.value">
+            Defina para aparecer na grade da agenda
+          </span>
+          <ion-input formControlName="horario" type="time" class="horario-input"></ion-input>
+        </div>
+      </div>
 
       <ion-item lines="none" class="form-item">
         <ion-label position="stacked">Responsável <span class="optional">(opcional)</span></ion-label>

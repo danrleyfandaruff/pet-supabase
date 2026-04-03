@@ -1490,10 +1490,9 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
 // ── Grid de horários ─────────────────────────────────────────
 .tl-scroll {
   overflow-x: auto;
-  overflow-y: auto;
-  flex: 1;
+  overflow-y: visible;
+  flex: initial;
   -webkit-overflow-scrolling: touch;
-  max-height: calc(100vh - 260px);
   scroll-snap-type: x proximity;
 
   &::-webkit-scrollbar { height: 8px; width: 8px; }
@@ -1859,10 +1858,6 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
   .tl-col {
     width: $col-width;
     min-width: $col-width;
-  }
-
-  .tl-scroll {
-    max-height: calc(100vh - 300px);
   }
 
   .tl-col-name {

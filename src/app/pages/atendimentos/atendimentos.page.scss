@@ -784,12 +784,14 @@
 }
 
 .gcal-month-label {
+  all: unset;
   flex: 1;
   text-align: center;
   font-size: 15px;
   font-weight: 700;
   color: #1a1a1a;
   text-transform: capitalize;
+  cursor: pointer;
 }
 
 .gcal-nav-btn {
@@ -824,6 +826,39 @@
     background: var(--ion-color-primary);
     color: #fff;
   }
+}
+
+.date-picker-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.42);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 9999;
+}
+
+.date-picker-card {
+  width: min(420px, 100%);
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.28);
+  overflow: hidden;
+}
+
+.date-picker-card-header {
+  padding: 14px 16px 4px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.date-picker-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px 16px 16px;
 }
 
 // ── Week strip: Seg Ter Qua... ─────────────────────────────
@@ -1375,6 +1410,10 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
   font-weight: 600;
 }
 
+.tl-mobile-col-picker {
+  display: none;
+}
+
 // ── Sem horário (all-day row) ─────────────────────────────────
 .tl-allday-row {
   display: flex;
@@ -1433,7 +1472,17 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
     background: #f0fdf4;
   }
 
-  ion-button { height: 24px; --padding-start: 3px; --padding-end: 3px; }
+  ion-button {
+    height: 28px;
+    min-width: 28px;
+    margin-inline-start: 2px;
+    --padding-start: 4px;
+    --padding-end: 4px;
+    --border-radius: 10px;
+    --background: rgba(251, 146, 60, 0.14);
+    --color: #9a3412;
+    --box-shadow: none;
+  }
 }
 
 .tl-allday-serv { opacity: 0.7; }
@@ -1536,26 +1585,47 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
 
 // ── Bloco de evento ─────────────────────────────────────────────
 .tl-event {
+  --tl-text-primary: #ffffff;
+  --tl-text-secondary: rgba(255, 255, 255, 0.88);
+  --tl-text-muted: rgba(255, 255, 255, 0.74);
+  --tl-status-bg: rgba(255,255,255,0.16);
+  --tl-status-color: #ffffff;
   position: absolute;
   left: 3px;
   right: 3px;
-  height: 82px;
-  min-height: 60px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  border-radius: 7px;
+  height: 72px;
+  min-height: 56px;
+  background: #78a3ff;
+  border-radius: 5px;
   display: flex;
   align-items: stretch;
   overflow: hidden;
   z-index: 3;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(99,102,241,0.28);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
   touch-action: none;
   transition: opacity 0.15s, transform 0.15s;
   user-select: none;
 
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.18);
+    pointer-events: none;
+  }
+
   &.tl-ev-pago {
-    background: linear-gradient(135deg, #22c55e, #16a34a);
-    box-shadow: 0 2px 8px rgba(34,197,94,0.28);
+    --tl-text-primary: #ffffff;
+    --tl-text-secondary: rgba(255, 255, 255, 0.9);
+    --tl-text-muted: rgba(255, 255, 255, 0.72);
+    --tl-status-bg: rgba(255,255,255,0.18);
+    --tl-status-color: #ffffff;
+    background: linear-gradient(135deg, #20b45a, #16924a);
+    box-shadow: 0 1px 4px rgba(34,197,94,0.18);
   }
 
   &.tl-ev-dragging {
@@ -1565,18 +1635,42 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
   }
 }
 
+.tl-ev-tone-paid::after {
+  background: linear-gradient(90deg, #22c55e, #16a34a);
+}
+
+.tl-ev-tone-success::after {
+  background: linear-gradient(90deg, #22c55e, #15803d);
+}
+
+.tl-ev-tone-warning::after {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.tl-ev-tone-danger::after {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+.tl-ev-tone-primary::after {
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+}
+
+.tl-ev-tone-medium::after {
+  background: linear-gradient(90deg, #94a3b8, #64748b);
+}
+
 .tl-ev-stripe {
-  width: 4px;
-  background: rgba(255,255,255,0.28);
+  width: 3px;
+  background: rgba(255,255,255,0.24);
   flex-shrink: 0;
 }
 
 .tl-ev-info {
   flex: 1;
-  padding: 7px 6px 7px 8px;
+  padding: 6px 6px 6px 8px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
   min-width: 0;
   overflow: hidden;
 }
@@ -1588,19 +1682,27 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
   gap: 6px;
 }
 
+.tl-ev-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  flex-shrink: 0;
+}
+
 .tl-ev-time {
-  font-size: 10px;
-  color: rgba(255,255,255,0.75);
+  font-size: 9px;
+  color: var(--tl-text-muted);
   font-weight: 700;
   line-height: 1.2;
   flex-shrink: 0;
 }
 
 .tl-ev-name {
-  font-size: 13px;
-  color: #fff;
+  font-size: 12px;
+  color: var(--tl-text-primary);
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.15;
   white-space: normal;
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -1609,9 +1711,9 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
 }
 
 .tl-ev-serv {
-  font-size: 11px;
-  color: rgba(255,255,255,0.7);
-  line-height: 1.2;
+  font-size: 10px;
+  color: var(--tl-text-secondary);
+  line-height: 1.15;
   white-space: normal;
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -1622,14 +1724,14 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
 .tl-ev-status {
   display: inline-flex;
   align-items: center;
-  font-size: 8px;
+  font-size: 7px;
   font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 8px;
-  background: rgba(255,255,255,0.22);
-  color: #fff;
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: var(--tl-status-bg);
+  color: var(--tl-status-color);
   width: fit-content;
-  max-width: 88px;
+  max-width: 78px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1638,25 +1740,75 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
 .tl-ev-btns {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 4px 2px;
+  justify-content: flex-start;
+  gap: 5px;
+  padding: 8px 8px 8px 2px;
   flex-shrink: 0;
 
   ion-button {
-    --color: rgba(255,255,255,0.8);
+    margin: 0;
+    min-width: 28px;
+    height: 28px;
     --padding-start: 4px;
     --padding-end: 4px;
-    height: 28px;
+    --border-radius: 8px;
+    --background: rgba(15, 23, 42, 0.12);
+    --color: #fff;
+    --box-shadow: none;
   }
+}
+
+.tl-desktop-action-btn {
+  display: inline-flex;
+}
+
+.tl-mobile-inline-btn,
+.tl-mobile-sheet-btn {
+  display: none;
+}
+
+.tl-ev-btns ion-button[color="light"] {
+  --background: rgba(59, 130, 246, 0.16);
+  --color: #ffffff !important;
+  color: #ffffff !important;
+}
+
+.tl-ev-btns ion-button.tl-desktop-action-btn[color="light"] ion-icon {
+  color: #ffffff !important;
+}
+
+.tl-ev-btns ion-button[color="success"] {
+  --background: rgba(34, 197, 94, 0.16);
+  --color: #f0fdf4;
+}
+
+.tl-ev-btns ion-button[color="medium"] {
+  --background: rgba(15, 23, 42, 0.16);
+  --color: #f8fafc;
+}
+
+.tl-allday-chip ion-button.tl-desktop-action-btn[color="primary"] {
+  --background: rgba(59, 130, 246, 0.16);
+  --color: #1d4ed8;
+}
+
+.tl-allday-chip ion-button.tl-desktop-action-btn[color="success"] {
+  --background: rgba(34, 197, 94, 0.16);
+  --color: #166534;
+}
+
+.tl-allday-chip ion-button.tl-desktop-action-btn[color="medium"] {
+  --background: rgba(148, 163, 184, 0.18);
+  --color: #334155;
 }
 
 // ── Ghost de drag ────────────────────────────────────────────
 .tl-ghost {
   position: absolute;
-  height: 82px;
+  height: 72px;
   background: rgba(99,102,241,0.15);
   border: 2px dashed #6366f1;
-  border-radius: 7px;
+  border-radius: 5px;
   z-index: 30;
   pointer-events: none;
   display: flex;
@@ -1671,7 +1823,36 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
 }
 
 @media (max-width: 767px) {
-  $col-width: 82vw;
+  $col-width: calc(100vw - #{$gutter-width} - 14px);
+
+  .tl-mobile-col-picker {
+    display: block;
+    padding: 8px 10px 4px;
+    background: #fff;
+    border-bottom: 1px solid #eef2f7;
+
+    ion-item {
+      --background: #f8fafc;
+      --border-radius: 12px;
+      --padding-start: 12px;
+      --inner-padding-end: 10px;
+      --min-height: 44px;
+      border-radius: 12px;
+    }
+
+    ion-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #475569;
+    }
+
+    ion-select {
+      max-width: 100%;
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+  }
 
   .tl-col-head,
   .tl-allday-col,
@@ -1689,11 +1870,71 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
   }
 
   .tl-event {
-    height: 88px;
+    height: 76px;
+  }
+
+  .tl-header-row {
+    display: none;
   }
 
   .tl-ghost {
-    height: 88px;
+    height: 76px;
+  }
+
+  .tl-mobile-move-btn {
+    display: none;
+  }
+
+  .tl-desktop-action-btn {
+    display: none;
+  }
+
+  .tl-mobile-inline-btn,
+  .tl-mobile-sheet-btn {
+    display: inline-flex;
+  }
+
+  .tl-event .tl-ev-btns {
+    display: none;
+  }
+
+  .tl-mobile-inline-btn {
+    margin: 0;
+    min-width: 30px;
+    width: 30px;
+    height: 30px;
+    --padding-start: 0;
+    --padding-end: 0;
+    --background: rgba(255, 255, 255, 0.16);
+    --color: #ffffff;
+    --border-radius: 999px;
+    --box-shadow: none;
+    flex-shrink: 0;
+    opacity: 1;
+
+    ion-icon {
+      font-size: 19px;
+      color: #ffffff;
+      opacity: 1;
+    }
+  }
+
+  .tl-mobile-pay-btn {
+    --background: rgba(34, 197, 94, 0.18);
+    --color: #ffffff;
+  }
+
+  .tl-allday-chip ion-button.tl-mobile-sheet-btn {
+    min-width: 24px;
+    height: 24px;
+    --background: transparent;
+    --color: #9a3412;
+    --box-shadow: none;
+  }
+
+  .tl-allday-chip {
+    gap: 0;
+    padding-right: 4px;
   }
 }
 

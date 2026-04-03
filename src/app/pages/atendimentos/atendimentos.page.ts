@@ -1,5 +1,5 @@
 import { errorMsg } from '../../core/utils/error.utils';
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild, ViewChildren, QueryList, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild, ViewChildren, QueryList, ElementRef, HostListener } from '@angular/core';
 import { ActionSheetController, AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { AtendimentoService } from '../../core/services/atendimento.service';
 import { Atendimento } from '../../core/models/atendimento.model';
@@ -29,6 +29,9 @@ export class AtendimentosPage implements OnInit, OnDestroy {
   atendimentosFiltrados: Atendimento[] = [];
   isLoading = false;
   private ordemColunasAgenda: (string | null)[] | null = null;
+  private periodoCarregadoKey: string | null = null;
+  isMobileLayout = typeof window !== 'undefined' ? window.innerWidth <= 767 : false;
+  mobileColunaSelecionadaId: string | null = null;
 
   // ── Calendário ─────────────────────────────────────
   diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
@@ -36,6 +39,8 @@ export class AtendimentosPage implements OnInit, OnDestroy {
   mesAtual: Date = new Date();
   diaSelecionado: number | null = null;
   mesLabel = '';
+  datePickerOpen = false;
+  datePickerValue = '';
   filtroRapido: 'todos' | 'hoje' | 'pendentes' = 'todos';
   countNaoPagos = 0;
   private termoBusca = '';
@@ -57,6 +62,7 @@ export class AtendimentosPage implements OnInit, OnDestroy {
   atendimentosDoDia: Atendimento[] = [];
   isDiaSelecionadoHoje = false;
   diaSelecionadoLabel = '';
+  colunasAgendaVisiveis: ColunaAgenda[] = [];
   private datasComAtendimento = new Set<string>();
   private atendimentosPorData = new Map<string, Atendimento[]>();
 
@@ -72,6 +78,7 @@ export class AtendimentosPage implements OnInit, OnDestroy {
       this.atendimentosDoDia = [];
       this.diaSelecionadoLabel = '';
       this.colunasAgenda = [];
+      this.colunasAgendaVisiveis = [];
       return;
     }
 
@@ -131,6 +138,7 @@ export class AtendimentosPage implements OnInit, OnDestroy {
         ...splitCol(meus),
       }];
       this.hasSemHorario = this.colunasAgenda.some(c => c.semHorario.length > 0);
+      this.atualizarColunasVisiveis();
       return;
     }
 
@@ -177,6 +185,47 @@ export class AtendimentosPage implements OnInit, OnDestroy {
 
     this.colunasAgenda = colunas;
     this.hasSemHorario = this.colunasAgenda.some(c => c.semHorario.length > 0);
+    this.atualizarColunasVisiveis();
+  }
+
+  private getColunaAgendaKey(col: ColunaAgenda): string {
+    return col.id ?? '__sem_colaborador__';
+  }
+
+  private atualizarColunasVisiveis() {
+    if (!this.isMobileLayout) {
+      this.colunasAgendaVisiveis = [...this.colunasAgenda];
+      return;
+    }
+
+    const existeSelecionada = this.colunasAgenda.some(col =>
+      this.getColunaAgendaKey(col) === this.mobileColunaSelecionadaId
+    );
+
+    if (!existeSelecionada) {
+      this.mobileColunaSelecionadaId = this.colunasAgenda[0]
+        ? this.getColunaAgendaKey(this.colunasAgenda[0])
+        : null;
+    }
+
+    this.colunasAgendaVisiveis = this.colunasAgenda.filter(col =>
+      this.getColunaAgendaKey(col) === this.mobileColunaSelecionadaId
+    );
+  }
+
+  onMobileColunaChange(value: string | null) {
+    this.mobileColunaSelecionadaId = value;
+    this.atualizarColunasVisiveis();
+    this.cdr.markForCheck();
+  }
+
+  @HostListener('window:resize')
+  onWindowResize() {
+    const proximoMobile = typeof window !== 'undefined' ? window.innerWidth <= 767 : false;
+    if (proximoMobile === this.isMobileLayout) return;
+    this.isMobileLayout = proximoMobile;
+    this.atualizarColunasVisiveis();
+    this.cdr.markForCheck();
   }
 
   private updateNowTop() {
@@ -213,7 +262,39 @@ export class AtendimentosPage implements OnInit, OnDestroy {
     this.diaSelecionado = d;
     this.gerarCalendario();
     this.gerarDiasStrip();
-    this.aplicarFiltros();
+    void this.loadData(false);
+  }
+
+  private formatDateInputValue(date: Date): string {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  }
+
+  abrirSeletorData() {
+    const base = this.diaSelecionado
+      ? new Date(this.mesAtual.getFullYear(), this.mesAtual.getMonth(), this.diaSelecionado)
+      : new Date(this.mesAtual.getFullYear(), this.mesAtual.getMonth(), 1);
+    this.datePickerValue = this.formatDateInputValue(base);
+    this.datePickerOpen = true;
+    this.cdr.markForCheck();
+  }
+
+  fecharSeletorData() {
+    this.datePickerOpen = false;
+    this.cdr.markForCheck();
+  }
+
+  onDatePickerChange(event: CustomEvent) {
+    const value = event.detail.value;
+    if (typeof value === 'string' && value) {
+      this.datePickerValue = value.slice(0, 10);
+    }
+  }
+
+  confirmarSeletorData() {
+    if (this.datePickerValue) {
+      this.selecionarDiaFromStrip(this.datePickerValue);
+    }
+    this.fecharSeletorData();
   }
 
   temAtendimentoIso(iso: string): boolean {
@@ -228,7 +309,7 @@ export class AtendimentosPage implements OnInit, OnDestroy {
     this.diaSelecionado = d.getDate();
     this.gerarCalendario();
     this.gerarDiasStrip();
-    this.aplicarFiltros();
+    void this.loadData(false);
   }
 
   nextDay() {
@@ -239,7 +320,7 @@ export class AtendimentosPage implements OnInit, OnDestroy {
     this.diaSelecionado = d.getDate();
     this.gerarCalendario();
     this.gerarDiasStrip();
-    this.aplicarFiltros();
+    void this.loadData(false);
   }
 
   goToHoje() {
@@ -248,7 +329,7 @@ export class AtendimentosPage implements OnInit, OnDestroy {
     this.diaSelecionado = hoje.getDate();
     this.gerarCalendario();
     this.gerarDiasStrip();
-    this.aplicarFiltros();
+    void this.loadData(false);
   }
 
   async openFormAtTime(horario: string) {
@@ -532,6 +613,132 @@ export class AtendimentosPage implements OnInit, OnDestroy {
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
   }
 
+  private async aplicarMudancaAtendimento(
+    atend: Atendimento,
+    opts: { newHorario?: string; newColuna?: ColunaAgenda }
+  ) {
+    const newHorario = opts.newHorario ?? atend.horario;
+    const newColuna = opts.newColuna;
+
+    const horarioChanged = !!newHorario && newHorario !== atend.horario;
+    const colunaChanged = !!newColuna && (newColuna.id ?? null) !== (atend.id_colaborador ?? null);
+    if (!horarioChanged && !colunaChanged) return;
+
+    const oldHorario = atend.horario;
+    const oldColaboradorId = atend.id_colaborador;
+    const oldColaboradorNome = atend.colaborador?.nome ?? atend.responsavel?.nome;
+
+    if (horarioChanged) atend.horario = newHorario;
+    if (colunaChanged && newColuna) {
+      atend.id_colaborador = newColuna.id ?? undefined;
+      if (atend.colaborador) atend.colaborador.nome = newColuna.nome;
+      else (atend as any).colaborador = { nome: newColuna.nome };
+      if (atend.responsavel) atend.responsavel.nome = newColuna.nome;
+    }
+    this.atendimentos = [...this.atendimentos];
+    this.aplicarFiltros();
+
+    try {
+      const updates: any = {};
+      if (horarioChanged) updates.horario = newHorario;
+      if (colunaChanged) updates.id_colaborador = newColuna?.id ?? null;
+      await this.atendimentoService.update(atend.id!, updates);
+      const partes = [
+        horarioChanged ? `Horário → ${newHorario}` : '',
+        colunaChanged ? `Profissional → ${newColuna?.nome}` : '',
+      ].filter(Boolean).join(' · ');
+      await this.showToast(`${partes} ✓`, 'success');
+    } catch (err: any) {
+      atend.horario = oldHorario;
+      atend.id_colaborador = oldColaboradorId;
+      if (atend.colaborador) atend.colaborador.nome = oldColaboradorNome ?? '';
+      if (atend.responsavel) atend.responsavel.nome = oldColaboradorNome ?? '';
+      this.atendimentos = [...this.atendimentos];
+      this.aplicarFiltros();
+      await this.showToast(errorMsg(err), 'danger');
+    }
+  }
+
+  async moverAtendimentoRapido(a: Atendimento, event?: Event) {
+    event?.stopPropagation();
+
+    const opcoes = this.colunasAgenda.map(col => ({
+      label: col.nome,
+      value: col.id ?? '__sem_colaborador__',
+      checked: (col.id ?? null) === (a.id_colaborador ?? null),
+    }));
+
+    const alert = await this.alertCtrl.create({
+      header: 'Mover atendimento',
+      subHeader: a.animal?.nome || a.cliente?.nome || 'Atendimento',
+      inputs: opcoes.map(op => ({
+        type: 'radio',
+        label: op.label,
+        value: op.value,
+        checked: op.checked,
+      })),
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Mover',
+          handler: async (selectedValue) => {
+            const coluna = this.colunasAgenda.find(col =>
+              (col.id ?? '__sem_colaborador__') === selectedValue
+            );
+            if (!coluna) return;
+            await this.aplicarMudancaAtendimento(a, { newColuna: coluna });
+          },
+        },
+      ],
+    });
+
+    await alert.present();
+  }
+
+  async abrirAcoesAtendimento(a: Atendimento, event?: Event) {
+    event?.stopPropagation();
+
+    const botoes: any[] = [
+      {
+        text: 'Editar',
+        icon: 'create-outline',
+        handler: () => this.openForm(a),
+      },
+      {
+        text: 'Mover de colaborador',
+        icon: 'swap-horizontal-outline',
+        handler: () => this.moverAtendimentoRapido(a),
+      },
+    ];
+
+    if (a.pago) {
+      botoes.push({
+        text: 'Desfazer pagamento',
+        icon: 'arrow-undo-outline',
+        handler: () => this.confirmarDesfazerPagamento(a),
+      });
+    } else if (this.temValor(a)) {
+      botoes.push({
+        text: 'Registrar pagamento',
+        icon: 'cash-outline',
+        handler: () => this.abrirPagamento(a),
+      });
+    }
+
+    botoes.push({
+      text: 'Cancelar',
+      role: 'cancel',
+      icon: 'close-outline',
+    });
+
+    const sheet = await this.actionSheetCtrl.create({
+      header: a.animal?.nome || a.cliente?.nome || 'Atendimento',
+      buttons: botoes,
+    });
+
+    await sheet.present();
+  }
+
   onDragStart(e: PointerEvent, a: Atendimento, colIndex: number) {
     if (!a.horario) return;
     e.preventDefault();
@@ -593,51 +800,16 @@ export class AtendimentosPage implements OnInit, OnDestroy {
     const m = Math.round(totalMinutes % 60);
     if (h < 7 || h > 22) { this.cdr.markForCheck(); return; }
 
-    const newHorario = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-    const newColuna = this.colunasAgenda[ghostColIndex];
     const atend = this.atendimentos.find(x => x.id === id);
     if (!atend) return;
 
-    const horarioChanged = newHorario !== atend.horario;
+    const newHorario = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    const newColuna = this.colunasAgenda[ghostColIndex];
     const colunaChanged = ghostColIndex !== sourceColIndex;
-    if (!horarioChanged && !colunaChanged) { this.cdr.markForCheck(); return; }
-
-    // Atualização otimista
-    const oldHorario = atend.horario;
-    const oldColaboradorId = atend.id_colaborador;
-    const oldColaboradorNome = atend.colaborador?.nome ?? atend.responsavel?.nome;
-
-    atend.horario = newHorario;
-    if (colunaChanged && newColuna) {
-      atend.id_colaborador = newColuna.id ?? undefined;
-      if (atend.colaborador) atend.colaborador.nome = newColuna.nome;
-      else (atend as any).colaborador = { nome: newColuna.nome };
-      if (atend.responsavel) atend.responsavel.nome = newColuna.nome;
-    }
-    this.atendimentos = [...this.atendimentos];
-    this.aplicarFiltros();
-
-    try {
-      const updates: any = {};
-      if (horarioChanged) updates.horario = newHorario;
-      if (colunaChanged) {
-        updates.id_colaborador = newColuna?.id ?? null;
-      }
-      await this.atendimentoService.update(id, updates);
-      const partes = [
-        horarioChanged ? `Horário → ${newHorario}` : '',
-        colunaChanged ? `Profissional → ${newColuna?.nome}` : '',
-      ].filter(Boolean).join(' · ');
-      await this.showToast(`${partes} ✓`, 'success');
-    } catch (err: any) {
-      atend.horario = oldHorario;
-      atend.id_colaborador = oldColaboradorId;
-      if (atend.colaborador) atend.colaborador.nome = oldColaboradorNome ?? '';
-      if (atend.responsavel) atend.responsavel.nome = oldColaboradorNome ?? '';
-      this.atendimentos = [...this.atendimentos];
-      this.aplicarFiltros();
-      await this.showToast(errorMsg(err), 'danger');
-    }
+    await this.aplicarMudancaAtendimento(atend, {
+      newHorario,
+      newColuna: colunaChanged ? newColuna : undefined,
+    });
   }
 
   onDragCancel() {
@@ -780,7 +952,7 @@ export class AtendimentosPage implements OnInit, OnDestroy {
     this.diaSelecionado = null;
     this.gerarCalendario();
     this.gerarDiasStrip();
-    this.aplicarFiltros();
+    void this.loadData(false);
   }
 
   nextMonth() {
@@ -788,7 +960,7 @@ export class AtendimentosPage implements OnInit, OnDestroy {
     this.diaSelecionado = null;
     this.gerarCalendario();
     this.gerarDiasStrip();
-    this.aplicarFiltros();
+    void this.loadData(false);
   }
 
   selecionarDia(dia: number) {
@@ -800,6 +972,20 @@ export class AtendimentosPage implements OnInit, OnDestroy {
   limparFiltro() {
     this.diaSelecionado = null;
     this.aplicarFiltros();
+  }
+
+  private getPeriodoMensalAtual() {
+    const ano = this.mesAtual.getFullYear();
+    const mes = this.mesAtual.getMonth();
+    const inicio = new Date(ano, mes, 1);
+    const fim = new Date(ano, mes + 1, 0);
+    const fmt = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    return {
+      key: `${ano}-${String(mes + 1).padStart(2, '0')}`,
+      inicio: fmt(inicio),
+      fim: fmt(fim),
+    };
   }
 
   setFiltroRapido(f: 'todos' | 'hoje' | 'pendentes') {
@@ -890,12 +1076,21 @@ export class AtendimentosPage implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
-  async loadData() {
+  async loadData(force = true) {
+    const periodo = this.getPeriodoMensalAtual();
+    if (!force && this.periodoCarregadoKey === periodo.key) {
+      this.aplicarFiltros();
+      this.cdr.markForCheck();
+      return;
+    }
+
     this.isLoading = true;
     this.ordemColunasAgenda = null;
+    this.mobileColunaSelecionadaId = null;
     this.cdr.markForCheck();
     try {
-      this.atendimentos = await this.atendimentoService.getAll();
+      this.atendimentos = await this.atendimentoService.getByPeriodo(periodo.inicio, periodo.fim);
+      this.periodoCarregadoKey = periodo.key;
       this.aplicarFiltros();
     } catch (e: any) { await this.showToast(errorMsg(e), 'danger'); }
     finally {
@@ -931,10 +1126,27 @@ export class AtendimentosPage implements OnInit, OnDestroy {
     if (!status) return '';
     const s = status.toLowerCase();
     if (s.includes('conclu')) return 'badge-success';
-    if (s.includes('andamento')) return 'badge-warning';
+    if (s.includes('andamento') || s.includes('aguard') || s.includes('penden')) return 'badge-warning';
     if (s.includes('cancel') || s.includes('comparec')) return 'badge-danger';
-    if (s.includes('confirm')) return 'badge-primary';
+    if (s.includes('confirm') || s.includes('agend') || s.includes('marcad')) return 'badge-primary';
     return 'badge-medium';
+  }
+
+  getEventToneClass(atendimento: Atendimento): string {
+    if (atendimento.pago) return 'tl-ev-tone-paid';
+
+    switch (this.getBadgeClass(atendimento.status_info?.nome)) {
+      case 'badge-success':
+        return 'tl-ev-tone-success';
+      case 'badge-warning':
+        return 'tl-ev-tone-warning';
+      case 'badge-danger':
+        return 'tl-ev-tone-danger';
+      case 'badge-primary':
+        return 'tl-ev-tone-primary';
+      default:
+        return 'tl-ev-tone-medium';
+    }
   }
 
   async openForm(atendimento?: Atendimento) {

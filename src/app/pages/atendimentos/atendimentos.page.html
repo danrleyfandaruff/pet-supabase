@@ -241,6 +241,16 @@
                      (click)="openFormAtTimeAndCol(h, col)">
                 </div>
 
+                <!-- ── Indisponibilidades (fora do expediente / intervalo / bloqueios) ── -->
+                <div class="tl-indisp"
+                     *ngFor="let b of getIndisponibilidades(col)"
+                     [class.tl-indisp-intervalo]="b.tipo === 'intervalo'"
+                     [class.tl-indisp-bloqueio]="b.tipo === 'bloqueio'"
+                     [style.top.px]="b.top"
+                     [style.height.px]="b.height">
+                  <span class="tl-indisp-label" *ngIf="b.label">{{ b.label }}</span>
+                </div>
+
                 <!-- Linha "agora" -->
                 <div class="tl-now-line" *ngIf="isDiaSelecionadoHoje" [style.top.px]="nowTop"></div>
 

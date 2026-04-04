@@ -242,6 +242,37 @@ ion-accordion .ion-accordion-toggle-icon {
   min-width: 0;
 }
 
+.colab-topline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.colab-avatar,
+.colab-avatar-image {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.colab-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.28);
+}
+
+.colab-avatar-image {
+  object-fit: cover;
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
 .mini-badges {
   display: flex;
   gap: 5px;
@@ -261,6 +292,289 @@ ion-accordion .ion-accordion-toggle-icon {
     --padding-start: 6px;
     --padding-end: 6px;
     height: 34px;
+  }
+}
+
+.colab-config-panel {
+  width: 100%;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 2px solid #eef2f7;
+}
+
+.colab-config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.colab-config-card {
+  background: #fff;
+  border: 1.5px solid #e8eef6;
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+}
+
+.cfg-title,
+.cfg-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cfg-input-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+// ── Foto do colaborador ─────────────────────────────────
+.colab-photo-area {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.colab-photo-preview,
+.colab-photo-empty {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.colab-photo-preview {
+  border: 2px solid #e2e8f0;
+}
+
+.colab-photo-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.colab-photo-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 700;
+  border: 2px dashed #cbd5e1;
+
+  ion-icon { font-size: 22px; opacity: 0.6; }
+}
+
+.colab-photo-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.file-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border-radius: 10px;
+  color: #2563eb;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  border: 1.5px solid #bfdbfe;
+
+  ion-icon { font-size: 16px; }
+
+  &:active { background: #dbeafe; }
+
+  input {
+    display: none;
+  }
+}
+
+.disp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.disp-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f1f5f9;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:has(ion-checkbox[ng-reflect-checked="false"]) .disp-times input,
+  &:has(ion-checkbox:not([checked])) .disp-times input {
+    opacity: 0.4;
+  }
+}
+
+.disp-day {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 80px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.disp-times {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(68px, 1fr));
+  gap: 6px;
+  flex: 1;
+
+  input {
+    width: 100%;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
+    color: #0f172a;
+    padding: 9px 6px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    transition: border-color 0.15s, background 0.15s;
+    box-sizing: border-box;
+
+    &:focus {
+      outline: none;
+      border-color: var(--ion-color-primary);
+      background: #fff;
+    }
+
+    &:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.disp-legend {
+  margin-top: 10px;
+  font-size: 11px;
+  color: #94a3b8;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 0 0;
+  border-top: 1px dashed #e2e8f0;
+
+  &::before {
+    content: 'Ordem: Início · Fim · Int. início · Int. fim';
+    display: block;
+  }
+}
+
+.bloqueio-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bloqueio-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 10px;
+
+  strong {
+    display: block;
+    font-size: 13px;
+    color: #0f172a;
+  }
+
+  p {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: #64748b;
+  }
+}
+
+.small-empty {
+  padding: 6px 0 0;
+}
+
+// ── Comissão ────────────────────────────────────────────
+.comissao-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.comissao-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.comissao-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  ion-input {
+    flex: 1;
+    --padding-end: 28px;
+  }
+
+  .comissao-pct {
+    position: absolute;
+    right: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #94a3b8;
+    pointer-events: none;
+    z-index: 1;
+  }
+}
+
+.colab-config-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 4px;
+
+  ion-button[color="success"] {
+    --border-radius: 12px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+  }
+  ion-button[color="medium"] {
+    --border-radius: 12px;
   }
 }
 
@@ -296,4 +610,95 @@ ion-accordion .ion-accordion-toggle-icon {
   ion-icon { font-size: 20px; }
 
   &:active { background: rgba(220, 53, 69, 0.12); }
+}
+
+@media (max-width: 680px) {
+
+  // ── Grid de config: empilha em coluna única ─────────────
+  .colab-config-grid {
+    grid-template-columns: 1fr;
+  }
+
+  // ── Foto: empilha preview + actions verticalmente ────────
+  .colab-photo-area {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .colab-photo-preview,
+  .colab-photo-empty {
+    width: 72px;
+    height: 72px;
+  }
+
+  .colab-photo-actions {
+    width: 100%;
+  }
+
+  .file-upload-btn {
+    width: 100%;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+
+  // ── Comissão: 2 colunas no mobile ───────────────────────
+  .cfg-input-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  // ── Disponibilidade: empilha dia + horários ──────────────
+  .disp-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 12px 0;
+  }
+
+  .disp-day {
+    min-width: unset;
+    font-size: 13px;
+  }
+
+  .disp-times {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  // ── Labels de tempo mais claros com pseudo-labels ────────
+  .disp-times input:nth-child(1)::placeholder { content: 'Início'; }
+
+  // ── Ações: empilha verticalmente e ocupa toda a largura ──
+  .colab-config-actions {
+    flex-direction: column-reverse;
+
+    ion-button {
+      width: 100%;
+    }
+  }
+
+  // ── mini-card: move ações para baixo do conteúdo ─────────
+  .mini-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .mini-actions {
+    justify-content: flex-end;
+    border-top: 1px solid #f0f2f5;
+    padding-top: 6px;
+    margin-top: 2px;
+  }
+
+  // ── Painel expandido do colaborador ─────────────────────
+  .colab-config-panel {
+    margin-top: 10px;
+    padding-top: 12px;
+  }
+
+  .colab-config-card {
+    padding: 12px;
+    border-radius: 14px;
+  }
 }

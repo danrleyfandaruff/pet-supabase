@@ -197,7 +197,11 @@
         <div slot="content" class="accordion-content">
           <div *ngFor="let c of colaboradores" class="mini-card">
             <div class="mini-info">
-              <span>{{ c.nome || c.email }}</span>
+              <div class="colab-topline">
+                <div class="colab-avatar" *ngIf="!c.avatar_url">{{ (c.nome || c.email || '?').charAt(0).toUpperCase() }}</div>
+                <img *ngIf="c.avatar_url" [src]="c.avatar_url" alt="Foto do colaborador" class="colab-avatar-image">
+                <span>{{ c.nome || c.email }}</span>
+              </div>
               <p *ngIf="c.nome" class="mini-desc">{{ c.email }}</p>
               <p *ngIf="c.cargo" class="mini-desc">{{ c.cargo }}</p>
               <div class="mini-badges">
@@ -210,6 +214,9 @@
               </div>
             </div>
             <div class="mini-actions">
+              <ion-button fill="clear" color="medium" size="small" (click)="toggleColaboradorConfig(c)">
+                <ion-icon slot="icon-only" [name]="colaboradorExpandedId === c.id ? 'chevron-up-outline' : 'settings-outline'"></ion-icon>
+              </ion-button>
               <ion-button fill="clear" color="primary" size="small" (click)="editColaborador(c)">
                 <ion-icon slot="icon-only" name="create-outline"></ion-icon>
               </ion-button>
@@ -219,6 +226,154 @@
               <ion-button fill="clear" color="danger" size="small" (click)="removeColaborador(c)">
                 <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
               </ion-button>
+            </div>
+
+            <div class="colab-config-panel" *ngIf="colaboradorExpandedId === c.id">
+              <div class="colab-config-grid">
+                <div class="colab-config-card">
+                  <div class="cfg-title">
+                    <ion-icon name="image-outline" style="font-size:14px;color:var(--ion-color-primary)"></ion-icon>
+                    Foto do colaborador
+                  </div>
+                  <div class="colab-photo-area">
+                    <div class="colab-photo-preview" *ngIf="getColaboradorDraft(c).avatar_url; else semFoto">
+                      <img [src]="getColaboradorDraft(c).avatar_url" alt="Prévia da foto">
+                    </div>
+                    <ng-template #semFoto>
+                      <div class="colab-photo-empty">
+                        <ion-icon name="person-outline"></ion-icon>
+                        Sem foto
+                      </div>
+                    </ng-template>
+                    <div class="colab-photo-actions">
+                      <label class="file-upload-btn">
+                        <ion-icon name="camera-outline"></ion-icon>
+                        Escolher foto
+                        <input type="file" accept="image/*" (change)="onColaboradorFotoSelecionada($event, c)">
+                      </label>
+                      <ion-input
+                        label="URL da foto"
+                        labelPlacement="stacked"
+                        fill="outline"
+                        placeholder="Cole uma URL..."
+                        [(ngModel)]="getColaboradorDraft(c).avatar_url">
+                      </ion-input>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="colab-config-card">
+                  <div class="cfg-title">
+                    <ion-icon name="cash-outline" style="font-size:14px;color:#16a34a"></ion-icon>
+                    Comissão automática
+                  </div>
+                  <div class="cfg-input-grid">
+                    <div class="comissao-item">
+                      <span class="comissao-label">Padrão</span>
+                      <div class="comissao-input-wrap">
+                        <ion-input
+                          type="number"
+                          fill="outline"
+                          [(ngModel)]="getColaboradorDraft(c).percentual_comissao_padrao">
+                        </ion-input>
+                        <span class="comissao-pct">%</span>
+                      </div>
+                    </div>
+                    <div class="comissao-item">
+                      <span class="comissao-label">Banho</span>
+                      <div class="comissao-input-wrap">
+                        <ion-input
+                          type="number"
+                          fill="outline"
+                          [(ngModel)]="getColaboradorDraft(c).percentual_comissao_banho">
+                        </ion-input>
+                        <span class="comissao-pct">%</span>
+                      </div>
+                    </div>
+                    <div class="comissao-item">
+                      <span class="comissao-label">Tosa</span>
+                      <div class="comissao-input-wrap">
+                        <ion-input
+                          type="number"
+                          fill="outline"
+                          [(ngModel)]="getColaboradorDraft(c).percentual_comissao_tosa">
+                        </ion-input>
+                        <span class="comissao-pct">%</span>
+                      </div>
+                    </div>
+                    <div class="comissao-item">
+                      <span class="comissao-label">Adicionais</span>
+                      <div class="comissao-input-wrap">
+                        <ion-input
+                          type="number"
+                          fill="outline"
+                          [(ngModel)]="getColaboradorDraft(c).percentual_comissao_adicional">
+                        </ion-input>
+                        <span class="comissao-pct">%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="colab-config-card">
+                <div class="cfg-title">
+                  <ion-icon name="calendar-outline" style="font-size:14px;color:#7c3aed"></ion-icon>
+                  Disponibilidade semanal
+                </div>
+                <div class="disp-list">
+                  <div class="disp-row" *ngFor="let dia of getColaboradorDraft(c).disponibilidade_semanal">
+                    <div class="disp-day">
+                      <ion-checkbox [(ngModel)]="dia.ativo"></ion-checkbox>
+                      <span>{{ diasSemana[dia.dia_semana].label }}</span>
+                    </div>
+                    <div class="disp-times">
+                      <input type="time" [(ngModel)]="dia.hora_inicio" [disabled]="!dia.ativo">
+                      <input type="time" [(ngModel)]="dia.hora_fim" [disabled]="!dia.ativo">
+                      <input type="time" [(ngModel)]="dia.intervalo_inicio" [disabled]="!dia.ativo">
+                      <input type="time" [(ngModel)]="dia.intervalo_fim" [disabled]="!dia.ativo">
+                    </div>
+                  </div>
+                </div>
+                <div class="disp-legend"></div>
+              </div>
+
+              <div class="colab-config-card">
+                <div class="cfg-title-row">
+                  <div class="cfg-title" style="margin-bottom:0">
+                    <ion-icon name="ban-outline" style="font-size:14px;color:#ef4444"></ion-icon>
+                    Bloqueios
+                  </div>
+                  <ion-button fill="outline" size="small" color="primary" (click)="addBloqueioColaborador(c)">
+                    <ion-icon slot="start" name="calendar-outline"></ion-icon>
+                    Novo bloqueio
+                  </ion-button>
+                </div>
+
+                <div class="bloqueio-list" *ngIf="(c.bloqueios?.length ?? 0) > 0; else semBloqueios">
+                  <div class="bloqueio-item" *ngFor="let bloqueio of c.bloqueios">
+                    <div>
+                      <strong>{{ formatarDataCurta(bloqueio.data) }}</strong>
+                      <p>
+                        {{ bloqueio.dia_todo ? 'Dia todo' : ((bloqueio.hora_inicio || '--:--') + ' até ' + (bloqueio.hora_fim || '--:--')) }}
+                        <span *ngIf="bloqueio.descricao"> · {{ bloqueio.descricao }}</span>
+                      </p>
+                    </div>
+                    <ion-button fill="clear" color="danger" size="small" (click)="removeBloqueioColaborador(c, bloqueio)">
+                      <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                    </ion-button>
+                  </div>
+                </div>
+
+                <ng-template #semBloqueios>
+                  <div class="acc-empty small-empty">Nenhum bloqueio cadastrado</div>
+                </ng-template>
+              </div>
+
+              <div class="colab-config-actions">
+                <ion-button fill="clear" color="medium" (click)="resetColaboradorConfig(c)">Desfazer</ion-button>
+                <ion-button color="success" (click)="saveColaboradorConfig(c)">Salvar configurações</ion-button>
+              </div>
             </div>
           </div>
           <div *ngIf="colaboradores.length === 0" class="acc-empty">Nenhum colaborador cadastrado</div>

@@ -49,7 +49,8 @@
     <!-- Cards por tosador -->
     <div class="tosador-card" *ngFor="let item of comissoes">
       <div class="tosador-header">
-        <div class="tosador-avatar">{{ item.colaborador.nome?.[0]?.toUpperCase() }}</div>
+        <div class="tosador-avatar" *ngIf="!item.colaborador.avatar_url">{{ getAvatarLabel(item.colaborador) }}</div>
+        <img *ngIf="item.colaborador.avatar_url" [src]="item.colaborador.avatar_url" alt="Foto do colaborador" class="tosador-avatar-img">
         <div class="tosador-info">
           <h3>{{ item.colaborador.nome }}</h3>
           <span class="qtd-label">{{ item.atendimentos.length }} atendimentos pagos</span>
@@ -65,8 +66,12 @@
           <span class="t-label">Produção bruta</span>
           <span class="t-valor">{{ formatCurrency(item.totalBruto) }}</span>
         </div>
+        <div class="tosador-row">
+          <span class="t-label">Adicionais</span>
+          <span class="t-valor">{{ formatCurrency(item.totalAdicionais) }}</span>
+        </div>
         <div class="tosador-row destaque-row">
-          <span class="t-label">Comissão ({{ item.percentual }}%)</span>
+          <span class="t-label">Comissão automática</span>
           <span class="t-valor t-comissao">{{ formatCurrency(item.comissao) }}</span>
         </div>
       </div>

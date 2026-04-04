@@ -777,54 +777,60 @@
 .gcal-top-bar {
   display: flex;
   align-items: center;
-  padding: 10px 12px 6px;
-  gap: 4px;
+  padding: 10px 14px 8px;
+  gap: 6px;
   background: #fff;
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid #eef1f6;
 }
 
 .gcal-month-label {
   all: unset;
   flex: 1;
   text-align: center;
-  font-size: 15px;
-  font-weight: 700;
-  color: #1a1a1a;
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
   text-transform: capitalize;
+  letter-spacing: -0.3px;
   cursor: pointer;
+  transition: color 0.15s;
+  &:active { color: var(--ion-color-primary); }
 }
 
 .gcal-nav-btn {
   all: unset;
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
   cursor: pointer;
-  color: #666;
+  color: #475569;
   transition: background 0.15s;
 
-  ion-icon { font-size: 18px; }
-  &:active { background: #f0f2f5; }
+  ion-icon { font-size: 19px; }
+  &:active { background: #f0f4ff; color: var(--ion-color-primary); }
 }
 
 .gcal-hoje-btn {
   all: unset;
-  padding: 5px 12px;
+  padding: 6px 14px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
   background: #f0f2f5;
-  color: #555;
+  color: #475569;
   transition: background 0.15s, color 0.15s;
   white-space: nowrap;
+  border: 1.5px solid transparent;
 
-  &:active, &.hoje-active {
+  &:active { background: #e8f0ff; color: var(--ion-color-primary); }
+  &.hoje-active {
     background: var(--ion-color-primary);
     color: #fff;
+    border-color: var(--ion-color-primary);
   }
 }
 
@@ -865,8 +871,8 @@
 .gcal-week-strip {
   display: flex;
   background: #fff;
-  border-bottom: 1px solid #f0f2f5;
-  padding: 8px 4px 10px;
+  border-bottom: 1px solid #eef1f6;
+  padding: 10px 4px 12px;
 }
 
 .gcal-day-pill {
@@ -874,14 +880,14 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   padding: 5px 2px;
-  border-radius: 12px;
+  border-radius: 14px;
   cursor: pointer;
   position: relative;
   transition: background 0.15s;
 
-  &:active { background: #f0f2f5; }
+  &:active { background: #f0f4ff; }
 
   &.pill-hoje .pill-num {
     color: var(--ion-color-primary);
@@ -893,13 +899,17 @@
       background: var(--ion-color-primary);
       color: #fff;
       border-radius: 50%;
-      width: 28px;
-      height: 28px;
+      width: 30px;
+      height: 30px;
       display: flex;
       align-items: center;
       justify-content: center;
+      box-shadow: 0 2px 8px rgba(56, 128, 255, 0.3);
     }
-    .pill-dow { color: var(--ion-color-primary); }
+    .pill-dow {
+      color: var(--ion-color-primary);
+      font-weight: 700;
+    }
   }
 
   &.pill-hoje.pill-selected .pill-num {
@@ -910,18 +920,18 @@
 .pill-dow {
   font-size: 10px;
   font-weight: 600;
-  color: #9aa5b8;
+  color: #94a3b8;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.4px;
 }
 
 .pill-num {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
   color: #1a1a1a;
   line-height: 1;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -933,7 +943,8 @@
   border-radius: 50%;
   background: var(--ion-color-primary);
   position: absolute;
-  bottom: 2px;
+  bottom: 3px;
+  opacity: 0.7;
 }
 
 // ── Day header ─────────────────────────────────────────────
@@ -942,14 +953,16 @@
   align-items: center;
   gap: 8px;
   padding: 10px 16px 8px;
-  background: #fff;
+  background: #f8fafc;
+  border-bottom: 1px solid #eef1f6;
 }
 
 .gcal-day-title {
   font-size: 14px;
-  font-weight: 600;
-  color: #444;
+  font-weight: 700;
+  color: #334155;
   flex: 1;
+  letter-spacing: -0.1px;
 }
 
 .gcal-count-badge {
@@ -957,10 +970,11 @@
   color: #fff;
   font-size: 11px;
   font-weight: 700;
-  padding: 2px 8px;
+  padding: 3px 9px;
   border-radius: 10px;
-  min-width: 20px;
+  min-width: 22px;
   text-align: center;
+  box-shadow: 0 2px 6px rgba(56, 128, 255, 0.28);
 }
 
 // ── All-day events ─────────────────────────────────────────
@@ -1242,31 +1256,32 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 48px 20px 24px;
+  padding: 52px 20px 28px;
   color: #bcc4d0;
 
   p {
     margin: 4px 0;
     font-size: 15px;
-    font-weight: 600;
-    color: #9aa5b8;
+    font-weight: 700;
+    color: #94a3b8;
   }
 }
 
 .gcal-empty-icon {
-  width: 64px;
-  height: 64px;
-  border-radius: 18px;
-  background: #f0f4ff;
+  width: 70px;
+  height: 70px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 16px rgba(56, 128, 255, 0.12);
 
   ion-icon {
-    font-size: 32px;
+    font-size: 34px;
     color: var(--ion-color-primary);
-    opacity: 0.5;
+    opacity: 0.6;
   }
 }
 
@@ -1363,7 +1378,7 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
   z-index: 20;
   background: #fff;
   border-bottom: 2px solid #e8eaf0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: 0 3px 12px rgba(0,0,0,0.08);
   min-width: max-content;
 }
 
@@ -1377,28 +1392,31 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   padding: 12px 12px 12px 10px;
-  border-left: 1px solid #f0f2f5;
+  border-left: 1px solid #eef1f6;
 }
 
 .tl-avatar {
-  width: 34px !important;
-  height: 34px !important;
-  font-size: 12px !important;
+  width: 36px !important;
+  height: 36px !important;
+  font-size: 13px !important;
   flex-shrink: 0;
+  border-radius: 10px !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.14);
 }
 
 .tl-col-head-info {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  gap: 1px;
 }
 
 .tl-col-name {
   font-size: 13px;
   font-weight: 700;
-  color: #1a1a2e;
+  color: #0f172a;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1417,20 +1435,20 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
 // ── Sem horário (all-day row) ─────────────────────────────────
 .tl-allday-row {
   display: flex;
-  background: #fff7ed;
-  border-bottom: 1px solid #fed7aa;
+  background: linear-gradient(135deg, #fff8f3 0%, #fff4ec 100%);
+  border-bottom: 1px solid #fde8d0;
   min-width: max-content;
-  padding: 6px 0;
+  padding: 8px 0;
 }
 
 .tl-allday-label {
   width: $gutter-width;
   flex-shrink: 0;
   font-size: 9px;
-  font-weight: 700;
-  color: #f97316;
+  font-weight: 800;
+  color: #ea580c;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.5px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1456,20 +1474,26 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
 .tl-allday-chip {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   background: #fff;
-  border: 1px solid #fed7aa;
+  border: 1.5px solid #fbd5b5;
   border-radius: 20px;
-  padding: 5px 9px;
+  padding: 5px 10px;
   font-size: 12px;
+  font-weight: 600;
   color: #92400e;
   cursor: pointer;
   white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(234, 88, 12, 0.1);
+  transition: transform 0.12s, box-shadow 0.12s;
+
+  &:active { transform: scale(0.97); }
 
   &.tl-allday-pago {
-    border-color: #bbf7d0;
+    border-color: #86efac;
     color: #166534;
     background: #f0fdf4;
+    box-shadow: 0 1px 4px rgba(34, 197, 94, 0.1);
   }
 
   ion-button {
@@ -1560,6 +1584,72 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
   }
 }
 
+// ── Blocos de indisponibilidade ──────────────────────────────
+// Renderizados como overlays absolutos; no máximo ~5 por coluna.
+// z-index abaixo dos eventos (z-index: 3) e da linha "agora" (z-index: 4).
+.tl-indisp {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  pointer-events: none; // não bloqueia cliques para abrir atendimento
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(239, 68, 68, 0.055),
+    rgba(239, 68, 68, 0.055) 5px,
+    rgba(239, 68, 68, 0.008) 5px,
+    rgba(239, 68, 68, 0.008) 10px
+  );
+  border-left: 3px solid rgba(239, 68, 68, 0.28);
+
+  // Intervalo/almoço: tom laranja, menos intenso
+  &.tl-indisp-intervalo {
+    background: repeating-linear-gradient(
+      -45deg,
+      rgba(234, 88, 12, 0.06),
+      rgba(234, 88, 12, 0.06) 5px,
+      rgba(234, 88, 12, 0.01) 5px,
+      rgba(234, 88, 12, 0.01) 10px
+    );
+    border-left-color: rgba(234, 88, 12, 0.32);
+  }
+
+  // Bloqueio específico: mais opaco, destaque maior
+  &.tl-indisp-bloqueio {
+    background: repeating-linear-gradient(
+      -45deg,
+      rgba(239, 68, 68, 0.10),
+      rgba(239, 68, 68, 0.10) 5px,
+      rgba(239, 68, 68, 0.02) 5px,
+      rgba(239, 68, 68, 0.02) 10px
+    );
+    border-left-color: rgba(239, 68, 68, 0.5);
+  }
+}
+
+.tl-indisp-label {
+  position: sticky;
+  top: 4px;
+  display: block;
+  padding: 3px 0 0 6px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: rgba(239, 68, 68, 0.55);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  .tl-indisp-intervalo & {
+    color: rgba(234, 88, 12, 0.6);
+  }
+
+  .tl-indisp-bloqueio & {
+    color: rgba(220, 38, 38, 0.7);
+  }
+}
+
 // ── Linha "agora" ─────────────────────────────────────────────
 .tl-now-line {
   position: absolute;
@@ -1587,34 +1677,28 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
   --tl-text-primary: #ffffff;
   --tl-text-secondary: rgba(255, 255, 255, 0.88);
   --tl-text-muted: rgba(255, 255, 255, 0.74);
-  --tl-status-bg: rgba(255,255,255,0.16);
+  --tl-status-bg: rgba(255,255,255,0.18);
   --tl-status-color: #ffffff;
   position: absolute;
-  left: 3px;
-  right: 3px;
+  left: 4px;
+  right: 4px;
   height: 72px;
   min-height: 56px;
-  background: #78a3ff;
-  border-radius: 5px;
+  background: linear-gradient(140deg, #4f8bff 0%, #3b6fd4 100%);
+  border-radius: 10px;
   display: flex;
   align-items: stretch;
   overflow: hidden;
   z-index: 3;
   cursor: pointer;
-  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 2px 8px rgba(56, 128, 255, 0.22), 0 1px 2px rgba(0,0,0,0.06);
   touch-action: none;
-  transition: opacity 0.15s, transform 0.15s;
+  transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s;
   user-select: none;
 
-  &::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.18);
-    pointer-events: none;
+  &:active {
+    box-shadow: 0 4px 16px rgba(56, 128, 255, 0.32);
+    transform: scale(0.985);
   }
 
   &.tl-ev-pago {
@@ -1623,14 +1707,15 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
     --tl-text-muted: rgba(255, 255, 255, 0.72);
     --tl-status-bg: rgba(255,255,255,0.18);
     --tl-status-color: #ffffff;
-    background: linear-gradient(135deg, #20b45a, #16924a);
-    box-shadow: 0 1px 4px rgba(34,197,94,0.18);
+    background: linear-gradient(140deg, #22c55e, #16a34a);
+    box-shadow: 0 2px 8px rgba(34,197,94,0.22), 0 1px 2px rgba(0,0,0,0.06);
   }
 
   &.tl-ev-dragging {
     opacity: 0.35;
     transform: scale(0.96);
     transition: none;
+    box-shadow: none;
   }
 }
 

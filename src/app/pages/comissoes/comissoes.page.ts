@@ -9,6 +9,7 @@ interface ComissaoColaborador {
   colaborador: Colaborador;
   atendimentos: Atendimento[];
   totalBruto: number;
+  totalAdicionais: number;
   percentual: number;
   comissao: number;
 }
@@ -27,10 +28,6 @@ export class ComissoesPage implements OnInit {
 
   colaboradores: Colaborador[] = [];
   comissoes: ComissaoColaborador[] = [];
-
-  // Percentuais configuráveis (armazenados localmente)
-  percentuais: { [id: string]: number } = {};
-
   totalGeralBruto = 0;
   totalGeralComissao = 0;
 
@@ -83,13 +80,6 @@ export class ComissoesPage implements OnInit {
 
       this.colaboradores = colaboradores.filter(c => c.ativo !== false);
 
-      // Inicializa percentuais padrão 30%
-      for (const c of this.colaboradores) {
-        if (c.id && !this.percentuais[c.id]) {
-          this.percentuais[c.id] = 30;
-        }
-      }
-
       this.calcularComissoes(this.colaboradores, atendimentos);
     } catch (e) {
       console.error(e);
@@ -102,12 +92,12 @@ export class ComissoesPage implements OnInit {
     this.comissoes = colaboradores
       .map(c => {
         const ats = atendimentos.filter(a => a.id_colaborador === c.id && a.pago);
-        const totalBruto = ats.reduce(
-          (s, a) => s + Number(a.servico?.valor ?? 0) + Number(a.valor_adicional ?? 0), 0
-        );
-        const percentual = c.id ? (this.percentuais[c.id] ?? 30) : 30;
-        const comissao = totalBruto * (percentual / 100);
-        return { colaborador: c, atendimentos: ats, totalBruto, percentual, comissao };
+        const totalServicos = ats.reduce((s, a) => s + Number(a.servico?.valor ?? 0), 0);
+        const totalAdicionais = ats.reduce((s, a) => s + Number(a.valor_adicional ?? 0), 0);
+        const totalBruto = totalServicos + totalAdicionais;
+        const percentual = Number(c.percentual_comissao_padrao ?? 30);
+        const comissao = ats.reduce((s, a) => s + this.calcularComissaoAtendimento(a, c), 0);
+        return { colaborador: c, atendimentos: ats, totalBruto, totalAdicionais, percentual, comissao };
       })
       .filter(c => c.atendimentos.length > 0 || true); // mostra todos
 
@@ -115,29 +105,95 @@ export class ComissoesPage implements OnInit {
     this.totalGeralComissao = this.comissoes.reduce((s, c) => s + c.comissao, 0);
   }
 
+  private getPercentualServico(atendimento: Atendimento, colaborador: Colaborador): number {
+    const tipo = (atendimento.servico?.tipo_servico?.nome ?? atendimento.servico?.nome ?? '').toLowerCase();
+    if (tipo.includes('banho')) {
+      return Number(colaborador.percentual_comissao_banho ?? colaborador.percentual_comissao_padrao ?? 30);
+    }
+    if (tipo.includes('tosa')) {
+      return Number(colaborador.percentual_comissao_tosa ?? colaborador.percentual_comissao_padrao ?? 30);
+    }
+    return Number(colaborador.percentual_comissao_padrao ?? 30);
+  }
+
+  private calcularComissaoAtendimento(atendimento: Atendimento, colaborador: Colaborador): number {
+    const valorServico = Number(atendimento.servico?.valor ?? 0);
+    const valorAdicional = Number(atendimento.valor_adicional ?? 0);
+    const percentualServico = this.getPercentualServico(atendimento, colaborador);
+    const percentualAdicional = Number(colaborador.percentual_comissao_adicional ?? colaborador.percentual_comissao_padrao ?? 30);
+
+    return (valorServico * (percentualServico / 100)) + (valorAdicional * (percentualAdicional / 100));
+  }
+
   async editarPercentual(item: ComissaoColaborador) {
     const alert = await this.alertCtrl.create({
       header: `Comissão — ${item.colaborador.nome}`,
-      inputs: [{
-        name: 'percentual',
-        type: 'number',
-        placeholder: 'Ex: 30',
-        value: String(item.percentual),
-        min: 0,
-        max: 100,
-      }],
+      inputs: [
+        {
+          name: 'padrao',
+          type: 'number',
+          placeholder: 'Ex: 30',
+          value: String(item.colaborador.percentual_comissao_padrao ?? 30),
+          min: 0,
+          max: 100,
+        },
+        {
+          name: 'banho',
+          type: 'number',
+          placeholder: 'Opcional',
+          value: item.colaborador.percentual_comissao_banho == null ? '' : String(item.colaborador.percentual_comissao_banho),
+          min: 0,
+          max: 100,
+        },
+        {
+          name: 'tosa',
+          type: 'number',
+          placeholder: 'Opcional',
+          value: item.colaborador.percentual_comissao_tosa == null ? '' : String(item.colaborador.percentual_comissao_tosa),
+          min: 0,
+          max: 100,
+        },
+        {
+          name: 'adicional',
+          type: 'number',
+          placeholder: 'Ex: 30',
+          value: String(item.colaborador.percentual_comissao_adicional ?? 30),
+          min: 0,
+          max: 100,
+        },
+      ],
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         {
           text: 'Salvar',
-          handler: (d) => {
-            const pct = Math.min(100, Math.max(0, Number(d.percentual) || 0));
-            if (item.colaborador.id) {
-              this.percentuais[item.colaborador.id] = pct;
-              item.percentual = pct;
-              item.comissao = item.totalBruto * (pct / 100);
-              this.totalGeralComissao = this.comissoes.reduce((s, c) => s + c.comissao, 0);
+          handler: async (d) => {
+            const padrao = Math.min(100, Math.max(0, Number(d.padrao) || 0));
+            const banho = d.banho === '' ? null : Math.min(100, Math.max(0, Number(d.banho) || 0));
+            const tosa = d.tosa === '' ? null : Math.min(100, Math.max(0, Number(d.tosa) || 0));
+            const adicional = Math.min(100, Math.max(0, Number(d.adicional) || 0));
+
+            try {
+              if (item.colaborador.id) {
+                await this.colaboradorService.updateConfiguracoes(item.colaborador.id, {
+                  avatar_url: item.colaborador.avatar_url ?? null,
+                  percentual_comissao_padrao: padrao,
+                  percentual_comissao_banho: banho,
+                  percentual_comissao_tosa: tosa,
+                  percentual_comissao_adicional: adicional,
+                });
+                await this.loadData();
+              }
+            } catch (e) {
+              console.error(e);
+              const toast = await this.toastCtrl.create({
+                message: 'Não foi possível salvar as regras de comissão.',
+                color: 'danger',
+                duration: 2500,
+                position: 'top',
+              });
+              await toast.present();
             }
+            return true;
           },
         },
       ],
@@ -151,5 +207,9 @@ export class ComissoesPage implements OnInit {
 
   get labelMesAtual(): string {
     return this.mesesDisponiveis.find(m => m.value === this.mesAtual)?.label ?? this.mesAtual;
+  }
+
+  getAvatarLabel(colaborador: Colaborador): string {
+    return (colaborador.nome || colaborador.email || '?').charAt(0).toUpperCase();
   }
 }

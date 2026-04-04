@@ -18,6 +18,6 @@ export interface Atendimento {
   colaborador?: { nome: string };
   responsavel?: { nome: string };
   status_info?: { nome: string };
-  servico?: { nome: string; valor?: number };
+  servico?: { nome: string; valor?: number; tipo_servico?: { nome: string } };
   pacote?: { nome: string };
 }

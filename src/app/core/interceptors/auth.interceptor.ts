@@ -11,31 +11,62 @@ import { switchMap, catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
-const FRIENDLY_SERVER_ERROR = 'Sistema indisponível no momento, tente novamente mais tarde';
+const FRIENDLY_SERVER_ERROR = 'Não foi possível completar a operação. Tente novamente.';
 
-const TECHNICAL_MESSAGES = [
+/** Termos que indicam erro técnico de infraestrutura — nunca exibir ao usuário */
+const TECHNICAL_PHRASES = [
   'internal server error',
   'bad gateway',
   'service unavailable',
   'gateway timeout',
   'network error',
+  'cannot read propert',
+  'typeerror',
+  'stack trace',
+  'at object.',
+  'undefined is not',
+  'null reference',
 ];
 
+/**
+ * Tenta extrair uma mensagem de negócio do corpo da resposta de erro.
+ * Funciona para erros 4xx e também para 5xx quando o backend popula
+ * o corpo com uma mensagem de regra de negócio (ex: conflito de horário).
+ */
 function friendlyMessage(error: HttpErrorResponse): string {
-  // Erros 5xx são sempre mensagem genérica
-  if (error.status >= 500 || error.status === 0) return FRIENDLY_SERVER_ERROR;
+  // Sem conexão / CORS / timeout de rede
+  if (error.status === 0) return 'Sem conexão com o servidor. Verifique sua internet.';
 
-  // Extrai mensagem do corpo da resposta
+  // Extrai a mensagem do corpo da resposta
   const body = error.error;
-  const msg: string =
-    (typeof body?.message === 'string' && body.message) ||
-    (typeof body?.error === 'string' && body.error) ||
-    error.message ||
-    '';
 
-  if (TECHNICAL_MESSAGES.some(t => msg.toLowerCase().includes(t))) return FRIENDLY_SERVER_ERROR;
+  // O body pode chegar como string (quando o backend serializa direto)
+  // ou como objeto { message, error, statusCode }
+  let rawMsg = '';
+  if (typeof body === 'string' && body.trim()) {
+    rawMsg = body.trim();
+  } else if (typeof body === 'object' && body !== null) {
+    rawMsg =
+      (typeof body.message === 'string' ? body.message : '') ||
+      (typeof body.error === 'string' ? body.error : '') ||
+      '';
+  }
 
-  return msg || FRIENDLY_SERVER_ERROR;
+  // Se a mensagem parece técnica/stack-trace, descarta
+  const lower = rawMsg.toLowerCase();
+  if (TECHNICAL_PHRASES.some(t => lower.includes(t))) return FRIENDLY_SERVER_ERROR;
+
+  // Mensagem de negócio presente → exibe ela (mesmo em 5xx)
+  if (rawMsg && rawMsg.length < 300) return rawMsg;
+
+  // Erros 4xx sem corpo útil — mensagem por código HTTP
+  if (error.status === 400) return 'Dados inválidos. Verifique as informações e tente novamente.';
+  if (error.status === 403) return 'Você não tem permissão para realizar esta ação.';
+  if (error.status === 404) return 'Registro não encontrado.';
+  if (error.status === 409) return 'Conflito: este registro já existe ou está em uso.';
+  if (error.status === 422) return 'Não foi possível processar os dados informados.';
+
+  return FRIENDLY_SERVER_ERROR;
 }
 
 /**

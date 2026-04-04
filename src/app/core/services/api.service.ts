@@ -531,6 +531,44 @@ export class ApiService {
     return this._put(`colaboradores/${id}`, data);
   }
 
+  atualizarConfiguracoesColaborador(
+    id: string,
+    data: {
+      avatar_url?: string | null;
+      percentual_comissao_padrao?: number | null;
+      percentual_comissao_banho?: number | null;
+      percentual_comissao_tosa?: number | null;
+      percentual_comissao_adicional?: number | null;
+      disponibilidade_semanal?: {
+        dia_semana: number;
+        ativo: boolean;
+        hora_inicio?: string | null;
+        hora_fim?: string | null;
+        intervalo_inicio?: string | null;
+        intervalo_fim?: string | null;
+      }[];
+    },
+  ): Observable<any> {
+    return this._put(`colaboradores/${id}/configuracoes`, data);
+  }
+
+  adicionarBloqueioColaborador(
+    id: string,
+    data: {
+      data: string;
+      hora_inicio?: string | null;
+      hora_fim?: string | null;
+      dia_todo?: boolean;
+      descricao?: string | null;
+    },
+  ): Observable<any> {
+    return this._post(`colaboradores/${id}/bloqueios`, data);
+  }
+
+  removerBloqueioColaborador(bloqueioId: number): Observable<any> {
+    return this._del(`colaboradores/bloqueios/${bloqueioId}`);
+  }
+
   removerColaborador(id: string): Observable<any> {
     return this._del(`colaboradores/${id}`);
   }

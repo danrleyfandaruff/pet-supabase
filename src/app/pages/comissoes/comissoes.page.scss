@@ -120,6 +120,15 @@
   flex-shrink: 0;
 }
 
+.tosador-avatar-img {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid #d8e1ee;
+  flex-shrink: 0;
+}
+
 .tosador-info {
   flex: 1;
   min-width: 0;

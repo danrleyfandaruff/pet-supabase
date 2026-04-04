@@ -18,6 +18,13 @@ type ColunaAgenda = {
   semHorario: Atendimento[];
 };
 
+type IndispBlock = {
+  top: number;
+  height: number;
+  tipo: 'fora' | 'intervalo' | 'bloqueio';
+  label: string;
+};
+
 @Component({
   selector: 'app-atendimentos',
   templateUrl: './atendimentos.page.html',
@@ -260,6 +267,7 @@ export class AtendimentosPage implements OnInit, OnDestroy {
     const [y, m, d] = iso.split('-').map(Number);
     this.mesAtual = new Date(y, m - 1, 1);
     this.diaSelecionado = d;
+    this._indispCache.clear();
     this.gerarCalendario();
     this.gerarDiasStrip();
     void this.loadData(false);
@@ -559,6 +567,86 @@ export class AtendimentosPage implements OnInit, OnDestroy {
   getEventTop(horario: string): number {
     const [h, m] = horario.split(':').map(Number);
     return Math.max(0, (h * 60 + m - this.GRID_START_HOUR * 60) / 60 * this.SLOT_HEIGHT);
+  }
+
+  // ── Indisponibilidades por coluna ─────────────────────────
+  // Retorna no máximo ~5 blocos por colaborador (fora do expediente +
+  // intervalo + bloqueios do dia). Muito mais leve do que colorir slot a slot.
+  private _indispKey: string | null = null;
+  private _indispCache = new Map<string | null, IndispBlock[]>();
+
+  getIndisponibilidades(col: ColunaAgenda): IndispBlock[] {
+    // Cache busted quando o dia selecionado muda
+    const cacheKey = `${col.id ?? 'null'}|${this.mesAtual.getFullYear()}-${this.mesAtual.getMonth()}-${this.diaSelecionado}`;
+    const cached = this._indispCache.get(cacheKey);
+    if (cached) return cached;
+
+    const colab = this.colaboradores.find(c => c.id === col.id);
+    if (!colab?.disponibilidade_semanal?.length) {
+      this._indispCache.set(cacheKey, []);
+      return [];
+    }
+
+    const toMin = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+    const toTop = (min: number) => Math.max(0, (min - this.GRID_START_HOUR * 60) / 60 * this.SLOT_HEIGHT);
+    const toH   = (a: number, b: number) => Math.max(0, (b - a) / 60 * this.SLOT_HEIGHT);
+
+    const GRID_START = this.GRID_START_HOUR * 60;                   // 07:00
+    const GRID_END   = (this.GRID_START_HOUR + this.horasGrid.length) * 60; // 22:00
+
+    const result: IndispBlock[] = [];
+
+    const dataSel = this.diaSelecionado
+      ? new Date(this.mesAtual.getFullYear(), this.mesAtual.getMonth(), this.diaSelecionado)
+      : new Date();
+    const diaSemana = dataSel.getDay(); // 0=Dom ... 6=Sáb
+
+    const disp = colab.disponibilidade_semanal.find(d => d.dia_semana === diaSemana);
+
+    if (!disp || !disp.ativo) {
+      // Folga: cobre toda a grade
+      result.push({ top: 0, height: this.horasGrid.length * this.SLOT_HEIGHT, tipo: 'fora', label: 'Folga' });
+    } else {
+      const inicio = disp.hora_inicio ? toMin(disp.hora_inicio) : GRID_START;
+      const fim    = disp.hora_fim    ? toMin(disp.hora_fim)    : GRID_END;
+
+      // Antes do expediente
+      if (inicio > GRID_START)
+        result.push({ top: 0,           height: toH(GRID_START, inicio), tipo: 'fora',      label: '' });
+      // Depois do expediente
+      if (fim < GRID_END)
+        result.push({ top: toTop(fim),  height: toH(fim, GRID_END),      tipo: 'fora',      label: '' });
+      // Intervalo/almoço
+      if (disp.intervalo_inicio && disp.intervalo_fim) {
+        const iIni = toMin(disp.intervalo_inicio);
+        const iFim = toMin(disp.intervalo_fim);
+        if (iFim > iIni)
+          result.push({ top: toTop(iIni), height: toH(iIni, iFim),       tipo: 'intervalo', label: 'Intervalo' });
+      }
+    }
+
+    // Bloqueios pontuais do dia
+    const yyyy = dataSel.getFullYear();
+    const mm   = String(dataSel.getMonth() + 1).padStart(2, '0');
+    const dd   = String(dataSel.getDate()).padStart(2, '0');
+    const dataStr = `${yyyy}-${mm}-${dd}`;
+
+    for (const b of colab.bloqueios ?? []) {
+      if (b.data !== dataStr) continue;
+      if (b.dia_todo) {
+        result.length = 0; // sobrepõe tudo
+        result.push({ top: 0, height: this.horasGrid.length * this.SLOT_HEIGHT, tipo: 'bloqueio', label: b.descricao ?? 'Bloqueado' });
+        break;
+      }
+      if (b.hora_inicio && b.hora_fim) {
+        const bIni = toMin(b.hora_inicio);
+        const bFim = toMin(b.hora_fim);
+        result.push({ top: toTop(bIni), height: toH(bIni, bFim), tipo: 'bloqueio', label: b.descricao ?? 'Bloqueado' });
+      }
+    }
+
+    this._indispCache.set(cacheKey, result);
+    return result;
   }
 
   async openFormAtTimeAndCol(horario: string, col: ColunaAgenda) {
@@ -1247,7 +1335,19 @@ export class AtendimentosPage implements OnInit, OnDestroy {
   }
 
   private async showToast(message: string, color: string) {
-    const t = await this.toastCtrl.create({ message, duration: 2500, color, position: 'top' });
+    // Erros de negócio precisam de mais tempo para serem lidos
+    const duration = color === 'danger' ? 4000 : 2500;
+    const icon = color === 'danger' ? 'alert-circle-outline'
+               : color === 'success' ? 'checkmark-circle-outline'
+               : 'information-circle-outline';
+    const t = await this.toastCtrl.create({
+      message,
+      duration,
+      color,
+      position: 'top',
+      icon,
+      buttons: color === 'danger' ? [{ icon: 'close-outline', role: 'cancel' }] : undefined,
+    });
     await t.present();
   }
 }

@@ -12,9 +12,18 @@ import { Raca } from '../../core/models/raca.model';
 import { Responsavel } from '../../core/models/responsavel.model';
 import { Status } from '../../core/models/status.model';
 import { TipoServico } from '../../core/models/tipo-servico.model';
-import { Colaborador } from '../../core/models/colaborador.model';
+import { Colaborador, ColaboradorBloqueio, ColaboradorDisponibilidade } from '../../core/models/colaborador.model';
 import { AuthService } from '../../core/services/auth.service';
 import { PermissaoService } from '../../core/services/permissao.service';
+
+interface ColaboradorConfigDraft {
+  avatar_url: string;
+  percentual_comissao_padrao: number;
+  percentual_comissao_banho: number | null;
+  percentual_comissao_tosa: number | null;
+  percentual_comissao_adicional: number;
+  disponibilidade_semanal: ColaboradorDisponibilidade[];
+}
 
 @Component({ selector: 'app-configuracoes', templateUrl: './configuracoes.page.html', styleUrls: ['./configuracoes.page.scss'] })
 export class ConfiguracoesPage implements OnInit {
@@ -23,6 +32,17 @@ export class ConfiguracoesPage implements OnInit {
   statusList: Status[] = [];
   tiposServico: TipoServico[] = [];
   colaboradores: Colaborador[] = [];
+  colaboradorExpandedId: string | null = null;
+  colaboradorDrafts: Record<string, ColaboradorConfigDraft> = {};
+  readonly diasSemana = [
+    { value: 0, label: 'Dom' },
+    { value: 1, label: 'Seg' },
+    { value: 2, label: 'Ter' },
+    { value: 3, label: 'Qua' },
+    { value: 4, label: 'Qui' },
+    { value: 5, label: 'Sex' },
+    { value: 6, label: 'Sab' },
+  ];
   isLoading = false;
 
   constructor(
@@ -57,8 +77,38 @@ export class ConfiguracoesPage implements OnInit {
       this.statusList = statusList;
       this.tiposServico = tiposServico;
       this.colaboradores = colaboradores;
+      this.initColaboradorDrafts();
     } catch (e: any) { await this.showToast(errorMsg(e), 'danger'); }
     finally { this.isLoading = false; }
+  }
+
+  private initColaboradorDrafts() {
+    this.colaboradorDrafts = Object.fromEntries(
+      this.colaboradores.map((c) => [c.id, this.createDraft(c)]),
+    );
+  }
+
+  private createDraft(c: Colaborador): ColaboradorConfigDraft {
+    const disponibilidade = this.diasSemana.map((dia) => {
+      const atual = (c.disponibilidade_semanal ?? []).find((item) => item.dia_semana === dia.value);
+      return {
+        dia_semana: dia.value,
+        ativo: atual?.ativo !== false,
+        hora_inicio: atual?.hora_inicio ?? '08:00',
+        hora_fim: atual?.hora_fim ?? '18:00',
+        intervalo_inicio: atual?.intervalo_inicio ?? '12:00',
+        intervalo_fim: atual?.intervalo_fim ?? '13:00',
+      };
+    });
+
+    return {
+      avatar_url: c.avatar_url ?? '',
+      percentual_comissao_padrao: Number(c.percentual_comissao_padrao ?? 30),
+      percentual_comissao_banho: c.percentual_comissao_banho ?? null,
+      percentual_comissao_tosa: c.percentual_comissao_tosa ?? null,
+      percentual_comissao_adicional: Number(c.percentual_comissao_adicional ?? 30),
+      disponibilidade_semanal: disponibilidade,
+    };
   }
 
   // ── RAÇAS ──────────────────────────────
@@ -311,6 +361,150 @@ export class ConfiguracoesPage implements OnInit {
       ],
     });
     await alert.present();
+  }
+
+  toggleColaboradorConfig(c: Colaborador) {
+    this.colaboradorExpandedId = this.colaboradorExpandedId === c.id ? null : c.id;
+    if (!this.colaboradorDrafts[c.id]) {
+      this.colaboradorDrafts[c.id] = this.createDraft(c);
+    }
+  }
+
+  getColaboradorDraft(c: Colaborador): ColaboradorConfigDraft {
+    if (!this.colaboradorDrafts[c.id]) {
+      this.colaboradorDrafts[c.id] = this.createDraft(c);
+    }
+    return this.colaboradorDrafts[c.id];
+  }
+
+  resetColaboradorConfig(c: Colaborador) {
+    this.colaboradorDrafts[c.id] = this.createDraft(c);
+  }
+
+  async saveColaboradorConfig(c: Colaborador) {
+    const draft = this.getColaboradorDraft(c);
+    try {
+      await this.colaboradorService.updateConfiguracoes(c.id, {
+        avatar_url: draft.avatar_url?.trim() || null,
+        percentual_comissao_padrao: Number(draft.percentual_comissao_padrao || 0),
+        percentual_comissao_banho: draft.percentual_comissao_banho === null ? null : Number(draft.percentual_comissao_banho),
+        percentual_comissao_tosa: draft.percentual_comissao_tosa === null ? null : Number(draft.percentual_comissao_tosa),
+        percentual_comissao_adicional: Number(draft.percentual_comissao_adicional || 0),
+        disponibilidade_semanal: draft.disponibilidade_semanal.map((item) => ({
+          ...item,
+          hora_inicio: item.ativo ? item.hora_inicio ?? null : null,
+          hora_fim: item.ativo ? item.hora_fim ?? null : null,
+          intervalo_inicio: item.ativo ? item.intervalo_inicio ?? null : null,
+          intervalo_fim: item.ativo ? item.intervalo_fim ?? null : null,
+        })),
+      });
+      await this.showToast('Configurações salvas com sucesso', 'success');
+      await this.loadAll();
+      this.colaboradorExpandedId = c.id;
+    } catch (e: unknown) {
+      await this.showToast(errorMsg(e), 'danger');
+    }
+  }
+
+  async addBloqueioColaborador(c: Colaborador) {
+    const alert = await this.alertCtrl.create({
+      header: `Novo bloqueio — ${c.nome || c.email}`,
+      inputs: [
+        { name: 'data', type: 'date', placeholder: 'Data' },
+        { name: 'hora_inicio', type: 'time', placeholder: 'Início' },
+        { name: 'hora_fim', type: 'time', placeholder: 'Fim' },
+        { name: 'descricao', placeholder: 'Descrição (opcional)' },
+      ],
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Dia todo',
+          handler: async (d) => {
+            if (!d.data) {
+              await this.showToast('Informe a data do bloqueio', 'warning');
+              return false;
+            }
+            try {
+              await this.colaboradorService.adicionarBloqueio(c.id, {
+                data: d.data,
+                dia_todo: true,
+                descricao: d.descricao || null,
+              });
+              await this.showToast('Bloqueio criado', 'success');
+              await this.loadAll();
+            } catch (e: unknown) {
+              await this.showToast(errorMsg(e), 'danger');
+            }
+            return true;
+          },
+        },
+        {
+          text: 'Salvar',
+          handler: async (d) => {
+            if (!d.data || !d.hora_inicio || !d.hora_fim) {
+              await this.showToast('Informe data, início e fim do bloqueio', 'warning');
+              return false;
+            }
+            try {
+              await this.colaboradorService.adicionarBloqueio(c.id, {
+                data: d.data,
+                hora_inicio: d.hora_inicio,
+                hora_fim: d.hora_fim,
+                descricao: d.descricao || null,
+              });
+              await this.showToast('Bloqueio criado', 'success');
+              await this.loadAll();
+            } catch (e: unknown) {
+              await this.showToast(errorMsg(e), 'danger');
+            }
+            return true;
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  async removeBloqueioColaborador(c: Colaborador, bloqueio: ColaboradorBloqueio) {
+    const alert = await this.alertCtrl.create({
+      header: 'Remover bloqueio',
+      message: `Deseja remover o bloqueio de ${this.formatarDataCurta(bloqueio.data)}?`,
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Remover',
+          role: 'destructive',
+          handler: async () => {
+            try {
+              await this.colaboradorService.removerBloqueio(Number(bloqueio.id));
+              await this.showToast('Bloqueio removido', 'success');
+              await this.loadAll();
+              this.colaboradorExpandedId = c.id;
+            } catch (e: unknown) {
+              await this.showToast(errorMsg(e), 'danger');
+            }
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  async onColaboradorFotoSelecionada(event: Event, c: Colaborador) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      this.getColaboradorDraft(c).avatar_url = String(reader.result ?? '');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  formatarDataCurta(data?: string): string {
+    if (!data) return '';
+    return new Date(`${data}T00:00:00`).toLocaleDateString('pt-BR');
   }
 
   async toggleAtivoColaborador(c: Colaborador) {

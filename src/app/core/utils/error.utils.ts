@@ -15,7 +15,7 @@
  */
 export function errorMsg(
   e: unknown,
-  fallback = 'Sistema indisponível no momento, tente novamente mais tarde',
+  fallback = 'Não foi possível completar a operação. Tente novamente.',
 ): string {
   if (!e) return fallback;
 
@@ -23,8 +23,18 @@ export function errorMsg(
 
   if (typeof e === 'object') {
     const err = e as Record<string, unknown>;
+
+    // Prioridade 1: .message (Error padrão JS, já tratado pelo interceptor)
     const msg = err['message'];
-    if (typeof msg === 'string' && msg.trim()) return msg.trim();
+    if (typeof msg === 'string' && msg.trim() && msg.trim().length < 300) {
+      return msg.trim();
+    }
+
+    // Prioridade 2: .error (alguns formatos de resposta do NestJS)
+    const sub = err['error'];
+    if (typeof sub === 'string' && sub.trim() && sub.trim().length < 300) {
+      return sub.trim();
+    }
   }
 
   return fallback;

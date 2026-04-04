@@ -200,30 +200,14 @@ export class AtendimentosPage implements OnInit, OnDestroy {
   }
 
   private atualizarColunasVisiveis() {
-    if (!this.isMobileLayout) {
-      this.colunasAgendaVisiveis = [...this.colunasAgenda];
-      return;
-    }
-
-    const existeSelecionada = this.colunasAgenda.some(col =>
-      this.getColunaAgendaKey(col) === this.mobileColunaSelecionadaId
-    );
-
-    if (!existeSelecionada) {
-      this.mobileColunaSelecionadaId = this.colunasAgenda[0]
-        ? this.getColunaAgendaKey(this.colunasAgenda[0])
-        : null;
-    }
-
-    this.colunasAgendaVisiveis = this.colunasAgenda.filter(col =>
-      this.getColunaAgendaKey(col) === this.mobileColunaSelecionadaId
-    );
+    // Mobile e desktop mostram todas as colunas — scroll lateral sincronizado.
+    this.colunasAgendaVisiveis = [...this.colunasAgenda];
   }
 
-  onMobileColunaChange(value: string | null) {
-    this.mobileColunaSelecionadaId = value;
-    this.atualizarColunasVisiveis();
-    this.cdr.markForCheck();
+  /** Scroll rápido para a coluna de um colaborador (chips de nav). */
+  scrollToColunaPorId(id: string | null) {
+    const idx = this.colunasAgenda.findIndex(c => (c.id ?? '__sem_colaborador__') === (id ?? '__sem_colaborador__'));
+    if (idx >= 0) this.scrollToColuna(idx);
   }
 
   @HostListener('window:resize')
@@ -563,6 +547,16 @@ export class AtendimentosPage implements OnInit, OnDestroy {
   @ViewChild('timelineScroll') timelineScrollRef!: ElementRef<HTMLElement>;
   @ViewChild('timelineBody') timelineBodyRef!: ElementRef<HTMLElement>;
   @ViewChildren('timelineCol') timelineCols!: QueryList<ElementRef<HTMLElement>>;
+  @ViewChild('timelineHeader') timelineHeaderRef?: ElementRef<HTMLElement>;
+  @ViewChild('timelineAlldayScroll') timelineAlldayScrollRef?: ElementRef<HTMLElement>;
+
+  onTimelineScrollX(event: Event) {
+    const scrollLeft = (event.target as HTMLElement).scrollLeft;
+    if (this.timelineHeaderRef?.nativeElement)
+      this.timelineHeaderRef.nativeElement.scrollLeft = scrollLeft;
+    if (this.timelineAlldayScrollRef?.nativeElement)
+      this.timelineAlldayScrollRef.nativeElement.scrollLeft = scrollLeft;
+  }
 
   getEventTop(horario: string): number {
     const [h, m] = horario.split(':').map(Number);

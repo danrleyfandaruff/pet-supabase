@@ -1343,30 +1343,50 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
   color: #0f172a;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  gap: 7px;
+  padding: 6px 12px 6px 6px;
   border-radius: 999px;
   white-space: nowrap;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: box-shadow 0.15s, transform 0.1s;
+
+  &:active { transform: scale(0.96); box-shadow: none; }
+}
+
+.tl-col-chip-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+  color: #fff;
   flex-shrink: 0;
 }
 
 .tl-col-chip-name {
   font-size: 12px;
   font-weight: 700;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tl-col-chip-count {
-  min-width: 22px;
-  height: 22px;
-  padding: 0 6px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
   border-radius: 999px;
   background: #dbeafe;
   color: #1d4ed8;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
 }
 
@@ -1379,12 +1399,22 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
   background: #fff;
   border-bottom: 2px solid #e8eaf0;
   box-shadow: 0 3px 12px rgba(0,0,0,0.08);
-  min-width: max-content;
+  overflow: hidden; // clip geral; o scroll lateral vem só do tl-header-scroll
+}
+
+// Container interno que recebe scrollLeft via JS.
+// Fica à direita do tl-gutter-head (que está fora dele), então
+// qualquer col-head que "vaze" para a esquerda é cortado aqui — sem bounce.
+.tl-header-scroll {
+  flex: 1;
+  display: flex;
+  overflow-x: hidden;
 }
 
 .tl-gutter-head {
   width: $gutter-width;
   flex-shrink: 0;
+  background: #fff; // fundo sólido: tapa qualquer col-head que tente vazar
 }
 
 .tl-col-head {
@@ -1437,7 +1467,7 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
   display: flex;
   background: linear-gradient(135deg, #fff8f3 0%, #fff4ec 100%);
   border-bottom: 1px solid #fde8d0;
-  min-width: max-content;
+  overflow: hidden; // permite scrollLeft via JS no filho .tl-allday-scroll-area
   padding: 8px 0;
 }
 
@@ -1456,9 +1486,13 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
   text-orientation: mixed;
 }
 
+.tl-allday-scroll-area {
+  flex: 1;
+  overflow-x: hidden; // sincronizado via JS; sem scrollbar própria
+}
+
 .tl-allday-cols {
   display: flex;
-  flex: 1;
 }
 
 .tl-allday-col {
@@ -1517,7 +1551,7 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
   overflow-y: visible;
   flex: initial;
   -webkit-overflow-scrolling: touch;
-  scroll-snap-type: x proximity;
+  //scroll-snap-type: x proximity;
 
   &::-webkit-scrollbar { height: 8px; width: 8px; }
   &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
@@ -1907,60 +1941,93 @@ $slot-h: 60px; // deve bater com SLOT_HEIGHT do TS
 }
 
 @media (max-width: 767px) {
-  $col-width: calc(100vw - #{$gutter-width} - 14px);
-
-  .tl-mobile-col-picker {
-    display: block;
-    padding: 8px 10px 4px;
-    background: #fff;
-    border-bottom: 1px solid #eef2f7;
-
-    ion-item {
-      --background: #f8fafc;
-      --border-radius: 12px;
-      --padding-start: 12px;
-      --inner-padding-end: 10px;
-      --min-height: 44px;
-      border-radius: 12px;
-    }
-
-    ion-label {
-      font-size: 12px;
-      font-weight: 600;
-      color: #475569;
-    }
-
-    ion-select {
-      max-width: 100%;
-      font-size: 13px;
-      font-weight: 700;
-      color: #0f172a;
-    }
-  }
+  // ── Largura de coluna no mobile ────────────────────────────
+  // ~210px por coluna → mostra 1,5-2 colunas com hint de scroll lateral.
+  // O gutter (coluna de horas) fica em 40px para dar mais espaço.
+  $col-width-mobile: 210px;
+  $gutter-mobile: 40px;
 
   .tl-col-head,
   .tl-allday-col,
   .tl-col {
-    width: $col-width;
-    min-width: $col-width;
+    width: $col-width-mobile;
+    min-width: $col-width-mobile;
+  }
+
+  .tl-time-col {
+    width: $gutter-mobile;
+  }
+
+  .tl-allday-label {
+    width: $gutter-mobile;
+  }
+
+  // ── Header das colunas: visível no mobile ──────────────────
+  .tl-header-row {
+    display: flex; // sobrescreve qualquer display: none
+  }
+
+  .tl-gutter-head {
+    width: $gutter-mobile; // 40px no mobile (igual ao tl-time-col)
+  }
+
+  .tl-col-head {
+    padding: 9px 8px;
+    gap: 7px;
+  }
+
+  .tl-avatar {
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 11px !important;
+    border-radius: 8px !important;
   }
 
   .tl-col-name {
     font-size: 11px;
   }
 
-  .tl-event {
-    height: 76px;
+  .tl-col-count {
+    font-size: 10px;
   }
 
-  .tl-header-row {
-    display: none;
+  // ── Nav chips: mais compactos no mobile ────────────────────
+  .tl-col-nav {
+    padding: 7px 10px 8px;
+    gap: 6px;
+    // sem scrollbar visível no mobile
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
+  }
+
+  .tl-col-chip {
+    padding: 5px 10px 5px 5px;
+    gap: 5px;
+  }
+
+  .tl-col-chip-avatar {
+    width: 22px;
+    height: 22px;
+    font-size: 9px;
+  }
+
+  .tl-col-chip-name {
+    font-size: 11px;
+    max-width: 80px;
+  }
+
+  // ── Eventos ────────────────────────────────────────────────
+  .tl-event {
+    height: 72px;
+    left: 2px;
+    right: 2px;
   }
 
   .tl-ghost {
-    height: 76px;
+    height: 72px;
   }
 
+  // ── Botões: modo mobile (sheet btn + pay inline) ───────────
   .tl-mobile-move-btn {
     display: none;
   }

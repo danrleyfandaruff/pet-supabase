@@ -139,44 +139,38 @@
 
       <div class="tl-outer" *ngIf="colunasAgenda.length > 0">
 
-        <div class="tl-mobile-col-picker" *ngIf="isMobileLayout && colunasAgenda.length > 1">
-          <ion-item lines="none">
-            <ion-label>Colaborador</ion-label>
-            <ion-select
-              interface="action-sheet"
-              [value]="mobileColunaSelecionadaId"
-              (ionChange)="onMobileColunaChange($event.detail.value)">
-              <ion-select-option
-                *ngFor="let col of colunasAgenda"
-                [value]="col.id ?? '__sem_colaborador__'">
-                {{ col.nome }} ({{ col.comHorario.length + col.semHorario.length }})
-              </ion-select-option>
-            </ion-select>
-          </ion-item>
-        </div>
-
-        <div class="tl-col-nav" *ngIf="!isMobileLayout && colunasAgenda.length > 1">
+        <!-- Chips de navegação rápida: visível no mobile E desktop quando há >1 coluna -->
+        <div class="tl-col-nav" *ngIf="colunasAgenda.length > 1">
           <button
             class="tl-col-chip"
             *ngFor="let col of colunasAgenda; let ci = index"
             (click)="scrollToColuna(ci)">
+            <div class="tl-col-chip-avatar" [style.background]="getAvatarColor(col.nome)">
+              {{ getInitials(col.nome) }}
+            </div>
             <span class="tl-col-chip-name">{{ col.nome }}</span>
-            <span class="tl-col-chip-count">{{ col.comHorario.length + col.semHorario.length }}</span>
+            <span class="tl-col-chip-count" *ngIf="col.comHorario.length + col.semHorario.length > 0">
+              {{ col.comHorario.length + col.semHorario.length }}
+            </span>
           </button>
         </div>
 
         <!-- ── Cabeçalhos das colunas (sticky top) ── -->
         <div class="tl-header-row">
+          <!-- gutter fixo (fora do scroll) — tapa qualquer coluna que vaze para a esquerda -->
           <div class="tl-gutter-head"></div>
-          <div class="tl-col-head" *ngFor="let col of colunasAgendaVisiveis">
-            <div class="agenda-avatar tl-avatar" [style.background]="getAvatarColor(col.nome)">
-              {{ getInitials(col.nome) }}
-            </div>
-            <div class="tl-col-head-info">
-              <span class="tl-col-name">{{ col.nome }}</span>
-              <span class="tl-col-count" *ngIf="col.comHorario.length + col.semHorario.length > 0">
-                {{ col.comHorario.length + col.semHorario.length }}
-              </span>
+          <!-- área que recebe scrollLeft via JS; overflow-x: hidden evita vazamento -->
+          <div class="tl-header-scroll" #timelineHeader>
+            <div class="tl-col-head" *ngFor="let col of colunasAgendaVisiveis">
+              <div class="agenda-avatar tl-avatar" [style.background]="getAvatarColor(col.nome)">
+                {{ getInitials(col.nome) }}
+              </div>
+              <div class="tl-col-head-info">
+                <span class="tl-col-name">{{ col.nome }}</span>
+                <span class="tl-col-count" *ngIf="col.comHorario.length + col.semHorario.length > 0">
+                  {{ col.comHorario.length + col.semHorario.length }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -184,6 +178,7 @@
         <!-- ── Sem horário (all-day row) ── -->
         <div class="tl-allday-row" *ngIf="hasSemHorario">
           <div class="tl-allday-label">Sem horário</div>
+          <div class="tl-allday-scroll-area" #timelineAlldayScroll>
           <div class="tl-allday-cols">
             <div class="tl-allday-col" *ngFor="let col of colunasAgendaVisiveis">
               <div class="tl-allday-chip"
@@ -208,10 +203,11 @@
               </div>
             </div>
           </div>
+          </div><!-- /tl-allday-scroll-area -->
         </div>
 
         <!-- ── Grid de horários + blocos ── -->
-        <div class="tl-scroll" #timelineScroll>
+        <div class="tl-scroll" #timelineScroll (scroll)="onTimelineScrollX($event)">
           <div class="tl-body-row">
 
             <!-- Labels de hora (sticky left) -->
